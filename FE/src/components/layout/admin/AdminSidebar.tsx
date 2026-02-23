@@ -1,16 +1,19 @@
 import React from 'react';
 import { logout } from '../../../store/auth.slice';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom'; // Thêm Link và useLocation
 import { useDispatch } from 'react-redux';
+import { AppDispatch } from '../../../store';
 
 const Sidebar: React.FC = () => {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
+  const location = useLocation(); // Dùng để kiểm tra trang nào đang active
 
   const handleLogout = () => {
     dispatch(logout());
     navigate('/login', { replace: true });
   };
+
   return (
     <aside className="w-64 flex flex-col bg-white border-r border-[#f4f0f2] shrink-0">
       <div className="p-6 flex flex-col gap-8 h-full">
@@ -21,53 +24,79 @@ const Sidebar: React.FC = () => {
           </div>
           <div className="flex flex-col">
             <h1 className="text-base font-bold leading-none">JQuiz Admin</h1>
-            <p className="text-[#886373] text-xs font-normal">Management Console</p>
+            <p className="text-[#886373] text-xs font-normal">Bảng điều khiển</p>
           </div>
         </div>
 
-        {/* Nav Links */}
+        {/* Điều hướng - Nav Links */}
         <nav className="flex flex-col gap-1 flex-1">
-          <NavItem icon="dashboard" label="Overview" active />
-          <NavItem icon="layers" label="Content" />
-          <NavItem icon="quiz" label="Questions" />
-          <NavItem icon="assignment" label="Exams" />
-          <NavItem icon="group" label="Users" />
+          {/* Dẫn link về /admin/dashboard */}
+          <NavItem 
+            to="/admin/dashboard" 
+            icon="dashboard" 
+            label="Tổng quan" 
+            active={location.pathname === '/admin/dashboard'} 
+          />
+          
+          <NavItem icon="layers" label="Nội dung" />
+          <NavItem icon="quiz" label="Câu hỏi" />
+          <NavItem icon="assignment" label="Kỳ thi" />
+
+          {/* DẪN LINK VÀO ĐÂY: Quản lý người dùng */}
+          <NavItem 
+            to="/admin/learners" 
+            icon="group" 
+            label="Người dùng" 
+            active={location.pathname === '/admin/learners'} 
+          />
+
           <div className="my-4 border-t border-[#f4f0f2]"></div>
-          <NavItem icon="neurology" label="AI Settings" />
+          <NavItem icon="neurology" label="Cài đặt AI" />
         </nav>
 
-        {/* User Info Footer */}
-        <div className="mt-auto pt-6">
-          <div className="bg-[#f4f0f2] p-4 rounded-xl flex items-center gap-3">
-            <div className="size-9 rounded-full bg-cover bg-center border-2 border-primary" style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuA5nAyQn9mpm0lCW02L0BhmFDjM6W3k8Mj-4D7EdVTqoCHeIyPskZJlHJ6GjGozV3S_JKG4wPNLvz_QExnSfgRch1QzyK11X0bXJnwrJ8jYFz0QVsz61ODktkRQCGVCMQK4uS2QbpQV3pubpHIh-p7r4Vfoh7ykrFdREnIRKp3wbzAuKDo5py6Xt3n-dhI-bisVKraU3IZA9Cy-wfenj5aS3VmP_Viz86p68BufHpb6qcliDjcCcFulQQ1r8Ep4KLuIE06NbhEwvKDx')" }}></div>
+        {/* Thông tin User */}
+        <div className="mt-auto">
+          <div className="bg-[#f4f0f2] p-4 rounded-xl flex items-center gap-3 mb-4">
+            <div className="size-9 rounded-full bg-slate-300 flex items-center justify-center font-bold text-primary border-2 border-primary">
+              A
+            </div>
             <div className="flex-1 overflow-hidden">
-              <p className="text-xs font-bold truncate">Administrator</p>
-              <p className="text-[10px] text-[#886373] truncate">system@jquiz.ai</p>
+              <p className="text-xs font-bold truncate">Quản trị viên</p>
+              <p className="text-[10px] text-[#886373] truncate">admin@jquiz.vn</p>
             </div>
           </div>
+
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 w-full transition-colors"
+          >
+            <span className="material-symbols-outlined">logout</span>
+            <span className="text-sm font-medium">Đăng xuất</span>
+          </button>
         </div>
       </div>
-
-       {/* Logout Button */}
-      <div className="mt-auto pt-6">
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 w-full"
-        >
-          <span className="material-symbols-outlined">logout</span>
-          <span className="text-sm font-medium">Đăng xuất</span>
-        </button>
-      </div>
-
     </aside>
   );
 };
 
-const NavItem = ({ icon, label, active = false }: { icon: string, label: string, active?: boolean }) => (
-  <a className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${active ? 'bg-primary/10 text-primary' : 'text-[#886373] hover:bg-[#f4f0f2]'}`} href="#">
-    <span className="material-symbols-outlined" style={active ? { fontVariationSettings: "'FILL' 1" } : {}}>{icon}</span>
+// Component con NavItem được nâng cấp để dùng Link
+const NavItem = ({ to = "#", icon, label, active = false }: { to?: string, icon: string, label: string, active?: boolean }) => (
+  <Link 
+    to={to} 
+    className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${
+      active 
+      ? 'bg-primary/10 text-primary' 
+      : 'text-[#886373] hover:bg-[#f4f0f2]'
+    }`}
+  >
+    <span 
+      className="material-symbols-outlined" 
+      style={active ? { fontVariationSettings: "'FILL' 1" } : {}}
+    >
+      {icon}
+    </span>
     <span className="text-sm font-medium">{label}</span>
-  </a>
+  </Link>
 );
 
 export default Sidebar;

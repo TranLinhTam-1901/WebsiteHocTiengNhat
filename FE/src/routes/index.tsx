@@ -23,7 +23,7 @@ export default function AppRouter() {
   {
     path: '/admin',
     element: <PrivateRoute role="admin" />,
-    children: adminRoutes.children,
+    children: adminRoutes,
   },
   {
     path: "/unauthorized",

@@ -125,11 +125,13 @@ const Login: React.FC = () => {
               <label htmlFor="remember" className="text-sm text-[#181114] cursor-pointer">Remember me for 30 days</label>
             </div>
 
-            {error && (
-              <p className="text-red-600 text-sm text-center">
-                {String(error)}
+           {error && (
+            <div className="bg-red-50 border border-red-100 p-3 rounded-lg mb-4">
+              <p className="text-red-600 text-sm text-center font-medium">
+                {error}
               </p>
-            )}
+            </div>
+          )}
 
             <button 
               className="w-full rounded-lg h-14 bg-primary text-white font-bold hover:bg-[#e07198] transition-all shadow-lg shadow-primary/20 disabled:opacity-60"
