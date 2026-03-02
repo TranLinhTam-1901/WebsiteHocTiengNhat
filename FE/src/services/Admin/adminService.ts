@@ -1,5 +1,5 @@
-import axiosInstance from "../utils/axiosInstance";
-import { User, UpdateRoleRequest } from "../interfaces/User";
+import axiosInstance from "../../utils/axiosInstance";
+import { User, UpdateRoleRequest } from "../../interfaces/User";
 
 const adminService = {
   // Lấy danh sách toàn bộ người dùng
