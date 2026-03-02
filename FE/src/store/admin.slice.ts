@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import adminService from '../services/adminService'; // Giả sử bạn đã tạo file service này
+import adminService from '../services//Admin/adminService'; // Giả sử bạn đã tạo file service này
 import { User } from '../interfaces/User';
 
 // 1. Thunk: Lấy danh sách người dùng

@@ -32,7 +32,7 @@ const AdminLayout: React.FC = () => {
         </header>
 
         {/* Scrollable Content Area */}
-        <div className="flex-1 overflow-y-auto p-8 animate-in fade-in duration-500">
+        <div className="flex-1 overflow-y-auto p-0 animate-in fade-in duration-500">
           <Outlet /> {/* Router sẽ tự đổ nội dung DashboardIndex vào đây */}
         </div>
       </main>
