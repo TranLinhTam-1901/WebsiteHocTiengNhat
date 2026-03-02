@@ -49,7 +49,12 @@ const Sidebar: React.FC = () => {
             label="Người dùng" 
             active={location.pathname === '/admin/learners'} 
           />
-
+          <NavItem 
+            to="/admin/question-bank/create" 
+            icon="add_box" // Hoặc dùng icon "quiz" tùy bạn
+            label="Tạo câu hỏi" 
+            active={location.pathname === '/admin/question-bank/create'} 
+          />
           <div className="my-4 border-t border-[#f4f0f2]"></div>
           <NavItem icon="neurology" label="Cài đặt AI" />
         </nav>

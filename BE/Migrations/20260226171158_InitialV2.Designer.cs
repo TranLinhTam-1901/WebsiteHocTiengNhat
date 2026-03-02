@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using QuizzTiengNhat.Models;
@@ -11,9 +12,11 @@ using QuizzTiengNhat.Models;
 namespace QuizzTiengNhat.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260226171158_InitialV2")]
+    partial class InitialV2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -152,29 +155,6 @@ namespace QuizzTiengNhat.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
-                });
-
-            modelBuilder.Entity("QuizzTiengNhat.Models.Answers", b =>
-                {
-                    b.Property<Guid>("AnswerID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("AnswerText")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<bool>("IsCorrect")
-                        .HasColumnType("boolean");
-
-                    b.Property<Guid>("QuestionID")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("AnswerID");
-
-                    b.HasIndex("QuestionID");
-
-                    b.ToTable("Answers");
                 });
 
             modelBuilder.Entity("QuizzTiengNhat.Models.ApplicationUser", b =>
@@ -538,9 +518,6 @@ namespace QuizzTiengNhat.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid?>("SourceID")
-                        .HasColumnType("uuid");
-
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("text");
@@ -711,17 +688,6 @@ namespace QuizzTiengNhat.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("QuizzTiengNhat.Models.Answers", b =>
-                {
-                    b.HasOne("QuizzTiengNhat.Models.Questions", "Question")
-                        .WithMany("Answers")
-                        .HasForeignKey("QuestionID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Question");
                 });
 
             modelBuilder.Entity("QuizzTiengNhat.Models.ApplicationUser", b =>
@@ -958,8 +924,6 @@ namespace QuizzTiengNhat.Migrations
 
             modelBuilder.Entity("QuizzTiengNhat.Models.Questions", b =>
                 {
-                    b.Navigation("Answers");
-
                     b.Navigation("QuestionTopics");
 
                     b.Navigation("SubQuestions");
