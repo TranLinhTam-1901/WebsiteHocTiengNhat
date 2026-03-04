@@ -51,7 +51,7 @@ export interface Topics {
 }
 
 export interface LessonLookupDTO {
-    lessonsID: string;
+    lessonID: string;
     title: string;
     levelValue: string; 
     levelName: string;  
