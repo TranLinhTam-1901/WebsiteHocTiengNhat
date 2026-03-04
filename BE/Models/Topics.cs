@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 namespace QuizzTiengNhat.Models
 {
-    public class Topic
+    public class Topics
     {
         [Key]
         public Guid TopicID { get; set; } = Guid.NewGuid();
