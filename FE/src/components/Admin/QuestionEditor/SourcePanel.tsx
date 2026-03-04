@@ -61,7 +61,7 @@ const SourcePanel: React.FC<Props> = ({ onPick, onLessonChange, currentLessonId 
     useEffect(() => {
     //kiểm tra xem bài học hiện tại có nằm trong danh sách bài học của Level mới không
     const isCurrentLessonInLevel = lessons.some(
-        l => l.lessonsID === currentLessonId && l.levelName === selectedLevel
+        l => l.lessonID === currentLessonId && l.levelName === selectedLevel
     );
 
     if (!isCurrentLessonInLevel && selectedLevel !== "") {
@@ -71,7 +71,7 @@ const SourcePanel: React.FC<Props> = ({ onPick, onLessonChange, currentLessonId 
 }, [selectedLevel]);
     // 3. Hàm xử lý khi thay đổi bài học
     const handleSelectLesson = (id: string) => {
-        const lesson = lessons.find(l => l.lessonsID === id);
+        const lesson = lessons.find(l => l.lessonID === id);
         onLessonChange(id, lesson?.levelName || "");
     };
 
@@ -102,7 +102,7 @@ const SourcePanel: React.FC<Props> = ({ onPick, onLessonChange, currentLessonId 
                             <option value="">Bài học</option>
                             {lessons
                                 .filter(l => !selectedLevel || l.levelName === selectedLevel)
-                                .map(l => <option key={l.lessonsID} value={l.lessonsID}>{l.title}</option>)
+                                .map(l => <option key={l.lessonID} value={l.lessonID}>{l.title}</option>)
                             }
                         </select>
 

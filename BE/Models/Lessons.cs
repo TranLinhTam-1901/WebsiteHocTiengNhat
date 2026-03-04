@@ -5,7 +5,7 @@ namespace QuizzTiengNhat.Models
     public class Lessons
     {
         [Key]
-        public Guid LessonsID { get; set; }
+        public Guid LessonID { get; set; }
         
         public Guid CourseID { get; set; }
         public string Title { get; set; }

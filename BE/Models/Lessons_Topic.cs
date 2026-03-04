@@ -12,6 +12,6 @@ namespace QuizzTiengNhat.Models
             // Con thứ hai: Trỏ về Topic
             public Guid TopicID { get; set; }
             [ForeignKey("TopicID")]
-            public virtual Topic Topic { get; set; } // Kiểu "1"
+            public virtual Topics Topic { get; set; } // Kiểu "1"
         }
 }

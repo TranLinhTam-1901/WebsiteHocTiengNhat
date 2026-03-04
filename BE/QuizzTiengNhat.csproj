@@ -7,6 +7,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Controllers\AdminController\**" />
+    <Compile Remove="Controllers\LearnerController\**" />
+    <Content Remove="Controllers\AdminController\**" />
+    <Content Remove="Controllers\LearnerController\**" />
+    <EmbeddedResource Remove="Controllers\AdminController\**" />
+    <EmbeddedResource Remove="Controllers\LearnerController\**" />
+    <None Remove="Controllers\AdminController\**" />
+    <None Remove="Controllers\LearnerController\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.12" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.12" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.9" />
@@ -17,11 +28,6 @@
     </PackageReference>
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.15.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Controllers\AdminController\" />
-    <Folder Include="Controllers\LearnerController\" />
   </ItemGroup>
 
 </Project>

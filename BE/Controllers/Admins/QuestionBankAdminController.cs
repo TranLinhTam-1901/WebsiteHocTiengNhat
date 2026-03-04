@@ -137,7 +137,7 @@ namespace QuizzTiengNhat.Controllers.Admins
         {
             var lessons = await _context.Lessons
                 .Select(l => new { 
-                    l.LessonsID, 
+                    l.LessonID, 
                     l.Title, 
                     LevelValue = l.Course.Level.LevelID, 
                     LevelName = l.Course.Level.LevelName
