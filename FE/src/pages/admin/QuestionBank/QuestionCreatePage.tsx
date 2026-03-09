@@ -8,9 +8,9 @@ import { QUESTION_TYPE_OPTIONS, DIFFICULTY_OPTIONS, QUESTION_TYPE_LABELS } from 
 
 const QuestionCreatePage: React.FC = () => {
     // --- 1. HOOKS (Luôn để trên cùng) ---
-    const { lessonId } = useParams<{ lessonId: string }>();
+    const { id, lessonId } = useParams<{ id?: string; lessonId: string }>();
     const navigate = useNavigate();
-    
+    const isEditMode = !!id;
 
     // --- 2. STATE ---
     const [formData, setFormData] = useState<CreateQuestionDTO>({
@@ -26,9 +26,46 @@ const QuestionCreatePage: React.FC = () => {
             { answerText: '', isCorrect: false }
         ],
         sourceID: null,
-        audioURL: '',
-        mediaTimestamp: 0
+
+        // audioURL: '',
+        // mediaTimestamp: 0
     });
+
+    useEffect(() => {
+    const loadQuestionData = async () => {
+        if (isEditMode && id) {
+            try {
+                const data = await QuestionService.getQuestionDetail(id);
+                
+                // Đổ dữ liệu vào form, chỉ giữ lại các trường bạn liệt kê
+                setFormData({
+                    lessonID: data.lessonID || '',
+                    content: data.content || '',
+                    questionType: data.questionType,
+                    difficulty: data.difficulty,
+                    explanation: data.explanation || '',
+                    equivalentID: data.equivalentID || null,
+                    sourceID: data.sourceID || null,
+                    status: data.status,
+                    // mediaTimestamp: data.mediaTimestamp || 0,
+                    // Map lại từ bảng trung gian QuestionTopics của Backend
+                    topicIds: (data as any).questionTopics 
+                        ? (data as any).questionTopics.map((qt: any) => qt.topicID) 
+                        : (data.topicIds || []),                   // Giữ nguyên mảng answers (bao gồm cả AnswerID để Backend biết là update)
+                    answers: data.answers || []
+                });
+
+                if (data.equivalentID) {
+                    setSelectedEquivalentContent(data.equivalentID);
+                }
+            } catch (error) {
+                console.error("Lỗi khi tải chi tiết câu hỏi:", error);
+            }
+        }
+    };
+    loadQuestionData();
+}, [id, isEditMode]);
+
     const [topics, setTopicsLookup] = useState<Topics[]>([]);
     const handleAddTag = (id: string) => { if(!formData.topicIds.includes(id)) setFormData({...formData, topicIds: [...formData.topicIds, id]}) };
     const handleRemoveTag = (id: string) => { setFormData({...formData, topicIds: formData.topicIds.filter(x => x !== id)}) };
@@ -48,9 +85,11 @@ const QuestionCreatePage: React.FC = () => {
     // --- 4. HANDLERS (Logic xử lý) ---
     const handlePickSource = (item: SourceMaterial, type: string) => {
         let autoContent = '';
+        let autoExplanation = item.meaning || '';
         let autoAnswers: AnswerDTO[] = [];
 
         switch (type) {
+
             case 'Vocabulary':
                 autoContent = `Chọn nghĩa đúng của từ: ${item.word}`;
                 autoAnswers = [
@@ -61,15 +100,30 @@ const QuestionCreatePage: React.FC = () => {
                 break;
             case 'Kanji':
                 autoContent = `Cách đọc Onyomi của chữ Hán "${item.character}" là gì?`;
+                 autoAnswers = [
+                { answerText: item.onyomi || '', isCorrect: true },
+                { answerText: 'Đáp án sai 1', isCorrect: false },
+                { answerText: 'Đáp án sai 2', isCorrect: false },
+            ];
                 break;
+
+            case 'Grammar': 
+            autoContent = `Hoàn thành cấu trúc ngữ pháp: ${item.structure || 'N/A'}`;
+            autoAnswers = [
+                { answerText: item.meaning || '', isCorrect: true },
+                { answerText: 'Đáp án sai 1', isCorrect: false },
+                { answerText: 'Đáp án sai 2', isCorrect: false },
+            ];
+            break;
         }
 
         setFormData(prev => ({
             ...prev,
             content: autoContent,
+            explanation: autoExplanation,
             sourceID: item.id,
-            audioURL: item.audioURL || '',
-            mediaTimestamp: (item as any).mediaTimestamp || 0,
+            // audioURL: item.audioURL || '',
+            // mediaTimestamp: (item as any).mediaTimestamp || 0,
             answers: autoAnswers.length > 0 ? autoAnswers : prev.answers,
             topicIds: item.topicID ? [item.topicID] : prev.topicIds
         }));
@@ -97,14 +151,23 @@ const QuestionCreatePage: React.FC = () => {
 
     try {
         // Gộp status trực tiếp vào payload để gửi đi
-        const payload = { ...formData, status,mediaTimestamp: String(formData.mediaTimestamp || "0") }as any;;
+        const payload = { ...formData, status } as any;;
         
-        await QuestionService.createQuestion(payload);
-        
-        const message = status === QuestionStatus.Draft 
-            ? "✨ Đã lưu bản nháp thành công!" 
-            : "🚀 Đã tạo câu hỏi chính thức thành công!";
-        
+       
+        let message = "";
+      // 4. KIỂM TRA ĐIỀU KIỆN EDIT HAY CREATE
+        if (isEditMode && id) {
+            await QuestionService.updateQuestion(id, payload);
+            message = status === QuestionStatus.Draft 
+                ? "✨ Đã cập nhật bản nháp thành công!" 
+                : "🚀 Đã cập nhật câu hỏi thành công!";
+        } else {
+            await QuestionService.createQuestion(payload);
+            message = status === QuestionStatus.Draft 
+                ? "✨ Đã lưu bản nháp thành công!" 
+                : "🚀 Đã tạo câu hỏi chính thức thành công!";
+        }
+
         alert(message);
         navigate(-1);
     } catch (error: any) {
@@ -121,163 +184,133 @@ const QuestionCreatePage: React.FC = () => {
 
   
 
-// Câu hỏi tương đương
-    // --- STATE CHO CÂU HỎI TƯƠNG ĐƯƠNG ---
-const [searchTerm, setSearchTerm] = useState('');
-const [suggestions, setSuggestions] = useState<any[]>([]); // Khởi tạo là mảng rỗng
-const [isSearching, setIsSearching] = useState(false);
-const [selectedEquivalentContent, setSelectedEquivalentContent] = useState<string | null>(null);
+    // Câu hỏi tương đương
+        // --- STATE CHO CÂU HỎI TƯƠNG ĐƯƠNG ---
+    const [searchTerm, setSearchTerm] = useState('');
+    const [suggestions, setSuggestions] = useState<any[]>([]); // Khởi tạo là mảng rỗng
+    const [isSearching, setIsSearching] = useState(false);
+    const [selectedEquivalentContent, setSelectedEquivalentContent] = useState<string | null>(null);
 
-// --- LOGIC SEARCH VỚI DEBOUNCE ---
-useEffect(() => {
-    // Nếu ô nhập trống thì xóa gợi ý ngay
-    if (!searchTerm.trim()) {
-        setSuggestions([]);
-        return;
-    }
-
-    const delayDebounceFn = setTimeout(async () => {
-        setIsSearching(true);
-        try {
-            const data = await QuestionService.searchEquivalent(searchTerm);
-            // Đảm bảo data luôn là mảng để không bị lỗi .map()
-            setSuggestions(Array.isArray(data) ? data : []);
-        } catch (error) {
-            console.error("Lỗi API Search:", error);
+    // --- LOGIC SEARCH VỚI DEBOUNCE ---
+    useEffect(() => {
+        // Nếu ô nhập trống thì xóa gợi ý ngay
+        if (!searchTerm.trim()) {
             setSuggestions([]);
-        } finally {
-            setIsSearching(false);
+            return;
         }
-    }, 600); // Đợi người dùng ngừng gõ 0.6s
 
-    return () => clearTimeout(delayDebounceFn);
-}, [searchTerm]);
+        const delayDebounceFn = setTimeout(async () => {
+            setIsSearching(true);
+            try {
+                const data = await QuestionService.searchEquivalent(searchTerm);
+                // Đảm bảo data luôn là mảng để không bị lỗi .map()
+                setSuggestions(Array.isArray(data) ? data : []);
+            } catch (error) {
+                console.error("Lỗi API Search:", error);
+                setSuggestions([]);
+            } finally {
+                setIsSearching(false);
+            }
+        }, 600); // Đợi người dùng ngừng gõ 0.6s
 
-const handleSelectEquivalent = (q: any) => {
-    setFormData({ ...formData, equivalentID: q.questionID});
-    setSelectedEquivalentContent(q.content); // Lưu lại nội dung để hiển thị cho Admin xem
-    setSuggestions([]);
-    setSearchTerm('');
-};
+        return () => clearTimeout(delayDebounceFn);
+    }, [searchTerm]);
+
+    const handleSelectEquivalent = (q: any) => {
+        setFormData({ ...formData, equivalentID: q.questionID});
+        setSelectedEquivalentContent(q.content); // Lưu lại nội dung để hiển thị cho Admin xem
+        setSuggestions([]);
+        setSearchTerm('');
+    };
 
 
     return (
-    <div style={{ 
-        display: 'flex', 
-        height: '100vh', 
-        width: '100%', 
-        backgroundColor: '#F4F7FE', 
-        overflow: 'hidden' 
-    }}>
+    <div className="flex h-full min-w-[380px] overflow-hidden bg-[#F4F7FE]">
         
         {/* CỘT 1: MATERIAL LIBRARY - Tăng nhẹ width để thoải mái hơn */}
-        <div style={{ 
-            width: '380px',
-            minWidth: '380px', 
-            borderRight: '1px solid #E8E8E8', 
-            backgroundColor: '#FFF', 
-            display: 'flex', 
-            flexDirection: 'column',
-            height: '100%',
-            boxShadow: '4px 0 10px rgba(0,0,0,0.03)'
-        }}>
-            <div style={{ padding: '24px 15px', flexShrink: 0 }}>
-                <h3 style={{ margin: '0 0 15px 0', fontSize: '18px', color: '#2D3748' }}>
-                    <span style={{ marginRight: '8px' }}>📕</span> Material Library
+        <div className="flex h-full w-[380px] min-w-[380px] flex-col overflow-hidden border-r border-[#E8E8E8] bg-white shadow-[4px_0_10px_rgba(0,0,0,0.03)]">
+            <div className="flex flex-1 flex-col min-h-0 px-[15px] pb-[10px] pt-[24px]">
+                <h3 className="mb-[15px] shrink-0 text-lg font-bold text-[#2D3748]">
+                    <span className="mr-2">📕</span> Thư viện tài liệu
                 </h3>
-                {/* SourcePanel bây giờ tự lo phần Select bài học & Level */}
-                <SourcePanel 
-                    currentLessonId={formData.lessonID}
-                    onPick={handlePickSource} 
-                    onLessonChange={(id, levelName) => {
-                        const matched = DIFFICULTY_OPTIONS.find(opt => opt.label === levelName);
-                        setFormData(prev => ({
-                            ...prev,
-                            lessonID: id,
-                            difficulty: matched ? matched.value : 1
-                        }));
-                    }}
-                />
+                
+                <div className="flex flex-1 flex-col min-h-0 w-full">
+                    <SourcePanel 
+                        currentLessonId={formData.lessonID}
+                        onPick={handlePickSource} 
+                        onLessonChange={(id, levelName) => {
+                            const matched = DIFFICULTY_OPTIONS.find(opt => opt.label === levelName);
+                            setFormData(prev => ({
+                                ...prev,
+                                lessonID: id,
+                                difficulty: matched ? matched.value : 1
+                            }));
+                        }}
+                    />
+                </div>
             </div>
         </div>
 
-        {/* CỘT 2: QUESTION EDITOR - Nền hồng nhẹ, cuộn độc lập */}
-        <div style={{ 
-            flex: 1, 
-            overflowY: 'auto', // Chỉ cuộn ở đây
-            backgroundColor: '#FFF8F9', // Nền hồng nhẹ theo yêu cầu
-            padding: '40px 20px',
-            scrollbarWidth: 'thin', // Dành cho Firefox để thanh cuộn nhỏ lại
-            msOverflowStyle: 'none'
-        }}>
-            <style>{`
-            div::-webkit-scrollbar { width: 6px; }
-            div::-webkit-scrollbar-thumb { background: #E2E8F0; borderRadius: 10px; }
-        `}</style>
+        {/* CỘT 2: QUESTION EDITOR */}
+        <div className="flex-1 overflow-y-auto bg-[#FFF8F9] px-5 py-10 scrollbar-thin">
+            {/* CSS cho Webkit Scrollbar */}
+            <style dangerouslySetInnerHTML={{__html: `
+                .scrollbar-thin::-webkit-scrollbar { width: 6px; }
+                .scrollbar-thin::-webkit-scrollbar-thumb { background: #E2E8F0; border-radius: 10px; }
+            `}} />
         
-            <div style={{ maxWidth: '850px  ', margin: '0 auto' }}>
+            <div className="mx-auto max-w-[850px]">
                 {/* Thanh thông báo template */}
                 {formData.sourceID && (
-                    <div style={{ background: '#FFF1F3', padding: '12px 20px', borderRadius: '12px', color: '#FF6B81', marginBottom: '25px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid #FFD1D8' }}>                       
-                     <span style={{ fontSize: '14px' }}>✨ Nội dung đã được tự động điền từ phôi.</span>
-                        <button onClick={() => setFormData({...formData, sourceID: null})} style={{ background: 'none', border: 'none', color: '#FF6B81', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Xóa phôi</button>                    
+                    <div className="mb-[25px] flex items-center justify-between rounded-xl border border-[#FFD1D8] bg-[#FFF1F3] px-5 py-3 text-[#FF6B81]">
+                        <span className="text-sm">✨ Nội dung đã được tự động điền từ phôi.</span>
+                        <button 
+                            onClick={() => setFormData({...formData, sourceID: null})} 
+                            className="bg-none text-sm font-bold cursor-pointer border-none"
+                        >
+                            Xóa phôi
+                        </button>
                     </div>
                 )}
                 {/* CHỌN LOẠI CÂU HỎI (QUESTION TYPE) */}
-                <div style={{ marginBottom: '30px' }}>
-                    <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '12px', color: '#4A5568' }}>
-                        Dạng câu hỏi
-                    </label>
-                    <div style={{ display: 'flex', gap: '10px' }}>
+                <div className="mb-[30px]">
+                    <label className="mb-3 block font-bold text-[#4A5568]">Dạng câu hỏi</label>
+                    <div className="flex gap-2.5">
                         {[
                             { value: QuestionType.MultipleChoice, label: 'Chọn từ', icon: '📝' },
                             { value: QuestionType.FillInBlank, label: 'Điền từ', icon: '⌨️' },
                             { value: QuestionType.Ordering, label: 'Sắp xếp câu', icon: '🧩' },
                             { value: QuestionType.Synonym, label: 'Từ đồng nghĩa', icon: '🔄' },
                             { value: QuestionType.Usage, label: 'Cách dùng', icon: '📖' }
-                            
                         ].map((type) => (
                             <button
                                 key={type.value}
                                 type="button"
                                 onClick={() => setFormData({ ...formData, questionType: type.value })}
-                                style={{
-                                    flex: 1,
-                                    padding: '12px',
-                                    borderRadius: '12px',
-                                    border: '2px solid',
-                                    borderColor: formData.questionType === type.value ? '#FF6B81' : '#E2E8F0',
-                                    backgroundColor: formData.questionType === type.value ? '#FFF1F3' : '#FFF',
-                                    color: formData.questionType === type.value ? '#FF6B81' : '#64748B',
-                                    cursor: 'pointer',
-                                    fontWeight: 'bold',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    alignItems: 'center',
-                                    gap: '5px',
-                                    transition: 'all 0.2s'
-                                }}
+                                className={`flex flex-1 flex-col items-center gap-[5px] rounded-xl border-2 p-3 font-bold transition-all cursor-pointer
+                                    ${formData.questionType === type.value 
+                                        ? 'border-[#FF6B81] bg-[#FFF1F3] text-[#FF6B81]' 
+                                        : 'border-[#E2E8F0] bg-white text-[#64748B]'}`}
                             >
-                                <span style={{ fontSize: '20px' }}>{type.icon}</span>
+                                <span className="text-xl">{type.icon}</span>
                                 {type.label}
                             </button>
                         ))}
                     </div>
                 </div>
 
-                <form onSubmit={handleSubmit}>
-                    {/* Rich Text Editor giả lập */}
-                    <div style={{ marginBottom: '25px' }}>
-                        <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '10px', color: '#4A5568' }}>Nội dung câu hỏi (Rich Text)</label>
-                        <div style={{ border: '1px solid #FFD1D8', borderRadius: '12px', backgroundColor: '#fff', overflow: 'hidden' }}>
-                            <div style={{ padding: '10px', borderBottom: '1px solid #F0F0F0', display: 'flex', gap: '15px' }}>
-                                {/* Bạn có thể tích hợp thư viện Quill hoặc CKEditor ở đây */}
-                                <button type="button" style={{ border: 'none', background: 'none', cursor: 'pointer' }}><b>B</b></button>
-                                <button type="button" style={{ border: 'none', background: 'none', cursor: 'pointer' }}><i>I</i></button>
-                                <button type="button" style={{ border: 'none', background: 'none', cursor: 'pointer' }}>🖼️</button>
-                            </div>
+               <form onSubmit={handleSubmit}>
+                    {/* Rich Text Editor */}
+                    <div className="mb-[25px]">
+                        <label className="mb-2.5 block font-bold text-[#4A5568]">Nội dung câu hỏi (Rich Text)</label>
+                        <div className="overflow-hidden rounded-xl border border-[#FFD1D8] bg-white">
+                            {/* <div className="flex gap-[15px] border-b border-[#F0F0F0] p-2.5">
+                                <button type="button" className="cursor-pointer border-none bg-none font-bold">B</button>
+                                <button type="button" className="cursor-pointer border-none bg-none italic">I</button>
+                                <button type="button" className="cursor-pointer border-none bg-none">🖼️</button>
+                            </div> */}
                             <textarea 
-                                style={{ width: '100%', minHeight: '120px', padding: '15px', border: 'none', outline: 'none', fontSize: '16px' }}
+                                className="min-h-[120px] w-full border-none p-[15px] text-lg outline-none"
                                 value={formData.content}
                                 onChange={(e) => setFormData({...formData, content: e.target.value})}
                                 placeholder="Nhập nội dung câu hỏi..."
@@ -285,102 +318,42 @@ const handleSelectEquivalent = (q: any) => {
                         </div>
                     </div>
 
-                    {/* Cấu trúc hiển thị Topic Tags mới */}
-                   <div className="tag-management">                  
-                    <div style={{ marginBottom: '25px' }}>
-                        <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '10px', color: '#4A5568' }}>
-                            🏷️ Chủ đề (Topic Tags)
-                        </label>
-                        
-                        <div style={{ 
-                            background: '#FFF', 
-                            border: '1px solid #FFD1D8', 
-                            borderRadius: '12px', 
-                            padding: '15px',
-                            minHeight: '60px'
-                        }}>
-                            {/* 1. Khu vực các nhãn đã chọn (Active Tags) */}
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: formData.topicIds.length > 0 ? '15px' : '0' }}>
+                    {/* Topic Tags */}
+                    <div className="mb-[25px]">
+                        <label className="mb-2.5 block font-bold text-[#4A5568]">🏷️ Chủ đề (Topic Tags)</label>
+                        <div className="min-h-[60px] rounded-xl border border-[#FFD1D8] bg-white p-[15px]">
+                            <div className={`flex flex-wrap gap-2 ${formData.topicIds.length > 0 ? 'mb-[15px]' : ''}`}>
                                 {formData.topicIds.length === 0 && (
-                                    <span style={{ color: '#A0AEC0', fontSize: '14px', fontStyle: 'italic' }}>Chưa chọn chủ đề nào...</span>
+                                    <span className="text-sm italic text-[#A0AEC0]">Chưa chọn chủ đề nào...</span>
                                 )}
                                 {formData.topicIds.map(id => {
                                     const topic = topics.find(t => t.topicID === id);
                                     return (
-                                        <span key={id} style={{ 
-                                            background: '#FF6B81', 
-                                            color: '#FFF', 
-                                            padding: '6px 12px', 
-                                            borderRadius: '20px', 
-                                            fontSize: '13px',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '6px',
-                                            fontWeight: '500',
-                                            boxShadow: '0 2px 4px rgba(255, 107, 129, 0.2)'
-                                        }}>
+                                        <span key={id} className="flex items-center gap-1.5 rounded-[20px] bg-[#FF6B81] px-3 py-1.5 text-[13px] font-medium text-white shadow-[0_2px_4px_rgba(255,107,129,0.2)]">
                                             {topic ? topic.topicName : "..."}
                                             <button 
                                                 type="button"
                                                 onClick={() => handleRemoveTag(id)} 
-                                                style={{ 
-                                                    border: 'none', 
-                                                    background: 'rgba(255,255,255,0.2)', 
-                                                    color: '#FFF', 
-                                                    cursor: 'pointer',
-                                                    borderRadius: '50%',
-                                                    width: '18px',
-                                                    height: '18px',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    fontSize: '14px'
-                                                }}
-                                            >
-                                                ×
-                                            </button>
+                                                className="flex h-[18px] w-[18px] items-center justify-center rounded-full bg-white/20 text-sm text-white cursor-pointer border-none"
+                                            >×</button>
                                         </span>
                                     );
                                 })}
                             </div>
 
-                            {/* Ngăn cách nhẹ */}
-                            {formData.topicIds.length > 0 && <hr style={{ border: 'none', borderTop: '1px solid #FFF1F3', margin: '10px 0' }} />}
+                            {formData.topicIds.length > 0 && <hr className="my-2.5 border-none border-t border-[#FFF1F3]" />}
 
-                            {/* 2. Khu vực Gợi ý (Topic Bank) */}
-                            <div style={{ marginTop: '10px' }}>
-                                <p style={{ fontSize: '12px', color: '#718096', marginBottom: '8px', fontWeight: '500' }}>
-                                    Gợi ý chủ đề:
-                                </p>
-                                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                            <div className="mt-2.5">
+                                <p className="mb-2 text-[12px] font-medium text-[#718096]">Gợi ý chủ đề:</p>
+                                <div className="flex flex-wrap gap-2">
                                     {topics
-                                        .filter(t => !formData.topicIds.includes(t.topicID)) // Chỉ hiện những cái chưa chọn
+                                        .filter(t => !formData.topicIds.includes(t.topicID))
                                         .map(t => (
                                             <button 
                                                 key={t.topicID} 
                                                 type="button"
                                                 onClick={() => handleAddTag(t.topicID)}
-                                                style={{ 
-                                                    border: '1px dashed #FFD1D8', 
-                                                    background: '#FFF8F9', 
-                                                    color: '#FF6B81',
-                                                    padding: '5px 12px',
-                                                    borderRadius: '20px', 
-                                                    cursor: 'pointer',
-                                                    fontSize: '12px',
-                                                    transition: 'all 0.2s',
-                                                    fontWeight: '500'
-                                                }}
-                                                onMouseOver={(e) => {
-                                                    e.currentTarget.style.background = '#FF6B81';
-                                                    e.currentTarget.style.color = '#FFF';
-                                                    e.currentTarget.style.borderStyle = 'solid';
-                                                }}
-                                                onMouseOut={(e) => {
-                                                    e.currentTarget.style.background = '#FFF8F9';
-                                                    e.currentTarget.style.color = '#FF6B81';
-                                                    e.currentTarget.style.borderStyle = 'dashed';
-                                                }}
+                                                className="rounded-[20px] border border-dashed border-[#FFD1D8] bg-[#FFF8F9] px-3 py-[5px] text-[12px] font-medium text-[#FF6B81] transition-all hover:border-solid hover:bg-[#FF6B81] hover:text-white cursor-pointer"
                                             >
                                                 + {t.topicName}
                                             </button>
@@ -389,108 +362,90 @@ const handleSelectEquivalent = (q: any) => {
                             </div>
                         </div>
                     </div>
-                    
-            
-                </div>
 
-                    <div style={{ display: 'flex', gap: '20px', marginBottom: '30px' }}>
-                        <div style={{ flex: 1 }}>
-                            <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>
-                                Độ khó: <span style={{color:'#FF6B81'}}>{DIFFICULTY_OPTIONS.find(opt => opt.value === formData.difficulty)?.label || 'N5'}</span></label>
-                            <div style={{ display: 'flex', gap: '5px', fontSize: '24px', color: '#FF6B81' }}>
+                    {/* EXPLANATION (Lời giải chi tiết) */}
+                    <div className="mb-[25px]">
+                        <label className="mb-2.5 block font-bold text-[#4A5568]">
+                            💡 Lời giải chi tiết (Explanation)
+                        </label>
+                        <div className="overflow-hidden rounded-xl border border-[#FFD1D8] bg-white transition-all focus-within:border-[#FF6B81] focus-within:shadow-[0_0_0_1px_#FF6B81]">
+                            <textarea 
+                                className="min-h-[100px] w-full border-none p-[15px] text-base outline-none placeholder:text-[#A0AEC0]"
+                                value={formData.explanation} // Đảm bảo đã khai báo explanation trong state formData
+                                onChange={(e) => setFormData({...formData, explanation: e.target.value})}
+                                placeholder="Giải thích tại sao đáp án này đúng hoặc cung cấp thêm kiến thức mở rộng..."
+                            />
+                            {/* Thanh trạng thái nhỏ dưới ô textarea */}
+                            <div className="bg-[#FFF8F9] px-4 py-2 text-[11px] text-[#FF6B81] border-t border-[#FFF1F3]">
+                                {formData.sourceID ? "✓ Đã tự động lấy nội dung từ Meaning của phôi." : "Ý tưởng: Giải thích cấu trúc ngữ pháp hoặc từ vựng này."}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div className="mb-[30px] flex gap-5">
+                        {/* Độ khó */}
+                        <div className="flex-1">
+                            <label className="mb-2 block font-bold">
+                                Độ khó: <span className="text-[#FF6B81]">{DIFFICULTY_OPTIONS.find(opt => opt.value === formData.difficulty)?.label || 'N5'}</span>
+                            </label>
+                            <div className="flex gap-[5px] text-2xl text-[#FF6B81]">
                                 {[1,2,3].map(s => (
-                                    <span key={s} onClick={() => setFormData({...formData, difficulty: s})} style={{ cursor: 'pointer' }}>{s <= formData.difficulty ? '★' : '☆'}</span>
+                                    <span key={s} onClick={() => setFormData({...formData, difficulty: s})} className="cursor-pointer">
+                                        {s <= formData.difficulty ? '★' : '☆'}
+                                    </span>
                                 ))}
                             </div>
                         </div>
 
-                       {/* Câu hỏi tương đương */}
-                       <div style={{ flex: 1, position: 'relative' }}>
-                            <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '8px', color: '#4A5568' }}>
-                                🔗 Câu hỏi tương đương {isSearching && <span style={{ fontSize: '12px', color: '#FF6B81' }}>(Đang tìm...)</span>}
+                        {/* Câu hỏi tương đương */}
+                        <div className="relative flex-1">
+                            <label className="mb-2 block font-bold text-[#4A5568]">
+                                🔗 Câu hỏi tương đương {isSearching && <span className="text-xs text-[#FF6B81]">(Đang tìm...)</span>}
                             </label>
                             
-                            {/* Khu vực hiển thị kết quả đã chọn */}
                             {formData.equivalentID ? (
-                                <div style={{ 
-                                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                                    padding: '10px', background: '#F0FFF4', border: '1px solid #C6F6D5', borderRadius: '8px' 
-                                }}>
-                                    <span style={{ fontSize: '13px', color: '#2F855A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                <div className="flex items-center justify-between rounded-lg border border-[#C6F6D5] bg-[#F0FFF4] p-2.5">
+                                    <span className="overflow-hidden text-ellipsis whitespace-nowrap text-[13px] text-[#2F855A]">
                                         ✅ Đã liên kết: {selectedEquivalentContent}
                                     </span>
                                     <button 
                                         type="button"
                                         onClick={() => { setFormData({...formData, equivalentID: null}); setSelectedEquivalentContent(null); }}
-                                        style={{ background: 'none', border: 'none', color: '#E53E3E', cursor: 'pointer', fontWeight: 'bold' }}
+                                        className="font-bold text-[#E53E3E] bg-none border-none cursor-pointer"
                                     >✕</button>
                                 </div>
                             ) : (
-                                /* Ô input tìm kiếm */
                                 <input 
-                                    style={{ width: '100%', padding: '10px', border: '1px solid #DDD', borderRadius: '8px', fontSize: '14px' }} 
+                                    className="w-full rounded-lg border border-[#DDD] p-2.5 text-sm outline-none focus:border-[#FF6B81]" 
                                     placeholder="Tìm theo nội dung câu hỏi đã có..." 
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                 />
                             )}
 
-                            {/* Dropdown gợi ý */}
+                            {/* Suggestions Dropdown */}
                             {suggestions.length > 0 && (
-                                <div style={{ 
-                                    position: 'absolute', top: '100%', left: 0, right: 0, 
-                                    backgroundColor: '#FFF', border: '1px solid #E2E8F0', borderRadius: '8px',
-                                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', zIndex: 100, marginTop: '4px',
-                                    maxHeight: '200px', overflowY: 'auto'
-                                }}>
-                                    {suggestions.map((item: any) => (
-    <div 
-        key={item.questionID} 
-        onClick={() => handleSelectEquivalent(item)}
-        style={{ 
-            padding: '12px 15px', 
-            cursor: 'pointer', 
-            borderBottom: '1px solid #F1F5F9',
-            transition: 'all 0.2s'
-        }}
-        onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#FFF5F7'}
-        onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#fff'}
-    >
-        {/* Hàng 1: Loại câu hỏi và Badge trạng thái */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-            <span style={{ 
-                fontSize: '11px', 
-                fontWeight: 'bold', 
-                textTransform: 'uppercase',
-                color: '#FF6B81',
-                backgroundColor: '#FFF1F3',
-                padding: '2px 6px',
-                borderRadius: '4px'
-            }}>
-                {QUESTION_TYPE_LABELS[item.questionType as QuestionType] || "N/A"}
-            </span>
-            <span style={{ fontSize: '11px', color: '#94A3B8' }}>#...{item.questionID.slice(-6)}</span>
-        </div>
-
-        {/* Hàng 2: Nội dung câu hỏi chính */}
-        <div style={{ 
-            color: '#1E293B', 
-            fontSize: '14px', 
-            fontWeight: '500',
-            lineHeight: '1.4',
-            display: '-webkit-box',
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden'
-        }}>
-            {item.content}
-        </div>
-    </div>
-))}
+                                <div className="absolute left-0 right-0 top-full z-[100] mt-1 max-h-[200px] overflow-y-auto rounded-lg border border-[#E2E8F0] bg-white shadow-lg">
+                                    {suggestions.map((item) => (
+                                        <div 
+                                            key={item.questionID} 
+                                            onClick={() => handleSelectEquivalent(item)}
+                                            className="cursor-pointer border-b border-[#F1F5F9] p-[12px_15px] transition-all hover:bg-[#FFF5F7]"
+                                        >
+                                            <div className="mb-1 flex justify-between">
+                                                <span className="rounded-[4px] bg-[#FFF1F3] px-1.5 py-[2px] text-[11px] font-bold uppercase text-[#FF6B81]">
+                                                    {QUESTION_TYPE_LABELS[item.questionType as QuestionType] || "N/A"}
+                                                </span>
+                                                <span className="text-[11px] text-[#94A3B8]">#...{item.questionID.slice(-6)}</span>
+                                            </div>
+                                            <div className="line-clamp-2 text-sm font-medium leading-relaxed text-[#1E293B]">
+                                                {item.content}
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                             )}
                         </div>
-
                     </div>
 
                     <AnswerEditor 
@@ -498,18 +453,33 @@ const handleSelectEquivalent = (q: any) => {
                         setAnswers={(newAns) => setFormData({...formData, answers: newAns})} 
                     />
 
-                    {/* Nút hành động cố định ở cuối form */}
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '15px', marginTop: '40px', paddingBottom: '40px' }}>
+                    {/* Nút hành động */}
+                    <div className="mt-10 flex justify-end gap-[15px] pb-10">
+                    <button 
+                        type="button" 
+                        onClick={() => processSubmit(QuestionStatus.Draft)}
+                        className="cursor-pointer rounded-lg border-none bg-[#E2E8F0] px-[25px] py-3 font-bold hover:bg-[#CBD5E1] transition-all"
+                    >
+                        {/* Biến đổi text dựa trên chế độ Edit */}
+                        {isEditMode ? "Cập nhật bản nháp" : "Lưu nháp"}
+                    </button>
 
-                        <button type="button" onClick={() => processSubmit(QuestionStatus.Draft)}
-                        style={{ padding: '12px 25px', borderRadius: '10px', border: 'none', background: '#E2E8F0', fontWeight: 'bold', cursor: 'pointer' }}>Lưu nháp</button>
-                        <button type="submit" style={{ padding: '12px 40px', borderRadius: '10px', border: 'none', background: '#FF6B81', color: '#fff', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 12px rgba(255, 107, 129, 0.3)' }}>
-                           <span>➤</span> Tạo câu hỏi chính thức
-                        </button>
-
-
-                    </div>
-
+                    <button 
+                        type="submit" 
+                        // Nếu bạn dùng form submit, hãy đảm bảo onSubmit của form gọi processSubmit(QuestionStatus.Active)
+                        // Hoặc dùng onClick trực tiếp như nút trên:
+                        onClick={(e) => {
+                            e.preventDefault(); 
+                            processSubmit(QuestionStatus.Active);
+                        }}
+                        className="cursor-pointer rounded-lg border-none bg-[#FF6B81] px-10 py-3 font-bold text-white shadow-[0_4px_12px_rgba(255,107,129,0.3)] hover:opacity-90 transition-all"
+                    >
+                        <span>{isEditMode ? "✓" : "➤"}</span> 
+                        <span className="ml-2">
+                            {isEditMode ? "Cập nhật câu hỏi" : "Tạo câu hỏi chính thức"}
+                        </span>
+                    </button>
+                </div>
                 </form>
             </div>
         </div>
