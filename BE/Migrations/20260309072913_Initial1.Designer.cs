@@ -12,8 +12,8 @@ using QuizzTiengNhat.Models;
 namespace QuizzTiengNhat.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260303121849_UpdateModel")]
-    partial class UpdateModel
+    [Migration("20260309072913_Initial1")]
+    partial class Initial1
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -559,7 +559,6 @@ namespace QuizzTiengNhat.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("AudioURL")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Content")
@@ -586,7 +585,6 @@ namespace QuizzTiengNhat.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("MediaTimestamp")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<Guid?>("ParentID")

@@ -10,17 +10,18 @@ namespace QuizzTiengNhat.Models
         public Guid LessonID { get; set; }
         public string Content { get; set; }
         public QuestionType QuestionType { get; set; } 
-        public string AudioURL { get; set; }
+        public string? AudioURL { get; set; }
         public int Difficulty { get; set; }
         public string Explanation { get; set; }
         public QuestionStatus Status { get; set; } 
-
         public Guid? EquivalentID { get; set; } // Dùng cho các câu hỏi tương đương
 
-        public string MediaTimestamp { get; set; } // Lưu mốc thời gian bài nghe 
-
+        public string? MediaTimestamp { get; set; } // Lưu mốc thời gian bài nghe 
+        
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime? UpdatedAt { get; set; }
         // lưu vết nguồn gốc
-         public Guid? SourceID { get; set; }
+        public Guid? SourceID { get; set; }
         public Guid? ParentID { get; set; } // Khóa ngoại tự tham chiếu cho câu hỏi con
         // Navigation properties
         [ForeignKey("LessonID")]
