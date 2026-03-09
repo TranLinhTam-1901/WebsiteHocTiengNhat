@@ -37,7 +37,15 @@ export const loginUser = createAsyncThunk(
       const data = await authService.login(payload);
       return data;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Đăng nhập thất bại');
+      // console.log("Full Error BE:", error.response?.data);
+
+    // Thử lấy message theo nhiều cách
+    const serverMessage = 
+        // error.response?.data?.message || // Nếu BE trả về { message: "..." }
+        error.response?.data ||          // Nếu BE trả về chuỗi "..." đơn thuần
+        'Đăng nhập thất bại';
+
+    return rejectWithValue(serverMessage);
     }
   }
 );

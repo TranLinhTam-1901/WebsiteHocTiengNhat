@@ -1,0 +1,58 @@
+// 1. Enum phải khớp hoàn toàn với Backend
+export enum QuestionType {
+    MultipleChoice = 0, // Chọn 1 trong 4 (Kanji, Từ vựng, Ngữ pháp)
+    FillInBlank = 1,    // Điền từ (Thường là trợ từ hoặc đuôi động từ)
+    Ordering = 2,       // Sắp xếp câu (Dạng bài dấu sao ★ cực kỳ quan trọng)
+    Synonym = 3,        // Tìm từ đồng nghĩa (Dạng bài đặc thù JLPT)
+    Usage = 4,
+}
+
+export enum QuestionStatus {
+    Active = 1,
+    Draft = 0
+}
+
+// 2. Interface cho Đáp án
+export interface AnswerDTO {
+    answerText: string;
+    isCorrect: boolean;
+}
+
+// 3. Interface chính cho API Create
+export interface CreateQuestionDTO {
+    lessonID: string;
+    content: string;
+    questionType: QuestionType;
+    difficulty: number;
+    audioURL?: string;
+    mediaTimestamp?: number;
+    explanation?: string;
+    equivalentID?: string | null;
+    sourceID?: string | null;
+    topicIds: string[];
+    status: QuestionStatus;
+    answers: AnswerDTO[];
+}
+
+// 4. Interface cho vật liệu phôi (Source Materials) từ Task 1
+export interface SourceMaterial {
+    id: string;
+    word?: string;      // Cho Vocabulary
+    character?: string; // Cho Kanji
+    title?: string;     // Cho Grammar/Reading/Listening
+    meaning?: string;
+    example?: string;
+    audioURL?: string;
+    topicID?: string;
+}
+export interface Topics {
+    topicID: string;
+    topicName: string;
+}
+
+export interface LessonLookupDTO {
+    lessonID: string;
+    title: string;
+    levelValue: string; 
+    levelName: string;  
+}

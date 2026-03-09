@@ -4,7 +4,7 @@ using QuizzTiengNhat.DTOs.Auth;
 using QuizzTiengNhat.Models;
 using QuizzTiengNhat.Services;
 
-namespace QuizzTiengNhat.Controllers.AuthController
+namespace QuizzTiengNhat.Controllers.Auth
 {
     [ApiController]
     [Route("api/auth")]
@@ -47,7 +47,11 @@ namespace QuizzTiengNhat.Controllers.AuthController
             if (user == null || !await _userManager.CheckPasswordAsync(user, dto.Password))
                 return Unauthorized();
 
-            var token = await _tokenService.CreateToken(user);
+            if (await _userManager.IsLockedOutAsync(user))
+            {
+                return BadRequest("Tài khoản của bạn đã bị khóa.");
+            }
+                        var token = await _tokenService.CreateToken(user);
             var roles = await _userManager.GetRolesAsync(user);
 
             return Ok(new AuthResponseDTO
