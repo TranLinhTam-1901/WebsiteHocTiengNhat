@@ -14,6 +14,11 @@ namespace QuizzTiengNhat.Models
         [Required]
         public string Content { get; set; } // Đoạn văn bản đọc hiểu
         public string Translation { get; set; }
+        public int WordCount { get; set; } // Tổng số chữ trong bài (để tính tốc độ đọc)
+        public int EstimatedTime { get; set; } // Thời gian làm bài dự kiến (phút)
+        public int Status { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
         public Guid LevelID { get; set; }
         public Guid TopicID { get; set; }
