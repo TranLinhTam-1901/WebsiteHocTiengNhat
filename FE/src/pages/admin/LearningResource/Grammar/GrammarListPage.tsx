@@ -67,7 +67,7 @@ const GrammarListPage: React.FC = () => {
     return (
         <div className="flex flex-col h-full bg-background-light">
             <AdminHeader>
-              <div className="flex items-center gap-101"> {/* Giữ nguyên gap-101 như bản gốc */}
+              <div className="flex items-center gap-191"> {/* Giữ nguyên gap-101 như bản gốc */}
                 <div className="flex items-center gap-4 flex-1">
                   <div className="flex flex-col">
                       <h2 className="text-xl font-bold text-[#181114]">QUẢN LÝ NGỮ PHÁP</h2>
@@ -102,7 +102,7 @@ const GrammarListPage: React.FC = () => {
             </AdminHeader>
 
             <div className="flex-1 overflow-y-auto p-8">
-                <div className="max-w-7xl mx-auto">
+                <div className="max-w-9xl mx-auto">
                     
                     {/* Filter Bar */}
                     <div className="flex gap-2 mb-8 overflow-x-auto pb-2 no-scrollbar">

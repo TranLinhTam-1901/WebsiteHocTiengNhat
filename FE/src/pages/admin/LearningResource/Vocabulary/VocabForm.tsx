@@ -166,7 +166,7 @@ const VocabularyEditorPage: React.FC = () => {
       <main className="flex-1 flex flex-col overflow-hidden">
         {/* --- Header --- */}
         <AdminHeader>
-          <div className={id ? 'flex items-center w-full gap-157' : 'flex items-center w-full gap-172'}>
+          <div className={id ? 'flex items-center w-full gap-247' : 'flex items-center w-full gap-262'}>
             <div className="flex items-center gap-4 flex-1">
               <button onClick={() => navigate(-1)} className="size-10 rounded-full border border-[#f4f0f2] flex items-center justify-center text-[#886373] hover:bg-[#f4f0f2] transition-colors active:scale-90">
                 <span className="material-symbols-outlined">arrow_back</span>

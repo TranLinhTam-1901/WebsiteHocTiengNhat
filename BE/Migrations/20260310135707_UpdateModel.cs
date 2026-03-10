@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace QuizzTiengNhat.Migrations
 {
     /// <inheritdoc />
-    public partial class UpdateEnumsAndLessonConstraints : Migration
+    public partial class UpdateModel : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -553,6 +553,8 @@ namespace QuizzTiengNhat.Migrations
                     Status = table.Column<string>(type: "text", nullable: false),
                     EquivalentID = table.Column<Guid>(type: "uuid", nullable: true),
                     MediaTimestamp = table.Column<string>(type: "text", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     SourceID = table.Column<Guid>(type: "uuid", nullable: true),
                     ParentID = table.Column<Guid>(type: "uuid", nullable: true),
                     JLPT_LevelLevelID = table.Column<Guid>(type: "uuid", nullable: true),

@@ -164,7 +164,7 @@ const GrammarEditorPage: React.FC = () => {
       <main className="flex-1 flex flex-col overflow-hidden">
         {/* --- Header Section (GIỮ NGUYÊN 100%) --- */}
         <AdminHeader>
-          <div className={isEditMode ? 'flex items-center w-full gap-150' : 'flex items-center w-full gap-165'}>
+          <div className={isEditMode ? 'flex items-center w-full gap-240' : 'flex items-center w-full gap-255'}>
               <div className="flex items-center gap-4 flex-1">
                 <button 
                     onClick={() => navigate(-1)}

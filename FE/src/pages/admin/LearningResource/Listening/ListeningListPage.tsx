@@ -16,7 +16,7 @@ const ListeningManagement: React.FC = () => {
     <div className="flex flex-col h-full bg-background-light">
       {/* --- Header Section --- */}
       <AdminHeader>
-      <div className="flex items-center gap-104">
+      <div className="flex items-center gap-194">
         <div className="flex items-center gap-4 flex-1">
           <div className="flex flex-col">
               <h2 className="text-xl font-bold text-[#181114]">QUẢN LÝ BÀI NGHE</h2>
