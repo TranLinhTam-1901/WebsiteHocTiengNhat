@@ -66,10 +66,15 @@ export const adminRoutes: RouteObject[] = [
           },
 
           // --- Question Bank ---
-          {
-            path: 'question-bank/create/:lessonId?',
-            element: <QuestionCreatePage />
-          },
+          { 
+            path: 'question-bank', 
+            children: [
+                { index: true, element: <QuestionListView /> }, // URL: /admin/question-bank -> Hiển thị View 1
+                { path: 'create/:lessonId?', element: <QuestionCreatePage /> }, // URL: /admin/question-bank/create -> Hiển thị View 2
+                { path: 'edit/:id', element: <QuestionCreatePage /> } // Tái sử dụng View 2 cho việc sửa
+            ]
+         },
+          
         ],
       }
     ],
