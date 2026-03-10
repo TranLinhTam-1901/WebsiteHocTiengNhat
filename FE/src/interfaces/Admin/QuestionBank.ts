@@ -24,8 +24,8 @@ export interface CreateQuestionDTO {
     content: string;
     questionType: QuestionType;
     difficulty: number;
-    audioURL?: string;
-    mediaTimestamp?: number;
+    // audioURL?: string;
+    // mediaTimestamp?: number;
     explanation?: string;
     equivalentID?: string | null;
     sourceID?: string | null;
@@ -42,8 +42,11 @@ export interface SourceMaterial {
     title?: string;     // Cho Grammar/Reading/Listening
     meaning?: string;
     example?: string;
-    audioURL?: string;
+    // audioURL?: string;
     topicID?: string;
+    structure?: string; // Cho Grammar
+    onyomi?: string;    // Cho Kanji
+    kunyomi?: string;   // Cho Kanji
 }
 export interface Topics {
     topicID: string;
@@ -55,4 +58,33 @@ export interface LessonLookupDTO {
     title: string;
     levelValue: string; 
     levelName: string;  
+}
+
+// Dành cho hiển thị danh sách (View 1)
+export interface QuestionListItem {
+  questionID: string;
+  content: string;
+  questionType: QuestionType; 
+  difficulty: number;
+  status: QuestionStatus; 
+  hasAudio: boolean;
+  linkedCount: number;
+  lessonName: string;
+}
+
+
+export interface QuestionDetail {
+  questionID?: string; // Optional vì khi tạo mới chưa có ID
+  content: string;
+  questionType: QuestionType;
+  difficulty: number;
+//   audioURL?: string;
+//   mediaTimestamp?: number;
+  explanation?: string;
+  equivalentID?: string;
+  topicIds: string[];
+  sourceID?: string;
+  lessonID: string;
+  status: QuestionStatus;
+  answers: AnswerDTO[];
 }
