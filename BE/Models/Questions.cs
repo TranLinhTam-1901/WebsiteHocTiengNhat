@@ -7,12 +7,21 @@ namespace QuizzTiengNhat.Models
     {
         [Key]
         public Guid QuestionID { get; set; }
+
+        // --- THÊM DÒNG NÀY ---
+        public Guid? ReadingID { get; set; } // Nullable vì không phải câu hỏi nào cũng thuộc bài đọc
+        [ForeignKey("ReadingID")]
+        public virtual Readings Reading { get; set; }
+        public Guid? ListeningID { get; set; } // Nullable vì không phải câu hỏi nào cũng thuộc bài nghe
+        [ForeignKey("ListeningID")]
+        public virtual Listenings Listening { get; set; }
+        // ---------------------
         public Guid LessonID { get; set; }
         public string Content { get; set; }
         public QuestionType QuestionType { get; set; } 
         public string? AudioURL { get; set; }
         public int Difficulty { get; set; }
-        public string Explanation { get; set; }
+        public string? Explanation { get; set; }
         public QuestionStatus Status { get; set; } 
         public Guid? EquivalentID { get; set; } // Dùng cho các câu hỏi tương đương
 

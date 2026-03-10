@@ -13,7 +13,16 @@ namespace QuizzTiengNhat.Models
         public string Kunyomi { get; set; }      // た.べる
         public string Meaning { get; set; }      // Thực (ăn)
         public int StrokeCount { get; set; }
+        public string? StrokeGif { get; set; }
         public string Radical { get; set; }      // Bộ thủ
+        public string? SearchVector { get; set; }
+        public string? Note { get; set; }
+        public string? Mnemonics { get; set; } // Câu thần chú để nhớ từ
+        public int Popularity { get; set; } // Thứ hạng phổ biến (Ví dụ: Top 100, Top 500 chữ Kanji hay dùng)
+        public int Status { get; set; }
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
         public Guid LevelID { get; set; }
         public Guid TopicID { get; set; }
@@ -28,5 +37,7 @@ namespace QuizzTiengNhat.Models
 
         [ForeignKey("TopicID")]
         public virtual Topics Topic { get; set; }
+        // Thêm dòng này vào trong class Kanjis hiện tại của bạn
+        public virtual ICollection<VocabularyKanjis> RelatedVocabularies { get; set; } = new List<VocabularyKanjis>();
     }
 }

@@ -14,8 +14,13 @@ namespace QuizzTiengNhat.Models
         [Required]
         public string AudioURL { get; set; }
 
-        public string Script { get; set; } // Lời thoại (optional)
-        public string Transcript { get; set; }
+        public string? Script { get; set; } // Lời thoại (optional)
+        public string? Transcript { get; set; }
+        public int Duration { get; set; } // Độ dài file audio (giây) - dùng để hiển thị thanh Progress
+        public string? SpeedCategory { get; set; } // Tốc độ nói: Chậm, Bình thường, Nhanh (Dành cho luyện nghe)
+        public int Status { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
         public Guid LevelID { get; set; }
         public Guid TopicID { get; set; }
