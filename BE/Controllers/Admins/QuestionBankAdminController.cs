@@ -43,7 +43,7 @@ namespace QuizzTiengNhat.Controllers.Admins
                     .Select(v => new { 
                         Id = v.VocabID, 
                         Word = v.Word, 
-                        Example = v.Example,
+                        Example = v.Examples,
                         Meaning = v.Meaning, 
                         Reading = v.Reading,
                         v.AudioURL, 
@@ -69,7 +69,7 @@ namespace QuizzTiengNhat.Controllers.Admins
                         Id = g.GrammarID,
                         Title = g.Title, 
                         Meaning = g.Explanation, 
-                        Example = g.Example, 
+                        Example = g.Examples, 
                         Structure = g.Structure,
                         g.TopicID
                     })

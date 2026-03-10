@@ -55,6 +55,13 @@ builder.Services.AddAuthentication(options =>
         )
     };
 });
+
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+    });
+
 builder.Services.AddAuthorization();
 builder.Services.AddScoped<ITokenService, TokenService>();
 
@@ -62,6 +69,11 @@ builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
+// Đảm bảo tạo folder wwwroot nếu nó chưa tồn tại để WebRootPath không bị null
+if (!Directory.Exists(Path.Combine(builder.Environment.ContentRootPath, "wwwroot")))
+{
+    Directory.CreateDirectory(Path.Combine(builder.Environment.ContentRootPath, "wwwroot"));
+}
 
 var app = builder.Build();
 
@@ -85,6 +97,16 @@ if (!app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection(); // Chỉ bắt buộc dùng HTTPS ở môi trường thật
 }
+
+app.UseStaticFiles(); // Cho phép truy cập file trong wwwroot mặc định
+
+// Cấu hình thêm để chắc chắn folder uploads có thể truy cập công khai
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
+        Path.Combine(builder.Environment.ContentRootPath, "wwwroot", "uploads")),
+    RequestPath = "/uploads"
+});
 
 // Áp dụng CORS policy
 app.UseCors("AllowFrontend");

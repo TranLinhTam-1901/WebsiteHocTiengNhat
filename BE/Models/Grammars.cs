@@ -13,8 +13,12 @@ namespace QuizzTiengNhat.Models
         public string Structure { get; set; }
         public string Meaning { get; set; }
         public string Explanation { get; set; }
-        public string Example { get; set; }
-        public string ExampleMeaning { get; set; }
+        public string? Formality { get; set; } // Trang trọng (Kính ngữ), Thân mật (Thể từ điển)...
+        public string? SimilarGrammar { get; set; } // Gợi ý các ngữ pháp tương đương (Ví dụ: ~わけだ vs ~はずだ)
+        public string? UsageNote { get; set; } // Lưu ý khi nào KHÔNG được dùng cấu trúc này
+        public int Status { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
         // Khóa ngoại
         public Guid LevelID { get; set; }
@@ -30,5 +34,6 @@ namespace QuizzTiengNhat.Models
 
         [ForeignKey("TopicID")]
         public virtual Topics Topic { get; set; }
+        public virtual ICollection<Examples> Examples { get; set; } = new List<Examples>();
     }
 }
