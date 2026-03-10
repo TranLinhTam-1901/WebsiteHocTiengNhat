@@ -5,7 +5,7 @@ export interface GrammarExampleItem {
 }
 
 export interface GrammarItem {
-    GrammarID: string;              // GrammarID
+    id: string;              // GrammarID
     title: string;           
     structure: string;       
     meaning: string;         

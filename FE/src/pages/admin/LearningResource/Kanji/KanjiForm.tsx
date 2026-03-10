@@ -224,7 +224,7 @@ const KanjiEditorPage: React.FC = () => {
             <main className="flex-1 flex flex-col overflow-hidden">
                 {/* --- Header Section --- */}
                 <AdminHeader>
-                    <div className={isEditMode ? 'flex items-center w-full gap-170' : 'flex items-center w-full gap-184'}>
+                    <div className={isEditMode ? 'flex items-center w-full gap-260' : 'flex items-center w-full gap-274'}>
                         <div className="flex items-center gap-4 flex-1">
                             <button
                                 onClick={() => navigate(-1)}

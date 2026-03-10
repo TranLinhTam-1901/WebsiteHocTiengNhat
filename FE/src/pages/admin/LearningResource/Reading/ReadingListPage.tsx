@@ -10,7 +10,7 @@ const ReadingManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
 
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 7;
 
   // Reset về trang 1 mỗi khi tìm kiếm
   useEffect(() => {
@@ -95,7 +95,7 @@ const ReadingManagement: React.FC = () => {
     <div className="flex flex-col h-full bg-background-light">
       {/* --- Header Section --- */}
       <AdminHeader>
-        <div className="flex items-center gap-110">
+        <div className="flex items-center gap-200">
           <div className="flex items-center gap-4 flex-1">
             <div className="flex flex-col">
               <h2 className="text-xl font-bold text-[#181114]">QUẢN LÝ BÀI ĐỌC</h2>
@@ -197,9 +197,9 @@ const ReadingManagement: React.FC = () => {
               </thead>
               <tbody className="divide-y divide-[#f4f0f2]">
                 {loading ? (
-                  <tr><td colSpan={5} className="text-center py-10 text-sm text-slate-400">Đang tải...</td></tr>
+                  <tr><td colSpan={7} className="text-center py-10 text-sm text-slate-400">Đang tải...</td></tr>
                 ) : currentItems.map((item) => (
-                  <tr key={item.id} className="hover:bg-primary/5 transition-colors h-23.5">
+                  <tr key={item.id} className="hover:bg-primary/5 transition-colors h-24.5">
                     <td className="px-8 py-5 truncate font-bold text-sm text-[#181114]">{item.title}</td>
                     <td className="px-8 py-5"><span className="text-sm font-medium text-green-500">Hoạt động</span></td>
                     <td className="px-8 py-5 text-center">
@@ -219,7 +219,7 @@ const ReadingManagement: React.FC = () => {
           </div>
 
           {/* --- Pagination Footer đã sửa logic --- */}
-          <div className="p-6 border-t border-[#f4f0f2] flex items-center justify-between bg-white">
+          <div className="p-6 border-t border-[#f4f0f2] flex items-center justify-between bg-white h-20">
             <p className="text-xs text-[#886373] font-medium">
               Hiển thị <span className="text-[#181114]">{indexOfFirstItem + 1} - {Math.min(indexOfLastItem, filteredData.length)}</span> của {filteredData.length} kết quả
             </p>
@@ -231,9 +231,9 @@ const ReadingManagement: React.FC = () => {
                 <button
                   key={index + 1}
                   onClick={() => setCurrentPage(index + 1)}
-                  className={`size-8 rounded-lg flex items-center justify-center font-bold text-xs transition-all ${
+                  className={`size-10 rounded-lg flex items-center justify-center border-2 border-[#f4f0f2] font-bold text-sm transition-all ${
                     currentPage === index + 1 
-                      ? 'bg-primary text-white shadow-md shadow-primary/20' 
+                      ? 'bg-primary text-white shadow-md shadow-primary/20 border-none' 
                       : 'text-[#886373] hover:bg-[#f4f0f2]'
                   }`}
                 >

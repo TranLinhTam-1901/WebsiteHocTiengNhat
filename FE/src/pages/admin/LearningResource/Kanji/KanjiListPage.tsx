@@ -75,7 +75,7 @@ const KanjiListPage: React.FC = () => {
   return (
     <div className="flex flex-col h-full bg-background-light font-display text-[#181114]">
     <AdminHeader>
-      <div className="flex items-center gap-120">
+      <div className="flex items-center gap-210">
         <div className="flex items-center gap-4 flex-1">
           <div className="flex flex-col">
               <h2 className="text-xl font-bold text-[#181114]">QUẢN LÝ KANJI</h2>
@@ -130,7 +130,7 @@ const KanjiListPage: React.FC = () => {
                 <button 
                     key={lv} 
                     onClick={() => setSelectedLevel(lv)}
-                    className={`px-5 py-2 text-xs font-bold rounded-full border transition-all ${
+                    className={`px-5 py-2 text-[15px] font-bold rounded-full border transition-all ${
                         selectedLevel === lv 
                         ? 'bg-primary text-white border-primary shadow-md shadow-primary/20' 
                         : 'bg-white text-[#886373] border-[#f4f0f2] hover:border-primary hover:text-primary'
@@ -247,19 +247,19 @@ const KanjiListPage: React.FC = () => {
 
                 <div className="flex-1 flex flex-col items-center justify-center py-4">
                   <div className="flex flex-col items-center gap-1 mb-4">
-                    <span className="text-[15px] text-[#886373] font-japanese tracking-tighter">{kanji.character}</span>
-                    <span className="text-6xl font-japanese font-bold text-[#181114] group-hover:scale-105 transition-transform duration-500">
+                    <span className="text-[20px] text-[#886373] font-japanese tracking-tighter">{kanji.character}</span>
+                    <span className="text-7xl font-japanese font-bold text-[#181114] group-hover:scale-105 transition-transform duration-500">
                       {kanji.character}
                     </span>
                   </div>
                   <div className="flex flex-col gap-2 w-full text-center">
-                    <p className="text-xs font-japanese text-[#181114]">On: {kanji.onyomi}</p>
-                    <p className="text-xs font-japanese text-[#181114]">Kun: {kanji.kunyomi}</p>
+                    <p className="text-sm font-japanese text-[#181114]">On: {kanji.onyomi}</p>
+                    <p className="text-sm font-japanese text-[#181114]">Kun: {kanji.kunyomi}</p>
                   </div>
                 </div>
 
                 <div className="mt-auto pt-4 border-t border-[#f4f0f2] text-center">
-                  <p className="text-sm font-bold text-[#181114]">{kanji.meaning}</p>
+                  <p className="text-sl font-bold text-[#181114]">{kanji.meaning}</p>
                 </div>
               </div>
             </div>

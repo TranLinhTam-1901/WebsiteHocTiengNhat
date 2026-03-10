@@ -651,6 +651,9 @@ namespace QuizzTiengNhat.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<int>("Difficulty")
                         .HasColumnType("integer");
 
@@ -691,6 +694,9 @@ namespace QuizzTiengNhat.Migrations
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("QuestionID");
 

@@ -28,6 +28,9 @@ namespace QuizzTiengNhat.Models
 
         public string? MediaTimestamp { get; set; } // Lưu mốc thời gian bài nghe 
 
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
         // lưu vết nguồn gốc
         public Guid? SourceID { get; set; }
         public Guid? ParentID { get; set; } // Khóa ngoại tự tham chiếu cho câu hỏi con

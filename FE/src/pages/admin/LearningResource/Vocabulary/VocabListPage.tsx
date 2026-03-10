@@ -84,7 +84,7 @@ const VocabularyListPage: React.FC = () => {
   return (
     <div className="flex flex-col h-full bg-background-light font-display text-[#181114]">
       <AdminHeader>
-        <div className="flex items-center gap-107.5 w-full">
+        <div className="flex items-center gap-197.5 w-full">
           <div className="flex items-center gap-4 flex-1">
             <h2 className="text-xl font-bold text-[#181114]">QUẢN LÝ TỪ VỰNG</h2>
           </div>
@@ -121,7 +121,7 @@ const VocabularyListPage: React.FC = () => {
               <button 
                 key={lv} 
                 onClick={() => setSelectedLevel(lv)}
-                className={`px-5 py-2 text-xs font-bold rounded-full border transition-all ${selectedLevel === lv ? 'bg-primary text-white border-primary shadow-md shadow-primary/20' : 'bg-white text-[#886373] border-[#f4f0f2] hover:border-primary hover:text-primary'}`}
+                className={`px-5 py-2 text-[15px] font-bold rounded-full border transition-all ${selectedLevel === lv ? 'bg-primary text-white border-primary shadow-md shadow-primary/20' : 'bg-white text-[#886373] border-[#f4f0f2] hover:border-primary hover:text-primary'}`}
               >
                 {lv}
               </button>
@@ -270,7 +270,7 @@ const VocabularyListPage: React.FC = () => {
                     <span className={`px-2 py-0.5 text-[15px] font-bold rounded border ${getLevelStyle(item.levelName)}`}>
                       {item.levelName || 'N/A'}
                     </span>
-                    <span className="text-[#886373]/50 text-[10px] font-bold italic truncate max-w-20">
+                    <span className="text-[#886373]/50 text-[15px] font-bold italic truncate max-w-30">
                       #{item.topicName || 'General'}
                     </span>
                   </div>
@@ -280,7 +280,7 @@ const VocabularyListPage: React.FC = () => {
                     <span className="text-primary text-[15px] font-japanese mb-1 font-bold italic tracking-wide">
                       {item.reading}
                     </span>
-                    <span className="font-japanese text-[42px] font-black text-[#181114] tracking-tighter transition-colors duration-300">
+                    <span className="font-japanese text-[65px] font-black text-[#181114] tracking-tighter transition-colors duration-300">
                       {item.word}
                     </span>
                   </div>
@@ -289,7 +289,7 @@ const VocabularyListPage: React.FC = () => {
 
                   {/* Meaning: Chữ lớn (16px) cố định */}
                   <div className="flex-1 flex items-start justify-center px-2">
-                    <p className="text-[16px] font-bold text-[#5a434d] leading-relaxed line-clamp-3 italic">
+                    <p className="text-[20px] font-bold text-[#5a434d] leading-relaxed line-clamp-3 italic">
                       "{item.meaning}"
                     </p>
                   </div>
