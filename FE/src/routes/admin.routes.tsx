@@ -6,7 +6,7 @@ import PrivateRoute from './PrivateRoute';
 import Overview from '../pages/admin/Dashboard/Overview';
 import LearnerList from '../pages/admin/UserManagement/LearnerList';
 import QuestionCreatePage from '../pages/admin/QuestionBank/QuestionCreatePage';
-
+import QuestionListView from '../pages/admin/QuestionBank/Index';
 // Import 10 trang Content Management mới
 import GrammarListPage from '../pages/admin/LearningResource/Grammar/GrammarListPage';
 import GrammarForm from '../pages/admin/LearningResource/Grammar/GrammarForm';
