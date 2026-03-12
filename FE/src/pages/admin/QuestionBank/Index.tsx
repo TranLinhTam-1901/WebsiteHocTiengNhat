@@ -247,7 +247,7 @@ const QuestionListView = () => {
 
                 {/* 3. Lọc theo Độ khó (Difficulty) - Khớp với int? difficulty của API */}
                 <Select 
-                    placeholder="Độ khó (N5 - N1)" 
+                    placeholder="Độ khó (N5 - N3)" 
                     className="w-48"
                     allowClear
                     value={filters.difficulty}

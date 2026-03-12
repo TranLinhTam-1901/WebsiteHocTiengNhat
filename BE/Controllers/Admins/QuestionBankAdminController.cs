@@ -346,7 +346,7 @@ namespace QuizzTiengNhat.Controllers.Admins
             if (lessonId.HasValue && lessonId != Guid.Empty)
                 query = query.Where(q => q.LessonID == lessonId);
 
-            // 2. Lọc theo Topic (thông qua bảng trung gian)
+            // 2. Lọc theo Topic 
             if (topicId.HasValue)
                 query = query.Where(q => q.QuestionTopics.Any(qt => qt.TopicID == topicId));
 

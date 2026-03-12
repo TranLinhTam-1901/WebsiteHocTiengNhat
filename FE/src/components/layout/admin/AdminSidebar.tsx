@@ -71,7 +71,7 @@ const Sidebar: React.FC = () => {
             )}
           </div>
 
-          <NavItem to="/admin/question-bank/create" icon="add_box" label="Tạo câu hỏi" active={location.pathname.includes('/admin/question-bank/create')} />
+          <NavItem to="/admin/question-bank" icon="add_box" label="Ngân hàng câu hỏi" active={location.pathname.includes('/admin/question-bank')} />
           <NavItem to="/admin/exams" icon="assignment" label="Kỳ thi" active={location.pathname === '/admin/exams'} />
           <NavItem to="/admin/learners" icon="group" label="Người dùng" active={location.pathname === '/admin/learners'} />
           

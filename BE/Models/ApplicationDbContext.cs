@@ -122,8 +122,6 @@ namespace QuizzTiengNhat.Models
                  .HasForeignKey(q => q.LessonID)
                  .OnDelete(DeleteBehavior.Restrict);
 
-                // Chuyển đổi Enum sang String để dễ đọc trong DB
-                e.Property(q => q.QuestionType).HasConversion<string>();
                 e.Property(q => q.Status).HasConversion<string>();
             });
 
