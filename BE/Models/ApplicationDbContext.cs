@@ -111,21 +111,30 @@ namespace QuizzTiengNhat.Models
 
             // --- 5. Cấu hình Questions & Answers ---
             modelBuilder.Entity<Questions>(e => {
-                // Tự tham chiếu (Cha-Con)
+                // Index để load nhanh câu hỏi theo bài học hoặc bài nghe
+                e.HasIndex(q => q.LessonID);
+                e.HasIndex(q => q.ListeningID);
+                e.HasIndex(q => q.ReadingID);
+
+                // Đảm bảo quan hệ cha-con hoạt động mượt mà
                 e.HasOne(q => q.ParentQuestion)
                  .WithMany(q => q.SubQuestions)
                  .HasForeignKey(q => q.ParentID)
-                 .OnDelete(DeleteBehavior.Restrict);
+                 .OnDelete(DeleteBehavior.Restrict); // Tránh xóa nhầm cả cây dữ liệu lớn
 
-                e.HasOne(q => q.Lesson)
-                 .WithMany()
-                 .HasForeignKey(q => q.LessonID)
-                 .OnDelete(DeleteBehavior.Restrict);
-
-                // Chuyển đổi Enum sang String để dễ đọc trong DB
-                e.Property(q => q.QuestionType).HasConversion<string>();
-                e.Property(q => q.Status).HasConversion<string>();
+                // Nếu bạn muốn hiển thị hình ảnh, hãy đảm bảo ImageURL không quá dài (để tối ưu DB)
+                e.Property(q => q.ImageURL).HasMaxLength(500);
             });
+
+            modelBuilder.Entity<Questions_Topic>()
+                .HasOne(qt => qt.Question)
+                .WithMany(q => q.QuestionTopics)
+                .HasForeignKey(qt => qt.QuestionID);
+
+            modelBuilder.Entity<Questions_Topic>()
+                .HasOne(qt => qt.Topic)
+                .WithMany() // Hoặc t => t.QuestionTopics nếu Topic model có collection này
+                .HasForeignKey(qt => qt.TopicID);
 
             modelBuilder.Entity<Answers>(e => {
                 e.HasOne(a => a.Question)

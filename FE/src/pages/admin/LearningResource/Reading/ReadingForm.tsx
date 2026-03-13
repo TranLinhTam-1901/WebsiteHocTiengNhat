@@ -130,10 +130,10 @@ const ReadingEditor: React.FC = () => {
 
       if (isEditMode && id) {
         await readingService.update(id, payload); 
-        alert("Cập nhật bài đọc thành công!");
+        alert("Cập nhật Bài đọc thành công!");
       } else {
         await readingService.create(payload);
-        alert("Thêm mới bài đọc thành công!");
+        alert("Thêm mới Bài đọc thành công!");
       }
       
       navigate("/admin/resource/reading");
@@ -256,7 +256,7 @@ const ReadingEditor: React.FC = () => {
       
       {/* Main Content Area - Scrollable */}
       <div className="flex-1 overflow-y-auto p-8">
-        <div className="max-w-350 mx-auto grid grid-cols-12 gap-8">
+        <div className="max-w-396 mx-auto grid grid-cols-12 gap-8">
           
           {/* Form Content */}
           <div className="col-span-8 space-y-6 text-left">
@@ -370,12 +370,28 @@ const ReadingEditor: React.FC = () => {
 
           {/* Right Sidebar */}
           <div className="col-span-4 space-y-6 text-left">
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-[#f287b6]/5">
-              <p className="text-sm font-bold text-slate-700 mb-3">Hình ảnh minh họa</p>
-              <div className="aspect-video bg-slate-100 rounded-lg overflow-hidden relative group cursor-pointer border-2 border-dashed border-slate-200 flex items-center justify-center">
-                <div className="flex flex-col items-center">
-                  <span className="material-symbols-outlined text-slate-400 group-hover:text-[#f287b6] text-3xl transition-all">add_photo_alternate</span>
-                  <span className="text-[10px] font-bold text-slate-400 group-hover:text-[#f287b6] mt-1">Upload Cover</span>
+
+            <div className="bg-white rounded-2xl border border-[#f4f0f2] shadow-sm p-8">
+              <h3 className="text-base font-bold mb-6 flex items-center gap-2"><span className="material-symbols-outlined text-primary">graphic_eq</span> File Audio </h3>
+              {/* <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" accept="audio/*" /> */}
+              <div onClick={() => ''} className="group flex flex-col items-center justify-center border-2 border-dashed border-[#d1ced0] rounded-2xl p-6 hover:border-primary cursor-pointer bg-[#fbf9fa]">
+                <span className="material-symbols-outlined text-3xl text-[#886373] mb-2 group-hover:text-primary">cloud_upload</span>
+                <p className="text-[11px] font-bold text-[#886373] uppercase">{'Upload MP3/WAV'}</p>
+              </div>
+
+              <div className="grid grid-cols-1 gap-8 mt-4">
+                <div className="space-y-6">
+                  <div className="p-4 bg-background-light rounded-xl border border-[#f287b6]/10">
+                    <div className="flex items-center gap-3">
+                      <button className="size-8 rounded-full bg-[#f287b6] text-white flex items-center justify-center shadow-sm">
+                        <span className="material-symbols-outlined text-sm">play_arrow</span>
+                      </button>
+                      <div className="flex-1 h-1 bg-slate-200 rounded-full relative overflow-hidden">
+                        <div className="absolute inset-y-0 left-0 w-1/3 bg-[#f287b6]"></div>
+                      </div>
+                      <span className="text-xs font-mono text-slate-500">0:45 / 2:30</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -643,8 +659,6 @@ const ReadingEditor: React.FC = () => {
       return { ...prev, questions: newQuestions };
     });
   };
-
-  const getLabel = (index: number) => String.fromCharCode(65 + index); // 0 -> A, 1 -> B...
 
   return (
     <section className="bg-white rounded-2xl border border-[#f287b6]/10 shadow-sm overflow-hidden">

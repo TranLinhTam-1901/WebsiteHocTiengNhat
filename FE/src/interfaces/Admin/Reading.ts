@@ -1,5 +1,3 @@
-import { QuestionType, QuestionStatus } from './Question';
-
 export interface ReadingAnswerDTO {
   answerID?: string; // Thêm để hỗ trợ hiển thị/cập nhật
   answerText: string;
