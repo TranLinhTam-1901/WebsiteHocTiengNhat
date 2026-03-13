@@ -20,6 +20,7 @@ namespace QuizzTiengNhat.Models
         public string Content { get; set; }
         public QuestionType QuestionType { get; set; } 
         public string? AudioURL { get; set; }
+        public string? ImageURL { get; set; }
         public int Difficulty { get; set; }
         public string? Explanation { get; set; }
         public QuestionStatus Status { get; set; } 
@@ -27,6 +28,8 @@ namespace QuizzTiengNhat.Models
         public Guid? EquivalentID { get; set; } // Dùng cho các câu hỏi tương đương
 
         public string? MediaTimestamp { get; set; } // Lưu mốc thời gian bài nghe 
+
+        public int? DisplayOrder { get; set; } // Thứ tự câu hỏi trong bài nghe/bài đọc
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

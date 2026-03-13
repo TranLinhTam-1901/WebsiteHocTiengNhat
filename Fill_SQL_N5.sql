@@ -1,8 +1,59 @@
 -------------------------------------------------------
 -- 0. DỌN DẸP VÀ CẤU HÌNH RÀNG BUỘC
 -------------------------------------------------------
-TRUNCATE TABLE "Answers", "Questions", "Readings", "Vocabularies", "Kanjis", 
-"Grammars", "Topics", "Lessons", "JLPT_Levels", "VocabularyKanjis" CASCADE;
+DO $$ 
+DECLARE 
+    r RECORD;
+BEGIN
+    -- Vòng lặp tìm các ràng buộc cần xóa
+    FOR r IN (
+        SELECT table_name, constraint_name, constraint_type
+        FROM information_schema.table_constraints
+        WHERE constraint_schema = 'public' 
+          -- CHỈ XOÁ Foreign Key và Unique (Đây là 2 thứ gây lỗi khi chèn trùng hoặc sai ID)
+          AND constraint_type IN ('FOREIGN KEY', 'UNIQUE')
+          -- LOẠI TRỪ các bảng hệ thống của Identity và Migration
+          AND table_name NOT LIKE 'AspNet%'
+          AND table_name NOT IN ('__EFMigrationsHistory')
+    ) LOOP
+        BEGIN
+            EXECUTE 'ALTER TABLE "' || r.table_name || '" DROP CONSTRAINT IF EXISTS "' || r.constraint_name || '" CASCADE';
+            -- RAISE NOTICE 'Đã xóa %: % trên bảng %', r.constraint_type, r.constraint_name, r.table_name;
+        EXCEPTION WHEN OTHERS THEN
+            RAISE NOTICE 'Bỏ qua % trên bảng %', r.constraint_name, r.table_name;
+        END;
+    END LOOP;
+
+    -- Reset dữ liệu các bảng chính của bạn
+    EXECUTE 'TRUNCATE TABLE 
+        "Answers", "Questions", "VocabularyKanjis", "Vocabularies", 
+        "Grammars", "Kanjis", "Readings", "Listenings", "Examples", 
+        "Lessons", "Topics", "Courses", "JLPT_Levels" 
+    RESTART IDENTITY CASCADE';
+
+    RAISE NOTICE '=== ĐÃ DỌN DẸP SẠCH DỮ LIỆU VÀ RÀNG BUỘC (FK/UNIQUE) ===';
+END $$;
+
+DO $$ 
+BEGIN
+    TRUNCATE TABLE 
+        "Answers",
+        "Questions",
+        "VocabularyKanjis",
+        "Vocabularies", 
+        "Grammars", 
+        "Kanjis", 
+        "Readings",
+		"Listenings",
+        "Examples",
+        "Lessons", 
+        "Topics", 
+        "Courses", 
+        "JLPT_Levels"
+    RESTART IDENTITY CASCADE;
+
+    RAISE NOTICE 'Dữ liệu đã được xóa sạch. Các trường ID đã được reset.';
+END $$;
 
 DO $$ 
 BEGIN
@@ -56,7 +107,7 @@ BEGIN
     -- 5. Bảng Grammars
     -------------------------------------------------------
     IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'uc_grammarstructure') THEN
-        ALTER TABLE "Grammars" ADD CONSTRAINT uc_grammarstructure UNIQUE ("Structure");
+        ALTER TABLE "Grammars" ADD CONSTRAINT uc_grammarstructure UNIQUE ("Structure", "Meaning");
     END IF;
 
     -------------------------------------------------------
@@ -100,13 +151,44 @@ BEGIN
         ALTER TABLE "Readings" ADD COLUMN "Status" INT DEFAULT 1;
     END IF;
 
+	-------------------------------------------------------
+    -- 10. Bảng Listenings (Đã sửa lỗi)
     -------------------------------------------------------
-    -- 10. Cấu hình CASCADE DELETE cho Questions và Answers
+    -- Unique Title cho Listening
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'uc_listening_title') THEN
+        ALTER TABLE "Listenings" ADD CONSTRAINT uc_listening_title UNIQUE ("Title");
+    END IF;
+
+    -- Thêm các cột đặc thù cho bài nghe nếu chưa có
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='Listenings' AND column_name='AudioURL') THEN
+        ALTER TABLE "Listenings" ADD COLUMN "AudioURL" TEXT;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='Listenings' AND column_name='Duration') THEN
+        ALTER TABLE "Listenings" ADD COLUMN "Duration" INT DEFAULT 0;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='Listenings' AND column_name='Status') THEN
+        ALTER TABLE "Listenings" ADD COLUMN "Status" INT DEFAULT 1;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='Listenings' AND column_name='SpeedCategory') THEN
+        ALTER TABLE "Listenings" ADD COLUMN "SpeedCategory" INT DEFAULT 1;
+    END IF;
+
+    -------------------------------------------------------
+    -- 11. Cấu hình CASCADE DELETE cho Questions và Answers
     -------------------------------------------------------
     IF EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'FK_Questions_Readings_ReadingID') THEN
         ALTER TABLE "Questions" DROP CONSTRAINT "FK_Questions_Readings_ReadingID";
         ALTER TABLE "Questions" ADD CONSTRAINT "FK_Questions_Readings_ReadingID" 
             FOREIGN KEY ("ReadingID") REFERENCES "Readings" ("ReadingID") ON DELETE CASCADE;
+    END IF;
+
+	IF EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'FK_Questions_Listenings_ListeningID') THEN
+        ALTER TABLE "Questions" DROP CONSTRAINT "FK_Questions_Listenings_ListeningID";
+        ALTER TABLE "Questions" ADD CONSTRAINT "FK_Questions_Listenings_ListeningID" 
+            FOREIGN KEY ("ListeningID") REFERENCES "Listenings" ("ListeningID") ON DELETE CASCADE;
     END IF;
 
     IF EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'FK_Answers_Questions_QuestionID') THEN
@@ -786,7 +868,7 @@ BEGIN
     -- 60. Đang làm (Te-imasu)
     g_id := gen_random_uuid();
     INSERT INTO "Grammars" ("GrammarID", "Title", "Structure", "Meaning", "Explanation", "Formality", "Status", "LevelID", "TopicID", "LessonID", "CreatedAt", "UpdatedAt")
-    VALUES (g_id, 'Hành động đang diễn ra', 'V-て います(1)', 'Đang làm V', 'Hành động đang tiếp diễn tại thời điểm nói.', 'Lịch sự', 1, n5_id, t_id, l_id, NOW(), NOW()) ON CONFLICT DO NOTHING;
+    VALUES (g_id, 'Hành động đang diễn ra', 'V-て います', 'Đang làm V', 'Hành động đang tiếp diễn tại thời điểm nói.', 'Lịch sự', 1, n5_id, t_id, l_id, NOW(), NOW()) ON CONFLICT DO NOTHING;
     INSERT INTO "Examples" ("ExampleID", "Content", "Translation", "AudioURL", "CreatedAt", "UpdatedAt", "GrammarID") VALUES 
     (gen_random_uuid(), '今 本を 読んでいます。', 'Bây giờ tôi đang đọc sách.', '', NOW(), NOW(), g_id),
     (gen_random_uuid(), 'ミラーさんは 今 電話を かけています。', 'Anh Miller hiện đang gọi điện thoại.', '', NOW(), NOW(), g_id);
@@ -823,7 +905,7 @@ BEGIN
     -- 64. Trạng thái kết quả
     g_id := gen_random_uuid();
     INSERT INTO "Grammars" ("GrammarID", "Title", "Structure", "Meaning", "Explanation", "Formality", "Status", "LevelID", "TopicID", "LessonID", "CreatedAt", "UpdatedAt")
-    VALUES (g_id, 'Trạng thái/Kết quả', 'V-て います(2)', 'Đang (kết quả/nghề nghiệp)', 'Trạng thái còn lưu lại của hành động hoặc nghề nghiệp.', 'Lịch sự', 1, n5_id, t_id, l_id, NOW(), NOW()) ON CONFLICT DO NOTHING;
+    VALUES (g_id, 'Trạng thái/Kết quả', 'V-て います', 'Đang (kết quả/nghề nghiệp)', 'Trạng thái còn lưu lại của hành động hoặc nghề nghiệp.', 'Lịch sự', 1, n5_id, t_id, l_id, NOW(), NOW()) ON CONFLICT DO NOTHING;
     INSERT INTO "Examples" ("ExampleID", "Content", "Translation", "AudioURL", "CreatedAt", "UpdatedAt", "GrammarID") VALUES 
     (gen_random_uuid(), '私は 結婚しています。', 'Tôi đã kết hôn.', '', NOW(), NOW(), g_id),
     (gen_random_uuid(), 'IMCは コンピューターを 作っています。', 'Công ty IMC sản xuất máy tính.', '', NOW(), NOW(), g_id);
@@ -2934,7 +3016,8 @@ DECLARE
 BEGIN
     -- 1. Lấy Topic ID (Ví dụ: Chủ đề Gia đình)
     SELECT "TopicID" INTO t_id FROM "Topics" WHERE "TopicName" = 'Bài Đọc N5 Tổng Hợp' LIMIT 1;
-
+	
+	CREATE TEMP TABLE temp_new_q_ids (id_vua_tao uuid) ON COMMIT DROP;
     -------------------------------------------------------
     -- BÀI ĐỌC 1: GIỚI THIỆU GIA ĐÌNH
     -------------------------------------------------------
@@ -2951,6 +3034,8 @@ BEGIN
     q_id := gen_random_uuid();
     INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
     VALUES (q_id, '家族は何人ですか？ (Gia đình có mấy người?)', 0, 1, 1, l_id, r_id, NULL, NOW(), NOW());
+	
+	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
     
     INSERT INTO "Answers" ("AnswerID", "QuestionID", "AnswerText", "IsCorrect") VALUES 
     (gen_random_uuid(), q_id, '３人です', false),
@@ -2960,9 +3045,11 @@ BEGIN
 
     -- Câu hỏi 2 cho bài 1
     q_id := gen_random_uuid();
-        INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
+	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
     VALUES (q_id, 'お母さんの仕事は何ですか？ (Công việc của mẹ là gì?)', 0, 1, 1, l_id, r_id, NULL, NOW(), NOW());
-    
+
+	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
+	
     INSERT INTO "Answers" ("AnswerID", "QuestionID", "AnswerText", "IsCorrect") VALUES 
     (gen_random_uuid(), q_id, '会社員です', false),
     (gen_random_uuid(), q_id, '医者です', false),
@@ -2983,8 +3070,11 @@ BEGIN
 
     -- Câu hỏi 1 cho bài 2
     q_id := gen_random_uuid();
-        INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
+	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
     VALUES (q_id, '何時に起きますか？ (Thức dậy lúc mấy giờ?)', 0, 1, 1, l_id, r_id, NULL, NOW(), NOW());
+
+	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
+	
     INSERT INTO "Answers" ("AnswerID", "QuestionID", "AnswerText", "IsCorrect") VALUES 
     (gen_random_uuid(), q_id, '６時です', true),
     (gen_random_uuid(), q_id, '７時です', false),
@@ -2993,8 +3083,11 @@ BEGIN
 
     -- Câu hỏi 2 cho bài 2
     q_id := gen_random_uuid();
-        INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
+	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
     VALUES (q_id, '学校へ行きますか？ (Có đi đến trường không?)', 0, 1, 1, l_id, r_id, NULL, NOW(), NOW());
+
+	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
+	
     INSERT INTO "Answers" ("AnswerID", "QuestionID", "AnswerText", "IsCorrect") VALUES 
     (gen_random_uuid(), q_id, 'はい、行きます', true),
     (gen_random_uuid(), q_id, 'いいえ、行きません', false),
@@ -3015,8 +3108,11 @@ BEGIN
 
     -- Câu hỏi 1 cho bài 3
     q_id := gen_random_uuid();
-        INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
+	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
     VALUES (q_id, '時計はどこにありますか？ (Cái đồng hồ ở đâu?)', 0, 1, 1, l_id, r_id, NULL, NOW(), NOW());
+
+	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
+	
     INSERT INTO "Answers" ("AnswerID", "QuestionID", "AnswerText", "IsCorrect") VALUES 
     (gen_random_uuid(), q_id, 'あそこにあります', true),
     (gen_random_uuid(), q_id, '教室の外にあります', false),
@@ -3025,8 +3121,11 @@ BEGIN
 
     -- Câu hỏi 2 cho bài 3
     q_id := gen_random_uuid();
-        INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
+	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
     VALUES (q_id, '学生は何人いますか？ (Có bao nhiêu học sinh?)', 0, 1, 1, l_id, r_id, NULL, NOW(), NOW());
+
+	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
+	
     INSERT INTO "Answers" ("AnswerID", "QuestionID", "AnswerText", "IsCorrect") VALUES 
     (gen_random_uuid(), q_id, '５人です', true),
     (gen_random_uuid(), q_id, '４人です', false),
@@ -3047,8 +3146,11 @@ BEGIN
 
     -- Câu hỏi 1 cho bài 4
     q_id := gen_random_uuid();
-        INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
+	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
     VALUES (q_id, '趣味は何ですか？ (Sở thích là gì?)', 0, 1, 1, l_id, r_id, NULL, NOW(), NOW());
+
+	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
+	
     INSERT INTO "Answers" ("AnswerID", "QuestionID", "AnswerText", "IsCorrect") VALUES 
     (gen_random_uuid(), q_id, '読書です', true),
     (gen_random_uuid(), q_id, 'スポーツです', false),
@@ -3056,9 +3158,12 @@ BEGIN
 	(gen_random_uuid(), q_id, '映画です', false);
 
     -- Câu hỏi 2 cho bài 4
-    q_id := gen_random_uuid();
-        INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
+	q_id := gen_random_uuid();
+	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
     VALUES (q_id, '休みの日にどこへ行きますか？ (Ngày nghỉ đi đâu?)', 0, 1, 1, l_id, r_id, NULL, NOW(), NOW());
+
+	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
+	
     INSERT INTO "Answers" ("AnswerID", "QuestionID", "AnswerText", "IsCorrect") VALUES 
     (gen_random_uuid(), q_id, '図書館です', true),
     (gen_random_uuid(), q_id, '会社です', false),
@@ -3079,8 +3184,11 @@ BEGIN
 
     -- Câu hỏi 1 cho bài 5
     q_id := gen_random_uuid();
-        INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
+	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
     VALUES (q_id, '何が大好きですか？ (Thích cái gì nhất?)', 0, 1, 1, l_id, r_id, NULL, NOW(), NOW());
+
+	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
+	
     INSERT INTO "Answers" ("AnswerID", "QuestionID", "AnswerText", "IsCorrect") VALUES 
     (gen_random_uuid(), q_id, 'すしです', true),
     (gen_random_uuid(), q_id, 'ラーメンです', false),
@@ -3089,14 +3197,17 @@ BEGIN
 
     -- Câu hỏi 2 cho bài 5
     q_id := gen_random_uuid();
-        INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
+	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
     VALUES (q_id, 'だれと食べましたか？ (Đã ăn cùng với ai?)', 0, 1, 1, l_id, r_id, NULL, NOW(), NOW());
+
+	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
+	
     INSERT INTO "Answers" ("AnswerID", "QuestionID", "AnswerText", "IsCorrect") VALUES 
     (gen_random_uuid(), q_id, '友達とです', true),
     (gen_random_uuid(), q_id, '家族とです', false),
 	(gen_random_uuid(), q_id, '先生とです', false),
 	(gen_random_uuid(), q_id, '一人で食べました', false);
-
+	
 	-------------------------------------------------------
     -- BÀI ĐỌC 6: THỜI TIẾT HÔM NAY
     -------------------------------------------------------
@@ -3111,8 +3222,11 @@ BEGIN
 
     -- Câu hỏi 1 bài 6
     q_id := gen_random_uuid();
-        INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
+	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
     VALUES (q_id, '今日の天気はどうですか？ (Thời tiết hôm nay thế nào?)', 0, 1, 1, l_id, r_id, NULL, NOW(), NOW());
+
+	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
+	
     INSERT INTO "Answers" ("AnswerID", "QuestionID", "AnswerText", "IsCorrect") VALUES 
     (gen_random_uuid(), q_id, 'いい天気です', true),
     (gen_random_uuid(), q_id, '寒いです', false),
@@ -3123,6 +3237,9 @@ BEGIN
     q_id := gen_random_uuid();
         INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
     VALUES (q_id, '明日の天気は何ですか？ (Thời tiết ngày mai là gì?)', 0, 1, 1, l_id, r_id, NULL, NOW(), NOW());
+
+	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
+	
     INSERT INTO "Answers" ("AnswerID", "QuestionID", "AnswerText", "IsCorrect") VALUES 
     (gen_random_uuid(), q_id, '雨です', true),
     (gen_random_uuid(), q_id, '晴れです', false),
@@ -3136,15 +3253,18 @@ BEGIN
     r_id := gen_random_uuid();
     INSERT INTO "Readings" ("ReadingID", "Title", "Content", "Translation", "WordCount", "EstimatedTime", "Status", "LevelID", "TopicID", "LessonID", "CreatedAt", "UpdatedAt")
     VALUES (r_id, 'スーパーで買い物 (Mua sắm ở siêu thị)', 
-    'このスーパーはとても大きいです。りんごとみかんを買いました。全部で５００円でした。', 
-    'Siêu thị này rất lớn. Tôi đã mua táo và quýt. Tổng cộng hết 500 Yên.', 
+    'このスーパーはとても大きいです。りんごとみかんを買いました。全部で５００円でした。',
+	'Siêu thị này rất lớn. Tôi đã mua táo và quýt. Tổng cộng hết 500 Yên.', 
     38, 4, 1, n5_id, t_id, l_id, NOW(), NOW())
     ON CONFLICT ("Title") DO NOTHING;
 
     -- Câu hỏi 1 bài 7
     q_id := gen_random_uuid();
-        INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
+	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
     VALUES (q_id, '何を買いましたか？ (Đã mua cái gì?)', 0, 1, 1, l_id, r_id, NULL, NOW(), NOW());
+
+	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
+	
     INSERT INTO "Answers" ("AnswerID", "QuestionID", "AnswerText", "IsCorrect") VALUES 
     (gen_random_uuid(), q_id, '果物です', true),
     (gen_random_uuid(), q_id, '肉です', false),
@@ -3153,8 +3273,11 @@ BEGIN
 
     -- Câu hỏi 2 bài 7
     q_id := gen_random_uuid();
-        INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
+	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
     VALUES (q_id, '全部でいくらでしたか？ (Tổng cộng bao nhiêu tiền?)', 0, 1, 1, l_id, r_id, NULL, NOW(), NOW());
+
+	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
+	
     INSERT INTO "Answers" ("AnswerID", "QuestionID", "AnswerText", "IsCorrect") VALUES 
     (gen_random_uuid(), q_id, '５００円です', true),
     (gen_random_uuid(), q_id, '４００円です', false),
@@ -3175,18 +3298,24 @@ BEGIN
 
     -- Câu hỏi 1 bài 8
     q_id := gen_random_uuid();
-        INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
+	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
     VALUES (q_id, 'どんな家ですか？ (Ngôi nhà như thế nào?)', 0, 1, 1, l_id, r_id, NULL, NOW(), NOW());
-    INSERT INTO "Answers" ("AnswerID", "QuestionID", "AnswerText", "IsCorrect") VALUES 
-    (gen_random_uuid(), q_id, '新しくてきれいです', true),
+
+	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
+	
+    INSERT INTO "Answers" ("AnswerID", "QuestionID", "AnswerText", "IsCorrect") VALUES
+	(gen_random_uuid(), q_id, '新しくてきれいです', true),
     (gen_random_uuid(), q_id, '古くて安いです', false),
     (gen_random_uuid(), q_id, '狭くて暗いです', false),
     (gen_random_uuid(), q_id, '大きくて近いです', false);
 
     -- Câu hỏi 2 bài 8
     q_id := gen_random_uuid();
-        INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
+	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
     VALUES (q_id, '庭に何がありますか？ (Ở sân có cái gì?)', 0, 1, 1, l_id, r_id, NULL, NOW(), NOW());
+
+	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
+	
     INSERT INTO "Answers" ("AnswerID", "QuestionID", "AnswerText", "IsCorrect") VALUES 
     (gen_random_uuid(), q_id, '花と犬です', true),
     (gen_random_uuid(), q_id, '木と猫です', false),
@@ -3207,8 +3336,11 @@ BEGIN
 
     -- Câu hỏi 1 bài 9
     q_id := gen_random_uuid();
-        INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
+	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
     VALUES (q_id, '土曜日にどこへ行きますか？ (Thứ Bảy đi đâu?)', 0, 1, 1, l_id, r_id, NULL, NOW(), NOW());
+
+	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
+	
     INSERT INTO "Answers" ("AnswerID", "QuestionID", "AnswerText", "IsCorrect") VALUES 
     (gen_random_uuid(), q_id, '海です', true),
     (gen_random_uuid(), q_id, '山です', false),
@@ -3217,9 +3349,11 @@ BEGIN
 
     -- Câu hỏi 2 bài 9
     q_id := gen_random_uuid();
-        INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
+	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
     VALUES (q_id, '日曜日は何をしますか？ (Chủ Nhật làm gì?)', 0, 1, 1, l_id, r_id, NULL, NOW(), NOW());
-    INSERT INTO "Answers" ("AnswerID", "QuestionID", "AnswerText", "IsCorrect") VALUES 
+
+	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
+	INSERT INTO "Answers" ("AnswerID", "QuestionID", "AnswerText", "IsCorrect") VALUES 
     (gen_random_uuid(), q_id, 'うちで休みます', true),
     (gen_random_uuid(), q_id, 'テニスをします', false),
     (gen_random_uuid(), q_id, '買い物をします', false),
@@ -3239,8 +3373,11 @@ BEGIN
 
     -- Câu hỏi 1 bài 10
     q_id := gen_random_uuid();
-        INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
+	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
     VALUES (q_id, 'どのくらい勉強しましたか？ (Đã học được bao lâu rồi?)', 0, 1, 1, l_id, r_id, NULL, NOW(), NOW());
+
+	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
+	
     INSERT INTO "Answers" ("AnswerID", "QuestionID", "AnswerText", "IsCorrect") VALUES 
     (gen_random_uuid(), q_id, '３ヶ月です', true),
     (gen_random_uuid(), q_id, '１ヶ月です', false),
@@ -3249,20 +3386,33 @@ BEGIN
 
     -- Câu hỏi 2 bài 10
     q_id := gen_random_uuid();
-        INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
+	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
     VALUES (q_id, '漢字はどうですか？ (Chữ Hán thì thế nào?)', 0, 1, 1, l_id, r_id, NULL, NOW(), NOW());
+
+	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
+	
     INSERT INTO "Answers" ("AnswerID", "QuestionID", "AnswerText", "IsCorrect") VALUES 
     (gen_random_uuid(), q_id, '難しいですがおもしろいです', true),
     (gen_random_uuid(), q_id, '易しいです', false),
     (gen_random_uuid(), q_id, 'あまり好きじゃないです', false),
     (gen_random_uuid(), q_id, '全然わかりません', false);
 
+
+	INSERT INTO "Questions_Topics" ("QuestionID", "TopicID")
+    SELECT id_vua_tao, t_id FROM temp_new_q_ids
+    ON CONFLICT DO NOTHING; -- Tránh lỗi nếu chạy lại script nhiều lần
+
 	RAISE NOTICE 'Đã tạo xong bài đọc N5.';
 
 END $$;
 
+
+
+
+
+
 -------------------------------------------------------
--- 1. XÓA DỮ LIỆU CHI TIẾT (Bảng dữ liệu thực tế)
+-- 1. XÓA DỮ LIỆU CHI TIẾT (Bảng dữ liệu thực tế) - ĐỪNG CHẠY NHỮNG DÒNG DƯỚI ĐÂY CHUNG NẾU MUỐN INSERT
 -------------------------------------------------------
 
 -- Xóa toàn bộ câu trả lời (Answers)
@@ -3276,6 +3426,9 @@ TRUNCATE TABLE "Examples" RESTART IDENTITY CASCADE;
 
 -- Xóa toàn bộ bài đọc (Readings)
 TRUNCATE TABLE "Readings" RESTART IDENTITY CASCADE;
+
+-- Xóa toàn bộ bài đọc (Listenings)
+TRUNCATE TABLE "Listenings" RESTART IDENTITY CASCADE;
 
 -- Xóa liên kết từ vựng - kanji (VocabularyKanjis)
 TRUNCATE TABLE "VocabularyKanjis" RESTART IDENTITY CASCADE;
@@ -3309,28 +3462,9 @@ TRUNCATE TABLE "Courses" RESTART IDENTITY CASCADE;
 -- Xóa các trình độ JLPT (JLPT_Levels)
 TRUNCATE TABLE "JLPT_Levels" RESTART IDENTITY CASCADE;
 
-SELECT * FROM "Questions" 
-WHERE "GrammarID" = 'd94ed5fd-78b8-4c8c-9fcd-30d0a19c4436';
-
 -------------------------------------------------------
--- XÓA TẤT CẢ DỮ LIỆU CƠ SỞ DỮ LIỆU HỌC TẬP
+-- 4. SELECT VD
 -------------------------------------------------------
-DO $$ 
-BEGIN
-    TRUNCATE TABLE 
-        "Answers",
-        "Questions",
-        "VocabularyKanjis",
-        "Vocabularies", 
-        "Grammars", 
-        "Kanjis", 
-        "Readings",
-        "Examples",
-        "Lessons", 
-        "Topics", 
-        "Courses", 
-        "JLPT_Levels"
-    RESTART IDENTITY CASCADE;
 
-    RAISE NOTICE 'Dữ liệu đã được xóa sạch. Các trường ID đã được reset.';
-END $$;
+SELECT * FROM "Grammars" 
+WHERE "GrammarID" = '99a97e56-3acd-46d4-afe3-320175df0893';

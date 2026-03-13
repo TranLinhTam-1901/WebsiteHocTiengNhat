@@ -143,10 +143,10 @@ const GrammarEditorPage: React.FC = () => {
 
         if (isEditMode && id) {
         await grammarService.update(id, payload);
-        alert("Cập nhật thành công!");
+        alert("Cập nhật Ngữ pháp thành công!");
         } else {
         await grammarService.create(payload);
-        alert("Thêm mới thành công!");
+        alert("Thêm mới Ngữ pháp thành công!");
         }
         navigate('/admin/resource/grammar');
     } catch (error) {

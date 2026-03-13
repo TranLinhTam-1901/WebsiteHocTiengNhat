@@ -117,10 +117,10 @@ const VocabularyEditorPage: React.FC = () => {
     try {
       if (id) {
         await vocabService.update(id, payload);
-        alert("Cập nhật thành công!");
+        alert("Cập nhật Từ vựng thành công!");
       } else {
         await vocabService.create(payload);
-        alert("Thêm mới thành công!");
+        alert("Thêm mới Từ vựng thành công!");
       }
       navigate('/admin/resource/vocabulary');
     } catch (error: any) {
@@ -325,189 +325,216 @@ const VocabularyEditorPage: React.FC = () => {
             </div>
 
             <div className="space-y-6">
-              <div className="bg-white rounded-2xl border border-[#f4f0f2] shadow-sm p-8">
-                <h3 className="text-base font-bold mb-6 flex items-center gap-2"><span className="material-symbols-outlined text-primary">graphic_eq</span> Pronunciation</h3>
-                <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" accept="audio/*" />
-                <div onClick={() => fileInputRef.current?.click()} className="group flex flex-col items-center justify-center border-2 border-dashed border-[#d1ced0] rounded-2xl p-6 hover:border-primary cursor-pointer bg-[#fbf9fa]">
-                  <span className="material-symbols-outlined text-3xl text-[#886373] mb-2 group-hover:text-primary">cloud_upload</span>
-                  <p className="text-[11px] font-bold text-[#886373] uppercase">{formData.audioBase64 ? 'Hệ thống đã nhận file âm thanh' : 'Upload MP3/WAV'}</p>
+
+            <div className="bg-white p-4 rounded-xl shadow-sm border border-[#f287b6]/5">
+              <p className="text-[15px] font-bold text-slate-700 mb-3">Hình ảnh minh họa</p>
+              <div className="aspect-video bg-slate-100 rounded-lg overflow-hidden relative group cursor-pointer border-2 border-dashed border-slate-200 flex items-center justify-center">
+                <div className="flex flex-col items-center">
+                  <span className="material-symbols-outlined text-slate-400 group-hover:text-[#f287b6] text-3xl transition-all">add_photo_alternate</span>
+                  <span className="text-[15px] font-bold text-slate-400 group-hover:text-[#f287b6] mt-1">Tải file ảnh</span>
+                </div>
+              </div>
+            </div>
+              
+            <div className="bg-white rounded-2xl border border-[#f4f0f2] shadow-sm p-8">
+              <h3 className="text-base font-bold mb-6 flex items-center gap-2"><span className="material-symbols-outlined text-primary">graphic_eq</span> Pronunciation</h3>
+              <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" accept="audio/*" />
+              <div onClick={() => fileInputRef.current?.click()} className="group flex flex-col items-center justify-center border-2 border-dashed border-[#d1ced0] rounded-2xl p-6 hover:border-primary cursor-pointer bg-[#fbf9fa]">
+                <span className="material-symbols-outlined text-3xl text-[#886373] mb-2 group-hover:text-primary">cloud_upload</span>
+                <p className="text-[11px] font-bold text-[#886373] uppercase">{formData.audioBase64 ? 'Hệ thống đã nhận file âm thanh' : 'Upload MP3/WAV'}</p>
+              </div>
+
+              <div className="grid grid-cols-1 gap-8 mt-4">
+                <div className="space-y-6">
+                  <div className="p-4 bg-background-light rounded-xl border border-[#f287b6]/10">
+                    <div className="flex items-center gap-3">
+                      <button className="size-8 rounded-full bg-[#f287b6] text-white flex items-center justify-center shadow-sm">
+                        <span className="material-symbols-outlined text-sm">play_arrow</span>
+                      </button>
+                      <div className="flex-1 h-1 bg-slate-200 rounded-full relative overflow-hidden">
+                        <div className="absolute inset-y-0 left-0 w-1/3 bg-[#f287b6]"></div>
+                      </div>
+                      <span className="text-xs font-mono text-slate-500">0:45 / 2:30</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-2xl border border-[#f4f0f2] shadow-sm space-y-6">
+              {/* 1. SECTION TOPIC */}
+              <div>
+                <label className="block text-xs font-bold text-[#886373] uppercase tracking-wider mb-3">
+                  Topic Assignment
+                </label>
+                <div className="relative">
+                  <div className="relative">
+                    <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[#886373]">
+                      search
+                    </span>
+                    <input
+                      type="text"
+                      placeholder="Tìm và chọn Topic..."
+                      value={topicSearch}
+                      onChange={(e) => {
+                        setTopicSearch(e.target.value);
+                        setIsTopicMenuOpen(true);
+                      }}
+                      onFocus={() => setIsTopicMenuOpen(true)}
+                      className="w-full bg-[#fbf9fa] border border-[#f4f0f2] rounded-xl pl-9 pr-4 py-2.5 text-sm focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all"
+                    />
+                  </div>
+
+                  {isTopicMenuOpen && (
+                    <>
+                      <div className="fixed inset-0 z-10" onClick={() => setIsTopicMenuOpen(false)} />
+                      <div className="absolute left-0 right-0 mt-2 bg-white border border-[#f4f0f2] rounded-xl shadow-xl z-20 max-h-48 overflow-y-auto p-1 custom-scrollbar animate-in fade-in slide-in-from-top-2 duration-200">
+                        {filteredTopics.map((t) => (
+                          <button
+                            key={t.id}
+                            onClick={() => {
+                              setFormData({ ...formData, topicID: t.id });
+                              setTopicSearch("");
+                              setIsTopicMenuOpen(false);
+                            }}
+                            className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-primary/5 hover:text-primary transition-colors flex items-center justify-between group"
+                          >
+                            {t.name}
+                            <span className="material-symbols-outlined text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                              add
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {/* Tag Topic hiển thị bên dưới */}
+                <div className="mt-3 min-h-8">
+                  {formData.topicID && (
+                    <div className="inline-flex group relative">
+                      <div className="pl-3 pr-8 py-1.5 bg-primary/5 border border-primary/20 text-primary text-[11px] font-bold rounded-full flex items-center">
+                        <span className="material-symbols-outlined text-[14px] mr-1.5 text-primary/60">
+                          label
+                        </span>
+                        {metadata.topics.find((t) => t.id === formData.topicID)?.name}
+                      </div>
+                      <button
+                        onClick={() => setFormData({ ...formData, topicID: "" })}
+                        className="absolute right-1 top-1/2 -translate-y-1/2 size-5 rounded-full bg-primary/20 text-primary flex items-center justify-center hover:bg-primary hover:text-white transition-all scale-75 group-hover:scale-100"
+                      >
+                        <span className="material-symbols-outlined text-[14px]">close</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
 
-              <div className="bg-white p-6 rounded-2xl border border-[#f4f0f2] shadow-sm space-y-6">
-                {/* 1. SECTION TOPIC */}
-                <div>
-                  <label className="block text-xs font-bold text-[#886373] uppercase tracking-wider mb-3">
-                    Topic Assignment
-                  </label>
-                  <div className="relative">
-                    <div className="relative">
-                      <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[#886373]">
-                        search
-                      </span>
-                      <input
-                        type="text"
-                        placeholder="Tìm và chọn Topic..."
-                        value={topicSearch}
-                        onChange={(e) => {
-                          setTopicSearch(e.target.value);
-                          setIsTopicMenuOpen(true);
-                        }}
-                        onFocus={() => setIsTopicMenuOpen(true)}
-                        className="w-full bg-[#fbf9fa] border border-[#f4f0f2] rounded-xl pl-9 pr-4 py-2.5 text-sm focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all"
-                      />
-                    </div>
+              {/* 2. SECTION LESSON */}
+              <div className="pt-5 border-t border-[#f4f0f2]">
+                <label className="block text-xs font-bold text-[#886373] uppercase tracking-wider mb-2">
+                  Lesson Assign
+                </label>
+                <div className="relative">
+                  <button
+                    onClick={(e) => handleOpenDropdown("lesson", e)}
+                    className="w-full bg-[#fbf9fa] border border-[#f4f0f2] rounded-xl px-4 py-2.5 text-sm flex items-center justify-between hover:border-primary/30 transition-all outline-none"
+                  >
+                    <span className={formData.lessonID ? "text-[#181114]" : "text-[#886373]/60"}>
+                      {metadata.lessons.find((l) => l.id === formData.lessonID)?.name || "-- Chọn bài học --"}
+                    </span>
+                    <span className={`material-symbols-outlined text-[#886373] transition-transform duration-300 ${isLessonMenuOpen ? "rotate-180" : ""}`}>
+                      expand_more
+                    </span>
+                  </button>
 
-                    {isTopicMenuOpen && (
-                      <>
-                        <div className="fixed inset-0 z-10" onClick={() => setIsTopicMenuOpen(false)} />
-                        <div className="absolute left-0 right-0 mt-2 bg-white border border-[#f4f0f2] rounded-xl shadow-xl z-20 max-h-48 overflow-y-auto p-1 custom-scrollbar animate-in fade-in slide-in-from-top-2 duration-200">
-                          {filteredTopics.map((t) => (
+                  {isLessonMenuOpen && (
+                    <>
+                      <div className="fixed inset-0 z-10" onClick={() => setIsLessonMenuOpen(false)} />
+                      <div
+                        className={`absolute left-0 right-0 z-20 bg-white border border-[#f4f0f2] rounded-xl shadow-2xl p-1 animate-in fade-in duration-200 
+                        ${dropUp.lesson ? "bottom-full mb-2 slide-in-from-bottom-2" : "top-full mt-2 slide-in-from-top-2"}`}
+                      >
+                        <div className="max-h-84 overflow-y-auto custom-scrollbar">
+                          <button
+                            onClick={() => {
+                              setFormData({ ...formData, lessonID: "" });
+                              setIsLessonMenuOpen(false);
+                            }}
+                            className="w-full text-left px-3 py-2 text-xs rounded-lg text-red-500 hover:bg-red-50 transition-colors"
+                          >
+                            Không chọn bài học
+                          </button>
+                          <div className="h-px bg-[#f4f0f2] my-1" />
+                          {metadata.lessons.map((l) => (
                             <button
-                              key={t.id}
+                              key={l.id}
                               onClick={() => {
-                                setFormData({ ...formData, topicID: t.id });
-                                setTopicSearch("");
-                                setIsTopicMenuOpen(false);
-                              }}
-                              className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-primary/5 hover:text-primary transition-colors flex items-center justify-between group"
-                            >
-                              {t.name}
-                              <span className="material-symbols-outlined text-xs opacity-0 group-hover:opacity-100 transition-opacity">
-                                add
-                              </span>
-                            </button>
-                          ))}
-                        </div>
-                      </>
-                    )}
-                  </div>
-
-                  {/* Tag Topic hiển thị bên dưới */}
-                  <div className="mt-3 min-h-8">
-                    {formData.topicID && (
-                      <div className="inline-flex group relative">
-                        <div className="pl-3 pr-8 py-1.5 bg-primary/5 border border-primary/20 text-primary text-[11px] font-bold rounded-full flex items-center">
-                          <span className="material-symbols-outlined text-[14px] mr-1.5 text-primary/60">
-                            label
-                          </span>
-                          {metadata.topics.find((t) => t.id === formData.topicID)?.name}
-                        </div>
-                        <button
-                          onClick={() => setFormData({ ...formData, topicID: "" })}
-                          className="absolute right-1 top-1/2 -translate-y-1/2 size-5 rounded-full bg-primary/20 text-primary flex items-center justify-center hover:bg-primary hover:text-white transition-all scale-75 group-hover:scale-100"
-                        >
-                          <span className="material-symbols-outlined text-[14px]">close</span>
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* 2. SECTION LESSON */}
-                <div className="pt-5 border-t border-[#f4f0f2]">
-                  <label className="block text-xs font-bold text-[#886373] uppercase tracking-wider mb-2">
-                    Lesson Assign
-                  </label>
-                  <div className="relative">
-                    <button
-                      onClick={(e) => handleOpenDropdown("lesson", e)}
-                      className="w-full bg-[#fbf9fa] border border-[#f4f0f2] rounded-xl px-4 py-2.5 text-sm flex items-center justify-between hover:border-primary/30 transition-all outline-none"
-                    >
-                      <span className={formData.lessonID ? "text-[#181114]" : "text-[#886373]/60"}>
-                        {metadata.lessons.find((l) => l.id === formData.lessonID)?.name || "-- Chọn bài học --"}
-                      </span>
-                      <span className={`material-symbols-outlined text-[#886373] transition-transform duration-300 ${isLessonMenuOpen ? "rotate-180" : ""}`}>
-                        expand_more
-                      </span>
-                    </button>
-
-                    {isLessonMenuOpen && (
-                      <>
-                        <div className="fixed inset-0 z-10" onClick={() => setIsLessonMenuOpen(false)} />
-                        <div
-                          className={`absolute left-0 right-0 z-20 bg-white border border-[#f4f0f2] rounded-xl shadow-2xl p-1 animate-in fade-in duration-200 
-                          ${dropUp.lesson ? "bottom-full mb-2 slide-in-from-bottom-2" : "top-full mt-2 slide-in-from-top-2"}`}
-                        >
-                          <div className="max-h-84 overflow-y-auto custom-scrollbar">
-                            <button
-                              onClick={() => {
-                                setFormData({ ...formData, lessonID: "" });
+                                setFormData({ ...formData, lessonID: l.id });
                                 setIsLessonMenuOpen(false);
                               }}
-                              className="w-full text-left px-3 py-2 text-xs rounded-lg text-red-500 hover:bg-red-50 transition-colors"
+                              className={`w-full text-left px-3 py-2 text-sm rounded-lg transition-colors flex items-center justify-between ${formData.lessonID === l.id ? "bg-primary/10 text-primary font-bold" : "hover:bg-primary/5 hover:text-primary"}`}
                             >
-                              Không chọn bài học
-                            </button>
-                            <div className="h-px bg-[#f4f0f2] my-1" />
-                            {metadata.lessons.map((l) => (
-                              <button
-                                key={l.id}
-                                onClick={() => {
-                                  setFormData({ ...formData, lessonID: l.id });
-                                  setIsLessonMenuOpen(false);
-                                }}
-                                className={`w-full text-left px-3 py-2 text-sm rounded-lg transition-colors flex items-center justify-between ${formData.lessonID === l.id ? "bg-primary/10 text-primary font-bold" : "hover:bg-primary/5 hover:text-primary"}`}
-                              >
-                                {l.name}
-                                {formData.lessonID === l.id && <span className="material-symbols-outlined text-sm">check</span>}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </div>
-
-                {/* 3. SECTION VISIBILITY */}
-                <div className="pt-5 border-t border-[#f4f0f2]">
-                  <label className="block text-xs font-bold text-[#886373] uppercase tracking-wider mb-2">
-                    Visibility
-                  </label>
-                  <div className="relative">
-                    <button
-                      onClick={(e) => handleOpenDropdown("visibility", e)}
-                      className="w-full bg-[#fbf9fa] border border-[#f4f0f2] rounded-xl px-4 py-2.5 text-sm flex items-center justify-between hover:border-primary/30 transition-all outline-none"
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className={`size-2 rounded-full ${visibility === "Published" ? "bg-green-500" : visibility === "Draft" ? "bg-yellow-500" : "bg-red-500"}`} />
-                        <span className="font-bold text-[#181114]">{visibility}</span>
-                      </div>
-                      <span className={`material-symbols-outlined text-[#886373] transition-transform duration-300 ${isVisibilityMenuOpen ? "rotate-180" : ""}`}>
-                        expand_more
-                      </span>
-                    </button>
-
-                    {isVisibilityMenuOpen && (
-                      <>
-                        <div className="fixed inset-0 z-10" onClick={() => setIsVisibilityMenuOpen(false)} />
-                        <div
-                          className={`absolute left-0 right-0 z-20 bg-white border border-[#f4f0f2] rounded-xl shadow-xl p-1 animate-in fade-in duration-200
-                          ${dropUp.visibility ? "bottom-full mb-2 slide-in-from-bottom-2" : "top-full mt-2 slide-in-from-top-2"}`}
-                        >
-                          {["Published", "Draft", "Archived"].map((status) => (
-                            <button
-                              key={status}
-                              onClick={() => {
-                                setVisibility(status);
-                                // Ánh xạ chữ sang số để lưu vào database
-                                const statusValue = status === "Published" ? 1 : status === "Draft" ? 0 : 2;
-                                setFormData({ ...formData, status: statusValue });
-                                setIsVisibilityMenuOpen(false);
-                              }}
-                              className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-primary/5 hover:text-primary transition-colors flex items-center gap-2"
-                            >
-                              <span className={`size-2 rounded-full ${status === "Published" ? "bg-green-500" : status === "Draft" ? "bg-yellow-500" : "bg-red-500"}`} />
-                              {status}
+                              {l.name}
+                              {formData.lessonID === l.id && <span className="material-symbols-outlined text-sm">check</span>}
                             </button>
                           ))}
                         </div>
-                      </>
-                    )}
-                  </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
+
+              {/* 3. SECTION VISIBILITY */}
+              <div className="pt-5 border-t border-[#f4f0f2]">
+                <label className="block text-xs font-bold text-[#886373] uppercase tracking-wider mb-2">
+                  Visibility
+                </label>
+                <div className="relative">
+                  <button
+                    onClick={(e) => handleOpenDropdown("visibility", e)}
+                    className="w-full bg-[#fbf9fa] border border-[#f4f0f2] rounded-xl px-4 py-2.5 text-sm flex items-center justify-between hover:border-primary/30 transition-all outline-none"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className={`size-2 rounded-full ${visibility === "Published" ? "bg-green-500" : visibility === "Draft" ? "bg-yellow-500" : "bg-red-500"}`} />
+                      <span className="font-bold text-[#181114]">{visibility}</span>
+                    </div>
+                    <span className={`material-symbols-outlined text-[#886373] transition-transform duration-300 ${isVisibilityMenuOpen ? "rotate-180" : ""}`}>
+                      expand_more
+                    </span>
+                  </button>
+
+                  {isVisibilityMenuOpen && (
+                    <>
+                      <div className="fixed inset-0 z-10" onClick={() => setIsVisibilityMenuOpen(false)} />
+                      <div
+                        className={`absolute left-0 right-0 z-20 bg-white border border-[#f4f0f2] rounded-xl shadow-xl p-1 animate-in fade-in duration-200
+                        ${dropUp.visibility ? "bottom-full mb-2 slide-in-from-bottom-2" : "top-full mt-2 slide-in-from-top-2"}`}
+                      >
+                        {["Published", "Draft", "Archived"].map((status) => (
+                          <button
+                            key={status}
+                            onClick={() => {
+                              setVisibility(status);
+                              // Ánh xạ chữ sang số để lưu vào database
+                              const statusValue = status === "Published" ? 1 : status === "Draft" ? 0 : 2;
+                              setFormData({ ...formData, status: statusValue });
+                              setIsVisibilityMenuOpen(false);
+                            }}
+                            className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-primary/5 hover:text-primary transition-colors flex items-center gap-2"
+                          >
+                            <span className={`size-2 rounded-full ${status === "Published" ? "bg-green-500" : status === "Draft" ? "bg-yellow-500" : "bg-red-500"}`} />
+                            {status}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
 
             </div>
           </div>

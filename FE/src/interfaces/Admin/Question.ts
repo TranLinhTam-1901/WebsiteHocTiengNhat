@@ -21,22 +21,32 @@ export interface AnswerDTO {
 
 export interface QuestionDTO {
     questionID?: string;
+    // Liên kết bài đọc/nghe
     readingID?: string | null;
+    listeningID?: string | null; // Mới bổ sung từ Model C#
+    
     lessonID: string;
-    content: string; // Nội dung câu hỏi
+    content: string;
     questionType: QuestionType;
+    
+    // Media
     audioURL?: string | null;
+    imageURL?: string | null; // Đồng bộ với ImageURL trong C#
+    
     difficulty: number;
     explanation?: string | null;
     status: QuestionStatus;
     
-    // Phục vụ cho câu hỏi phân cấp (nếu bài đọc có nhiều nhóm câu hỏi)
+    // Phục vụ cho câu hỏi bài nghe/đọc
+    mediaTimestamp?: string | null; // Mốc thời gian (vd: 01:25)
+    displayOrder?: number | null;   // Thứ tự hiển thị
+    equivalentID?: string | null;  // ID câu hỏi tương đương
+    
+    // Nguồn gốc & Phân cấp
+    sourceID?: string | null;
     parentID?: string | null;
     subQuestions?: QuestionDTO[]; 
     
-    // Danh sách đáp án đi kèm
+    // Danh sách đáp án
     answers: AnswerDTO[];
-    
-    // Metadata (Tùy chọn nếu cần hiển thị)
-    mediaTimestamp?: string | null;
 }
