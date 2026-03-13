@@ -1,126 +1,207 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import AdminHeader from '../../../../components/layout/admin/AdminHeader';
 import { Link } from 'react-router-dom';
+import { listeningService } from '../../../../services/Admin/listeningService'; 
+import { ListeningItem } from '../../../../interfaces/Admin/Listening';
 
 const ListeningManagement: React.FC = () => {
-  // Dữ liệu mẫu
-  const audioList = [
-    { id: 1, title: 'Lunch Time Conversations', date: 'Oct 12, 2023', duration: '02:45', level: 'N5', category: 'Daily Life', levelColor: 'bg-blue-100 text-blue-600' },
-    { id: 2, title: 'Project Proposal Meeting', date: 'Oct 10, 2023', duration: '05:12', level: 'N3', category: 'Business', levelColor: 'bg-red-100 text-red-600' },
-    { id: 3, title: 'Asking for Station Directions', date: 'Oct 08, 2023', duration: '01:30', level: 'N5', category: 'Travel', levelColor: 'bg-blue-100 text-blue-600' },
-    { id: 4, title: 'NHK News: Weather Update', date: 'Oct 05, 2023', duration: '02:10', level: 'N4', category: 'News', levelColor: 'bg-purple-100 text-purple-600' },
-    { id: 5, title: 'Weekend Social Plans', date: 'Oct 01, 2023', duration: '03:20', level: 'N4', category: 'Social', levelColor: 'bg-purple-100 text-purple-600' },
-  ];
+  const [tracks, setTracks] = useState<ListeningItem[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [searchTerm, setSearchTerm] = useState<string>('');
+
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const itemsPerPage = 7;
+
+  // Reset về trang 1 mỗi khi tìm kiếm
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
+  // Hàm lấy dữ liệu từ API
+  const fetchListenings = async () => {
+    try {
+      setLoading(true);
+      const data = await listeningService.getAll();
+      setTracks(data);
+    } catch (error) {
+      console.error("Lỗi khi lấy danh sách bài nghe:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchListenings();
+  }, []);
+
+  const filteredData = tracks.filter(t => 
+    t.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
+
+  const getLevelStyles = (level: string) => {
+    switch (level?.toUpperCase()) {
+      case 'N5': return 'bg-emerald-50 text-emerald-600 border-emerald-100';
+      case 'N4': return 'bg-sky-50 text-sky-600 border-sky-100';
+      case 'N3': return 'bg-amber-50 text-amber-600 border-amber-100';
+      case 'N2': return 'bg-purple-50 text-purple-600 border-purple-100';
+      case 'N1': return 'bg-rose-50 text-rose-600 border-rose-100';
+      default: return 'bg-gray-50 text-gray-500 border-gray-100';
+    }
+  };
+
+  // State quản lý Modal Xóa
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [listeningToDelete, setListeningToDelete] = useState<{id: string, title: string} | null>(null);
+
+  const handleDelete = (id: string, title: string) => {
+    setDeleteId(id);
+    setListeningToDelete({ id, title });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteId) return;
+    try {
+      await listeningService.delete(deleteId);
+      setTracks(tracks.filter(t => t.id !== deleteId));
+      setDeleteId(null);
+      setListeningToDelete(null);
+    } catch (error) {
+      console.error(error);
+      alert("Xóa thất bại!");
+    }
+  };
+
+  // Hàm format giây thành mm:ss
+  const formatDuration = (seconds: number) => {
+    const min = Math.floor(seconds / 60);
+    const sec = seconds % 60;
+    return `${min}:${sec.toString().padStart(2, '0')}`;
+  };
 
   return (
     <div className="flex flex-col h-full bg-background-light">
-      {/* --- Header Section --- */}
       <AdminHeader>
-      <div className="flex items-center gap-194">
-        <div className="flex items-center gap-4 flex-1">
-          <div className="flex flex-col">
+        <div className="flex items-center gap-194">
+          <div className="flex items-center gap-4 flex-1">
+            <div className="flex flex-col">
               <h2 className="text-xl font-bold text-[#181114]">QUẢN LÝ BÀI NGHE</h2>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          {/* Search Bar */}
-          <div className="relative hidden md:block">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#886373]">
-              search
-            </span>
-            <input
-              type="text"
-              placeholder="Tìm kiếm tiêu đề audio..."
-              className="bg-[#f4f0f2] border-none rounded-full pl-10 pr-4 py-2 text-sm w-64 focus:ring-2 focus:ring-primary/50 text-[#181114] outline-none"
-            />
+            </div>
           </div>
 
-          {/* Add Button */}
-          <Link 
-            to="/admin/resource/listening/create" // Thay đường dẫn này bằng route thực tế của bạn
-            className="bg-primary hover:bg-primary-dark text-white px-5 py-2 rounded-full text-sm font-bold flex items-center gap-2 transition-all shadow-lg shadow-primary/20 active:scale-95 no-underline"
-          >
-            <span className="material-symbols-outlined text-sm">cloud_upload</span>
-            Thêm Bài nghe
-          </Link>
-        </div>
+          <div className="flex items-center gap-3">
+            <div className="relative hidden md:block">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#886373]">
+                search
+              </span>
+              <input
+                type="text"
+                placeholder="Tìm kiếm bài nghe..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="bg-[#f4f0f2] border-none rounded-full pl-10 pr-4 py-2 text-sm w-64 focus:ring-2 focus:ring-primary/50 text-[#181114] outline-none"
+              />
+            </div>
 
-      </div>
+            <Link 
+              to="/admin/resource/listening/create"
+              className="bg-primary hover:bg-primary-dark text-white px-5 py-2 rounded-full text-sm font-bold flex items-center gap-2 transition-all shadow-lg shadow-primary/20 active:scale-95 no-underline"
+            >
+              <span className="material-symbols-outlined text-sm">mic</span>
+              Thêm Bài nghe
+            </Link>
+          </div>
+        </div>
       </AdminHeader>
 
-      {/* --- Main Content --- */}
-      <div className="flex-1 overflow-hidden p-3 space-y-3">
-        
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <StatCard 
-            icon="data_usage" 
-            title="Storage Usage" 
-            value="1.2 GB" 
-            subValue="of 5 GB" 
-            progress={24} 
-            iconColor="text-primary"
-          />
-          <StatCard 
-            icon="query_stats" 
-            title="Total Listens" 
-            value="42,891" 
-            trend="+8% from last month" 
-            iconColor="text-blue-500"
-          />
-          <StatCard 
-            icon="auto_fix_high" 
-            title="AI Transcript Accuracy" 
-            value="98.4%" 
-            subValue="Verified by community" 
-            iconColor="text-purple-500"
-          />
+      {deleteId && (
+        <div className="fixed inset-0 z-999 flex items-center justify-center p-6">
+          <div className="absolute inset-0 bg-[#181114]/40 backdrop-blur-md animate-in fade-in duration-500" onClick={() => setDeleteId(null)} />
+          <div className="relative bg-white rounded-[3rem] p-10 max-w-105 w-full shadow-[0_40px_100px_-20px_rgba(24,11,20,0.3)] border border-white/50 animate-in zoom-in-95 duration-300">
+            <div className="relative size-32 rounded-[2.5rem] bg-linear-to-br from-[#fff1f2] to-[#ffe4e6] flex flex-col items-center justify-center text-[#e11d48] mb-8 mx-auto shadow-[inset_0_4px_12px_rgba(225,29,72,0.1)] border-4 border-white rotate-3">
+              <span className="material-symbols-outlined text-5xl drop-shadow-sm scale-110">
+                headphones
+              </span>
+              <div className="absolute -bottom-2 -right-2 size-11 rounded-full bg-[#e11d48] text-white flex items-center justify-center shadow-lg border-4 border-white -rotate-3">
+                <span className="material-symbols-outlined text-[20px] font-bold">close</span>
+              </div>
+            </div>
+            
+            <div className="text-center mb-10">
+              <h3 className="text-[24px] font-black text-[#181114] mb-3 tracking-tight">Gỡ bỏ bài nghe?</h3>
+              <p className="text-[#886373] text-sm leading-relaxed px-4">
+                Toàn bộ dữ liệu âm thanh và câu hỏi của bài <span className="inline-block mt-2 font-bold text-[#e11d48] bg-[#fff1f2] px-3 py-1 rounded-xl italic">
+                  "{listeningToDelete?.title}"</span> sẽ bị xóa vĩnh viễn.
+              </p>
+            </div>
+            
+            <div className="flex gap-4">
+              <button onClick={() => setDeleteId(null)} className="flex-1 py-4 px-2 rounded-[1.25rem] bg-[#f4f2f3] text-[#5a434d] font-black text-[12px] uppercase tracking-wider hover:bg-[#ece8ea] transition-all duration-200 border border-[#e8e4e6]">
+                Hủy bỏ
+              </button>
+              <button onClick={confirmDelete} className="flex-1 py-4 px-2 rounded-[1.25rem] bg-[#e53e3e] text-white font-black text-[12px] uppercase tracking-wider hover:bg-[#c53030] shadow-xl shadow-red-100 transition-all active:scale-95">
+                Xác nhận
+              </button>
+            </div>
+          </div>
         </div>
+      )}
 
-        {/* Table Section */}
-        <div className="bg-white rounded-2xl border border-[#f4f0f2] shadow-sm overflow-hidden flex flex-col">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-[#fbf9fa] border-b border-[#f4f0f2]">
-                  <th className="px-6 py-4 text-xs font-bold text-[#886373] uppercase tracking-wider">Audio Title</th>
-                  <th className="px-6 py-4 text-xs font-bold text-[#886373] uppercase tracking-wider">Duration</th>
-                  <th className="px-6 py-4 text-xs font-bold text-[#886373] uppercase tracking-wider text-center">Level</th>
-                  <th className="px-6 py-4 text-xs font-bold text-[#886373] uppercase tracking-wider">Category</th>
-                  <th className="px-6 py-4 text-xs font-bold text-[#886373] uppercase tracking-wider text-right">Actions</th>
+      <div className="flex-1 overflow-hidden p-8">
+        <div className="bg-white rounded-2xl border border-[#f4f0f2] shadow-sm overflow-hidden flex flex-col h-full">
+          <div className="overflow-hidden flex-1 no-scrollbar">
+            <table className="w-full text-left border-collapse table-fixed">
+              <thead className='h-15'>
+                <tr className="bg-[rgb(251,249,250)] border-b border-[#f4f0f2]">
+                  <th className="w-[30%] px-8 py-4 text-sm font-bold text-[#886373] uppercase tracking-wider">Tiêu đề</th>
+                  <th className="w-[15%] px-8 py-4 text-center text-sm font-bold text-[#886373] uppercase tracking-wider">Trạng thái</th>
+                  <th className="w-[15%] px-8 py-4 text-center text-sm font-bold text-[#886373] uppercase tracking-wider">Thời lượng</th>
+                  <th className="w-[10%] px-8 py-4 text-center text-sm font-bold text-[#886373] uppercase tracking-wider">JLPT</th>
+                  <th className="w-[15%] px-8 py-4 text-sm font-bold text-[#886373] uppercase tracking-wider">Chủ đề</th>
+                  <th className="w-[15%] px-8 py-4 text-right text-sm font-bold text-[#886373] uppercase tracking-wider">Thao tác</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#f4f0f2]">
-                {audioList.map((item) => (
-                  <tr key={item.id} className="hover:bg-primary/5 transition-colors group">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                          <span className="material-symbols-outlined">graphic_eq</span>
-                        </div>
-                        <div>
-                          <p className="text-sm font-bold text-[#181114]">{item.title}</p>
-                          <p className="text-[10px] text-[#886373]">Uploaded {item.date}</p>
-                        </div>
+                {loading ? (
+                  <tr><td colSpan={6} className="text-center py-10 text-sm text-slate-400">Đang tải audio...</td></tr>
+                ) : currentItems.map((item) => (
+                  <tr key={item.id} className="hover:bg-primary/5 transition-colors h-24.5">
+                    <td className="px-8 py-5 font-bold text-sm text-[#181114]">
+                      <div className="flex flex-col">
+                        <span className="truncate">{item.title}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm font-medium text-[#181114]">{item.duration}</td>
-                    <td className="px-6 py-4 text-center">
-                      <span className={`${item.levelColor} px-3 py-1 rounded-full text-[10px] font-black uppercase`}>
-                        {item.level}
+                    <td className="px-8 py-5 text-center">
+                      <span className={`text-sm font-medium ${
+                        item.status === 0 ? "text-yellow-500" : 
+                        item.status === 1 ? "text-green-500" : 
+                        "text-red-500"
+                      }`}>
+                        {item.status === 0 ? "Đang tạo" : 
+                        item.status === 1 ? "Hoạt động" : 
+                        "Lưu trữ"}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-[#886373]">{item.category}</td>
-                    <td className="px-6 py-4 text-right">
+                    <td className="px-8 py-5 text-center">
+                      <span className="text-sm font-medium text-black">{formatDuration(item.duration)}</span>
+                    </td>
+                    <td className="px-8 py-5 text-center">
+                      <span className={`${getLevelStyles(item.levelName)} px-3 py-1 rounded-lg text-xs font-bold uppercase`}>{item.levelName}</span>
+                    </td>
+                    <td className="px-8 py-5 text-sm text-[#886373]">{item.topicName}</td>
+                    <td className="px-8 py-5 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <button className="size-8 rounded-full hover:bg-primary/10 text-primary transition-colors flex items-center justify-center" title="Play Preview">
-                          <span className="material-symbols-outlined text-lg">play_circle</span>
-                        </button>
-                        <button className="size-8 rounded-full hover:bg-[#f4f0f2] text-[#886373] hover:text-primary transition-all border border-transparent hover:border-[#f4f0f2] flex items-center justify-center" title="Edit">
+                        {/* Nút nghe trước mới */}
+                        <Link to={`/admin/resource/listening/edit/${item.id}`} className="p-2 hover:bg-[#f4f0f2] rounded-lg text-[#886373] border border-[#f4f0f2]">
                           <span className="material-symbols-outlined text-lg">edit</span>
-                        </button>
-                        <button className="size-8 rounded-full hover:bg-red-50 text-red-500 transition-colors flex items-center justify-center" title="Delete">
+                        </Link>
+                        
+                        <button onClick={() => handleDelete(item.id, item.title)} className="p-2 hover:bg-[#f4f0f2] rounded-lg text-[#886373] border border-[#f4f0f2] hover:text-red-500">
                           <span className="material-symbols-outlined text-lg">delete</span>
                         </button>
                       </div>
@@ -131,18 +212,25 @@ const ListeningManagement: React.FC = () => {
             </table>
           </div>
 
-          {/* Pagination Footer */}
-          <div className="p-6 border-t border-[#f4f0f2] flex items-center justify-between">
+          <div className="p-6 border-t border-[#f4f0f2] flex items-center justify-between bg-white h-20">
             <p className="text-xs text-[#886373] font-medium">
-              Showing <span className="text-[#181114]">5</span> of 128 audio files
+              Hiển thị <span className="text-[#181114]">{indexOfFirstItem + 1} - {Math.min(indexOfLastItem, filteredData.length)}</span> của {filteredData.length} bài nghe
             </p>
-            <div className="flex gap-2">
-              <button className="px-4 py-2 text-sm font-bold rounded-xl border border-[#f4f0f2] text-[#886373] hover:bg-[#f4f0f2] transition-colors">
-                Previous
-              </button>
-              <button className="px-4 py-2 text-sm font-bold rounded-xl bg-primary text-white shadow-lg shadow-primary/10 active:scale-95 transition-transform">
-                Next
-              </button>
+            
+            <div className="flex items-center gap-2">
+              {[...Array(totalPages)].map((_, index) => (
+                <button
+                  key={index + 1}
+                  onClick={() => setCurrentPage(index + 1)}
+                  className={`size-10 rounded-lg flex items-center justify-center border-2 border-[#f4f0f2] font-bold text-sm transition-all ${
+                    currentPage === index + 1 
+                      ? 'bg-primary text-white shadow-md shadow-primary/20 border-none' 
+                      : 'text-[#886373] hover:bg-[#f4f0f2]'
+                  }`}
+                >
+                  {index + 1}
+                </button>
+              ))}
             </div>
           </div>
         </div>
@@ -150,29 +238,5 @@ const ListeningManagement: React.FC = () => {
     </div>
   );
 };
-
-// --- Sub-component for Stats ---
-const StatCard = ({ icon, title, value, subValue, trend, progress, iconColor }: any) => (
-  <div className="bg-white p-6 rounded-2xl border border-[#f4f0f2] shadow-sm">
-    <div className="flex items-center gap-3 mb-2">
-      <span className={`material-symbols-outlined ${iconColor}`}>{icon}</span>
-      <h4 className="text-sm font-bold text-[#181114]">{title}</h4>
-    </div>
-    <div className="flex items-end justify-between mb-2">
-      <p className="text-2xl font-black text-[#181114]">{value}</p>
-      {subValue && <p className="text-xs text-[#886373]">{subValue}</p>}
-    </div>
-    {progress !== undefined && (
-      <div className="h-1.5 w-full bg-[#f4f0f2] rounded-full overflow-hidden">
-        <div className="h-full bg-primary" style={{ width: `${progress}%` }}></div>
-      </div>
-    )}
-    {trend && (
-      <p className="text-xs text-green-500 font-bold flex items-center gap-1 mt-2">
-        <span className="material-symbols-outlined text-xs">trending_up</span> {trend}
-      </p>
-    )}
-  </div>
-);
 
 export default ListeningManagement;

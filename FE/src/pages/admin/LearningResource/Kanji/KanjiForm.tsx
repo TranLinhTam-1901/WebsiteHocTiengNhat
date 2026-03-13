@@ -79,10 +79,10 @@ const KanjiEditorPage: React.FC = () => {
         try {
             if (isEditMode && id) {
                 await kanjiService.update(id, finalData);
-                alert("Cập nhật thành công!");
+                alert("Cập nhật Kanji thành công!");
             } else {
                 await kanjiService.create(finalData);
-                alert("Thêm mới thành công!");
+                alert("Thêm mới Kanji thành công!");
             }
             navigate('/admin/resource/kanji');
         } catch (error: any) {

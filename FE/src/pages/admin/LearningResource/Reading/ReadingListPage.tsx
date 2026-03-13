@@ -187,11 +187,12 @@ const ReadingManagement: React.FC = () => {
           <div className="overflow-hidden flex-1 no-scrollbar">
             <table className="w-full text-left border-collapse table-fixed">
               <thead className='h-15'>
-                <tr className="bg-[#fbf9fa] border-b border-[#f4f0f2]">
-                  <th className="w-[40%] px-8 py-4 text-sm font-bold text-[#886373] uppercase tracking-wider">Tiêu đề</th>
-                  <th className="w-[15%] px-8 py-4 text-sm font-bold text-[#886373] uppercase tracking-wider">Trạng thái</th>
+                <tr className="bg-[rgb(251,249,250)] border-b border-[#f4f0f2]">
+                  <th className="w-[30%] px-8 py-4 text-sm font-bold text-[#886373] uppercase tracking-wider">Tiêu đề</th>
+                  <th className="w-[15%] px-8 py-4 text-center text-sm font-bold text-[#886373] uppercase tracking-wider">Trạng thái</th>
+                  <th className="w-[15%] px-8 py-4 text-center text-sm font-bold text-[#886373] uppercase tracking-wider">Thời lượng</th>
                   <th className="w-[10%] px-8 py-4 text-center text-sm font-bold text-[#886373] uppercase tracking-wider">JLPT</th>
-                  <th className="w-[20%] px-8 py-4 text-sm font-bold text-[#886373] uppercase tracking-wider">Chủ đề</th>
+                  <th className="w-[15%] px-8 py-4 text-sm font-bold text-[#886373] uppercase tracking-wider">Chủ đề</th>
                   <th className="w-[15%] px-8 py-4 text-right text-sm font-bold text-[#886373] uppercase tracking-wider">Thao tác</th>
                 </tr>
               </thead>
@@ -201,7 +202,17 @@ const ReadingManagement: React.FC = () => {
                 ) : currentItems.map((item) => (
                   <tr key={item.id} className="hover:bg-primary/5 transition-colors h-24.5">
                     <td className="px-8 py-5 truncate font-bold text-sm text-[#181114]">{item.title}</td>
-                    <td className="px-8 py-5"><span className="text-sm font-medium text-green-500">Hoạt động</span></td>
+                    <td className="px-8 py-5 text-center">
+                      <span className={`text-sm font-medium ${
+                        item.status === 0 ? "text-yellow-500" : 
+                        item.status === 1 ? "text-green-500" : 
+                        "text-red-500"
+                      }`}>
+                        {item.status === 0 ? "Đang tạo" : 
+                        item.status === 1 ? "Hoạt động" : 
+                        "Lưu trữ"}
+                      </span></td>
+                    <td className="px-8 py-5 text-center"><span className="text-sm font-medium text-black">{item.estimatedTime}:00</span></td>
                     <td className="px-8 py-5 text-center">
                       <span className={`${getLevelStyles(item.levelName)} px-3 py-1 rounded-lg text-xs font-bold uppercase`}>{item.levelName}</span>
                     </td>

@@ -657,19 +657,23 @@ namespace QuizzTiengNhat.Migrations
                     b.Property<int>("Difficulty")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("DisplayOrder")
+                        .HasColumnType("integer");
+
                     b.Property<Guid?>("EquivalentID")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Explanation")
                         .HasColumnType("text");
 
+                    b.Property<string>("ImageURL")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
                     b.Property<Guid?>("JLPT_LevelLevelID")
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("LessonID")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid?>("LessonsLessonID")
                         .HasColumnType("uuid");
 
                     b.Property<Guid?>("ListeningID")
@@ -681,9 +685,8 @@ namespace QuizzTiengNhat.Migrations
                     b.Property<Guid?>("ParentID")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("QuestionType")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("QuestionType")
+                        .HasColumnType("integer");
 
                     b.Property<Guid?>("ReadingID")
                         .HasColumnType("uuid");
@@ -691,9 +694,8 @@ namespace QuizzTiengNhat.Migrations
                     b.Property<Guid?>("SourceID")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -703,8 +705,6 @@ namespace QuizzTiengNhat.Migrations
                     b.HasIndex("JLPT_LevelLevelID");
 
                     b.HasIndex("LessonID");
-
-                    b.HasIndex("LessonsLessonID");
 
                     b.HasIndex("ListeningID");
 
@@ -723,9 +723,14 @@ namespace QuizzTiengNhat.Migrations
                     b.Property<Guid>("TopicID")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("TopicsTopicID")
+                        .HasColumnType("uuid");
+
                     b.HasKey("QuestionID", "TopicID");
 
                     b.HasIndex("TopicID");
+
+                    b.HasIndex("TopicsTopicID");
 
                     b.ToTable("Questions_Topics");
                 });
@@ -1145,14 +1150,10 @@ namespace QuizzTiengNhat.Migrations
                         .HasForeignKey("JLPT_LevelLevelID");
 
                     b.HasOne("QuizzTiengNhat.Models.Lessons", "Lesson")
-                        .WithMany()
-                        .HasForeignKey("LessonID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("QuizzTiengNhat.Models.Lessons", null)
                         .WithMany("Questions")
-                        .HasForeignKey("LessonsLessonID");
+                        .HasForeignKey("LessonID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("QuizzTiengNhat.Models.Listenings", "Listening")
                         .WithMany("Questions")
@@ -1187,10 +1188,14 @@ namespace QuizzTiengNhat.Migrations
                         .IsRequired();
 
                     b.HasOne("QuizzTiengNhat.Models.Topics", "Topic")
-                        .WithMany("QuestionTopics")
+                        .WithMany()
                         .HasForeignKey("TopicID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("QuizzTiengNhat.Models.Topics", null)
+                        .WithMany("QuestionTopics")
+                        .HasForeignKey("TopicsTopicID");
 
                     b.Navigation("Question");
 

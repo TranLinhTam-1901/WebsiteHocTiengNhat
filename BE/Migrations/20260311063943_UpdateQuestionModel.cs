@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace QuizzTiengNhat.Migrations
 {
     /// <inheritdoc />
-    public partial class UpdateModel : Migration
+    public partial class UpdateQuestionModel : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -546,19 +546,20 @@ namespace QuizzTiengNhat.Migrations
                     ListeningID = table.Column<Guid>(type: "uuid", nullable: true),
                     LessonID = table.Column<Guid>(type: "uuid", nullable: false),
                     Content = table.Column<string>(type: "text", nullable: false),
-                    QuestionType = table.Column<string>(type: "text", nullable: false),
+                    QuestionType = table.Column<int>(type: "integer", nullable: false),
                     AudioURL = table.Column<string>(type: "text", nullable: true),
+                    ImageURL = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     Difficulty = table.Column<int>(type: "integer", nullable: false),
                     Explanation = table.Column<string>(type: "text", nullable: true),
-                    Status = table.Column<string>(type: "text", nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: false),
                     EquivalentID = table.Column<Guid>(type: "uuid", nullable: true),
                     MediaTimestamp = table.Column<string>(type: "text", nullable: true),
+                    DisplayOrder = table.Column<int>(type: "integer", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     SourceID = table.Column<Guid>(type: "uuid", nullable: true),
                     ParentID = table.Column<Guid>(type: "uuid", nullable: true),
-                    JLPT_LevelLevelID = table.Column<Guid>(type: "uuid", nullable: true),
-                    LessonsLessonID = table.Column<Guid>(type: "uuid", nullable: true)
+                    JLPT_LevelLevelID = table.Column<Guid>(type: "uuid", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -573,12 +574,7 @@ namespace QuizzTiengNhat.Migrations
                         column: x => x.LessonID,
                         principalTable: "Lessons",
                         principalColumn: "LessonID",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Questions_Lessons_LessonsLessonID",
-                        column: x => x.LessonsLessonID,
-                        principalTable: "Lessons",
-                        principalColumn: "LessonID");
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Questions_Listenings_ListeningID",
                         column: x => x.ListeningID,
@@ -678,7 +674,8 @@ namespace QuizzTiengNhat.Migrations
                 columns: table => new
                 {
                     QuestionID = table.Column<Guid>(type: "uuid", nullable: false),
-                    TopicID = table.Column<Guid>(type: "uuid", nullable: false)
+                    TopicID = table.Column<Guid>(type: "uuid", nullable: false),
+                    TopicsTopicID = table.Column<Guid>(type: "uuid", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -695,6 +692,11 @@ namespace QuizzTiengNhat.Migrations
                         principalTable: "Topics",
                         principalColumn: "TopicID",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Questions_Topics_Topics_TopicsTopicID",
+                        column: x => x.TopicsTopicID,
+                        principalTable: "Topics",
+                        principalColumn: "TopicID");
                 });
 
             migrationBuilder.CreateIndex(
@@ -850,11 +852,6 @@ namespace QuizzTiengNhat.Migrations
                 column: "LessonID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Questions_LessonsLessonID",
-                table: "Questions",
-                column: "LessonsLessonID");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Questions_ListeningID",
                 table: "Questions",
                 column: "ListeningID");
@@ -873,6 +870,11 @@ namespace QuizzTiengNhat.Migrations
                 name: "IX_Questions_Topics_TopicID",
                 table: "Questions_Topics",
                 column: "TopicID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Questions_Topics_TopicsTopicID",
+                table: "Questions_Topics",
+                column: "TopicsTopicID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Readings_LessonID",
