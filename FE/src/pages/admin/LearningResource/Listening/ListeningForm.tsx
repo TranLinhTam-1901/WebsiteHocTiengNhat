@@ -228,10 +228,10 @@ const ListenEditor: React.FC = () => {
       // 3. Gọi API
       if (isEditMode && id) {
         await listeningService.update(id, payload);
-        alert("Thêm mới Bài nghe thành công!");
+        alert("Cập nhật Bài nghe thành công!");
       } else {
         await listeningService.create(payload);
-        alert("Cập nhật Bài nghe thành công!");
+        alert("Thêm mới Bài nghe thành công!");
       }
       navigate("/admin/resource/listening");
     } catch (error: any) {

@@ -14,7 +14,7 @@ namespace QuizzTiengNhat.DTOs.Admin
         public List<Guid> TopicIds { get; set; } = new List<Guid>();
         public Guid? SourceID { get; set; }
         public Guid LessonID { get; set; } // Thêm trường này để liên kết câu hỏi với bài học cụ thể
-        public QuestionStatus Status { get; set; } = QuestionStatus.Draft;
+        public Status Status { get; set; } = Status.Published;
         public List<AnswerCreateDTO> Answers { get; set; } = new List<AnswerCreateDTO>();
 
     }

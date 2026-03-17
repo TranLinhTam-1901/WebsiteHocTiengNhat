@@ -29,18 +29,19 @@ namespace QuizzTiengNhat.Controllers.Admins
         {
             var listenings = await _context.Listenings
                 .Include(l => l.JLPTLevel)
-                .Include(l => l.Topic)
+                .Include(l => l.ListeningTopics).ThenInclude(lt => lt.Topic) // MỚI: Load bảng trung gian
                 .OrderByDescending(l => l.UpdatedAt)
                 .Select(l => new
                 {
-                    Id = l.ListeningID,
-                    Title = l.Title,
-                    AudioURL = l.AudioURL,
-                    LevelName = l.JLPTLevel != null ? l.JLPTLevel.LevelName : "N/A",
-                    TopicName = l.Topic != null ? l.Topic.TopicName : "N/A",
-                    Duration = l.Duration,
-                    Status = l.Status,
-                    UpdatedAt = l.UpdatedAt
+                    id = l.ListeningID,
+                    title = l.Title,
+                    audioURL = l.AudioURL,
+                    levelName = l.JLPTLevel != null ? l.JLPTLevel.LevelName : "N/A",
+                    // MỚI: Trả về danh sách tên các chủ đề
+                    topics = l.ListeningTopics.Select(lt => lt.Topic.TopicName).ToList(),
+                    duration = l.Duration,
+                    status = l.Status,
+                    updatedAt = l.UpdatedAt
                 })
                 .ToListAsync();
 
@@ -52,6 +53,7 @@ namespace QuizzTiengNhat.Controllers.Admins
         public async Task<IActionResult> GetById(Guid id)
         {
             var l = await _context.Listenings
+                .Include(l => l.ListeningTopics) // MỚI
                 .Include(l => l.Questions)
                     .ThenInclude(q => q.Answers)
                 .FirstOrDefaultAsync(l => l.ListeningID == id);
@@ -62,20 +64,21 @@ namespace QuizzTiengNhat.Controllers.Admins
             {
                 listeningID = l.ListeningID,
                 title = l.Title,
-                audioURL = l.AudioURL, // Trả về đường dẫn file
+                audioURL = l.AudioURL,
                 script = l.Script,
                 transcript = l.Transcript,
                 duration = l.Duration,
                 speedCategory = l.SpeedCategory,
                 status = l.Status,
                 levelID = l.LevelID,
-                topicID = l.TopicID,
+                // SỬA: Trả về danh sách IDs để FE binding vào Multi-select
+                topicIDs = l.ListeningTopics.Select(lt => lt.TopicID).ToList(),
                 lessonID = l.LessonID,
                 questions = l.Questions.OrderBy(q => q.DisplayOrder).Select(q => new
                 {
                     questionID = q.QuestionID,
                     content = q.Content,
-                    imageURL = q.ImageURL, // Trả về đường dẫn file ảnh
+                    imageURL = q.ImageURL,
                     mediaTimestamp = q.MediaTimestamp,
                     explanation = q.Explanation,
                     difficulty = q.Difficulty,
@@ -92,18 +95,16 @@ namespace QuizzTiengNhat.Controllers.Admins
             });
         }
 
-        // 3. Thêm mới bài nghe (Chuyển Base64 thành File vật lý)
+        // 3. Thêm mới bài nghe
         [HttpPost("create")]
         public async Task<IActionResult> Create([FromBody] CreateUpdateListeningDTO dto)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                // Xử lý lưu file Audio (Base64 -> File)
                 string audioPath = null;
-                if (!string.IsNullOrEmpty(dto.AudioURL))
+                if (!string.IsNullOrEmpty(dto.AudioURL) && dto.AudioURL.StartsWith("data:"))
                 {
-                    // Giống Kanji: SaveBase64Image(chuỗi, thư mục, tên file, root)
                     audioPath = await FileHelper.SaveBase64Image(dto.AudioURL, "listening-audios", $"audio_{Guid.NewGuid()}", _env.WebRootPath);
                 }
 
@@ -111,30 +112,38 @@ namespace QuizzTiengNhat.Controllers.Admins
                 {
                     ListeningID = Guid.NewGuid(),
                     Title = dto.Title,
-                    AudioURL = audioPath, // Lưu path vật lý vào DB
+                    AudioURL = audioPath,
                     Script = dto.Script,
                     Transcript = dto.Transcript,
                     Duration = dto.Duration,
                     SpeedCategory = dto.SpeedCategory,
                     Status = dto.Status,
                     LevelID = dto.LevelID,
-                    TopicID = dto.TopicID,
                     LessonID = dto.LessonID,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
+
                 _context.Listenings.Add(listening);
 
+                // MỚI: Gán nhiều TopicIDs
+                if (dto.TopicIDs != null && dto.TopicIDs.Any())
+                {
+                    foreach (var topicId in dto.TopicIDs)
+                    {
+                        _context.ListeningTopics.Add(new ListeningTopics { ListeningID = listening.ListeningID, TopicID = topicId });
+                    }
+                }
+
+                // Xử lý Questions (Giữ nguyên logic cũ nhưng đảm bảo tính nhất quán)
                 if (dto.Questions != null)
                 {
                     for (int i = 0; i < dto.Questions.Count; i++)
                     {
                         var qDto = dto.Questions[i];
                         string questionImagePath = null;
-
-                        if (!string.IsNullOrEmpty(qDto.ImageURL))
+                        if (!string.IsNullOrEmpty(qDto.ImageURL) && qDto.ImageURL.StartsWith("data:"))
                         {
-                            // Lưu ảnh câu hỏi tương tự cách lưu GIF bên Kanji
                             questionImagePath = await FileHelper.SaveBase64Image(qDto.ImageURL, "listening-questions", $"q_{listening.ListeningID}_{i}", _env.WebRootPath);
                         }
 
@@ -143,14 +152,14 @@ namespace QuizzTiengNhat.Controllers.Admins
                             QuestionID = Guid.NewGuid(),
                             ListeningID = listening.ListeningID,
                             Content = qDto.Content,
-                            ImageURL = questionImagePath, // Lưu path ảnh
+                            ImageURL = questionImagePath,
                             LessonID = dto.LessonID,
                             MediaTimestamp = qDto.MediaTimestamp,
                             Explanation = qDto.Explanation,
                             Difficulty = qDto.Difficulty,
                             DisplayOrder = qDto.DisplayOrder > 0 ? qDto.DisplayOrder : i + 1,
                             QuestionType = qDto.QuestionType,
-                            Status = QuestionStatus.Active,
+                            Status = Status.Published,
                             Answers = qDto.Answers.Select(aDto => new Answers
                             {
                                 AnswerID = Guid.NewGuid(),
@@ -169,7 +178,7 @@ namespace QuizzTiengNhat.Controllers.Admins
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                return BadRequest($"Lỗi hệ thống: {ex.Message}");
+                return BadRequest($"Lỗi: {ex.Message}");
             }
         }
 
@@ -181,12 +190,13 @@ namespace QuizzTiengNhat.Controllers.Admins
             try
             {
                 var listening = await _context.Listenings
+                    .Include(l => l.ListeningTopics) // MỚI
                     .Include(l => l.Questions).ThenInclude(q => q.Answers)
                     .FirstOrDefaultAsync(l => l.ListeningID == id);
 
                 if (listening == null) return NotFound("Không tìm thấy bài nghe.");
 
-                // Cập nhật Audio nếu có Base64 mới
+                // Audio update logic
                 if (!string.IsNullOrEmpty(dto.AudioURL) && dto.AudioURL.StartsWith("data:"))
                 {
                     listening.AudioURL = await FileHelper.SaveBase64Image(dto.AudioURL, "listening-audios", $"audio_{id}", _env.WebRootPath);
@@ -199,22 +209,28 @@ namespace QuizzTiengNhat.Controllers.Admins
                 listening.SpeedCategory = dto.SpeedCategory;
                 listening.Status = dto.Status;
                 listening.LevelID = dto.LevelID;
-                listening.TopicID = dto.TopicID;
                 listening.LessonID = dto.LessonID;
                 listening.UpdatedAt = DateTime.UtcNow;
 
-                // Xóa câu hỏi cũ (logic giống Kanji là làm sạch rồi add lại cho gọn)
-                _context.Questions.RemoveRange(listening.Questions);
+                // MỚI: Cập nhật Topics (Xóa sạch gán lại)
+                _context.ListeningTopics.RemoveRange(listening.ListeningTopics);
+                if (dto.TopicIDs != null)
+                {
+                    foreach (var tId in dto.TopicIDs)
+                    {
+                        _context.ListeningTopics.Add(new ListeningTopics { ListeningID = id, TopicID = tId });
+                    }
+                }
 
+                // Questions update (làm sạch rồi add lại)
+                _context.Questions.RemoveRange(listening.Questions);
                 if (dto.Questions != null)
                 {
                     for (int i = 0; i < dto.Questions.Count; i++)
                     {
                         var qDto = dto.Questions[i];
                         string currentImagePath = qDto.ImageURL;
-
-                        // Nếu là Base64 mới thì mới lưu file mới
-                        if (!string.IsNullOrEmpty(qDto.ImageURL) && qDto.ImageURL.StartsWith("data:image"))
+                        if (!string.IsNullOrEmpty(qDto.ImageURL) && qDto.ImageURL.StartsWith("data:"))
                         {
                             currentImagePath = await FileHelper.SaveBase64Image(qDto.ImageURL, "listening-questions", $"q_{id}_{i}", _env.WebRootPath);
                         }
@@ -231,12 +247,12 @@ namespace QuizzTiengNhat.Controllers.Admins
                             Difficulty = qDto.Difficulty,
                             DisplayOrder = qDto.DisplayOrder,
                             QuestionType = qDto.QuestionType,
-                            Status = QuestionStatus.Active,
+                            Status = Status.Published,
                             Answers = qDto.Answers.Select(aDto => new Answers
                             {
                                 AnswerID = Guid.NewGuid(),
                                 AnswerText = aDto.AnswerText,
-                                IsCorrect = aDto.IsCorrect,
+                                IsCorrect = aDto.IsCorrect
                             }).ToList()
                         });
                     }

@@ -6,7 +6,8 @@
         public string Title { get; set; }
         public string AudioURL { get; set; }
         public string LevelName { get; set; }
-        public string TopicName { get; set; }
+        public List<TopicDTO> Topics { get; set; } = new List<TopicDTO>();
+        public string LessonName { get; set; }
         public int Duration { get; set; }
         public string? SpeedCategory { get; set; }
         public int Status { get; set; }

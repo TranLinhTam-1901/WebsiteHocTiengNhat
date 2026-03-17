@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using QuizzTiengNhat.Models.Enums;
 
 namespace QuizzTiengNhat.Models
 {
@@ -13,27 +14,33 @@ namespace QuizzTiengNhat.Models
         public string Structure { get; set; }
         public string Meaning { get; set; }
         public string Explanation { get; set; }
-        public string? Formality { get; set; } // Trang trọng (Kính ngữ), Thân mật (Thể từ điển)...
-        public string? SimilarGrammar { get; set; } // Gợi ý các ngữ pháp tương đương (Ví dụ: ~わけだ vs ~はずだ)
-        public string? UsageNote { get; set; } // Lưu ý khi nào KHÔNG được dùng cấu trúc này
+
+        // --- SỬA CHỖ NÀY ---
+        public GrammarCategory GrammarType { get; set; } // Ví dụ: "Trợ từ", "Thể Te", "Thể Ta"...
+        public FormalityLevel Formality { get; set; } // Dùng Enum (Polite, Casual...)
+
+        public Guid? GrammarGroupID { get; set; } // Khóa ngoại nối tới bảng GrammarGroups
+        [ForeignKey("GrammarGroupID")]
+        public virtual GrammarGroups GrammarGroup { get; set; }
+        // -------------------
+
+        public string? UsageNote { get; set; }
         public int Status { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-        // Khóa ngoại
         public Guid LevelID { get; set; }
-        public Guid TopicID { get; set; }
+        public Guid LessonID { get; set; }
 
-        // Navigation properties
         [ForeignKey("LevelID")]
         public virtual JLPT_Level JLPTLevel { get; set; }
 
-        public Guid LessonID { get; set; }
+        public virtual ICollection<GrammarTopics> GrammarTopics { get; set; } = new List<GrammarTopics>();
+
         [ForeignKey("LessonID")]
         public virtual Lessons Lesson { get; set; }
 
-        [ForeignKey("TopicID")]
-        public virtual Topics Topic { get; set; }
+
         public virtual ICollection<Examples> Examples { get; set; } = new List<Examples>();
     }
 }

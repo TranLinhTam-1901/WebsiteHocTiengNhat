@@ -23,18 +23,16 @@ namespace QuizzTiengNhat.Models
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
         public Guid LevelID { get; set; }
-        public Guid TopicID { get; set; }
+        public Guid LessonID { get; set; }
 
         // Navigation properties
         [ForeignKey("LevelID")]
         public virtual JLPT_Level JLPTLevel { get; set; }
 
-        public Guid LessonID { get; set; }
+        public virtual ICollection<ListeningTopics> ListeningTopics { get; set; } = new List<ListeningTopics>();
+
         [ForeignKey("LessonID")]
         public virtual Lessons Lesson { get; set; }
-
-        [ForeignKey("TopicID")]
-        public virtual Topics Topic { get; set; }
 
         // Một bài nghe có thể có nhiều câu hỏi liên quan
         public virtual ICollection<Questions> Questions { get; set; }

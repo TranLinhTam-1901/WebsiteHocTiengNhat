@@ -6,7 +6,11 @@
         public string Word { get; set; }
         public string Reading { get; set; }
         public string Meaning { get; set; }
-        public string WordType { get; set; }
+
+        // --- SỬA CHỖ NÀY: Trả về danh sách các loại từ ---
+        public List<WordTypeDTO> WordTypes { get; set; } = new List<WordTypeDTO>();
+        // -----------------------------------------------
+
         public bool IsCommon { get; set; }
         public string? Mnemonics { get; set; }
         public string? ImageURL { get; set; }
@@ -15,16 +19,13 @@
         public int Status { get; set; }
 
         public string LevelName { get; set; }
-        public string TopicName { get; set; }
+        public List<TopicDTO> Topics { get; set; } = new List<TopicDTO>();
         public string LessonName { get; set; }
 
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
 
-        // Danh sách ví dụ (Thay cho Example/ExampleMeaning đơn lẻ)
-        public List<ExampleDTO> Examples { get; set; } = new List<ExampleDTO>();
-
-        // Danh sách Kanji liên quan
+        public List<VocabExampleDTO> Examples { get; set; } = new List<VocabExampleDTO>();
         public List<VocabRelatedKanjiDTO> RelatedKanjis { get; set; } = new List<VocabRelatedKanjiDTO>();
 
         public string DisplayWord => $"{Word} ({Reading})";

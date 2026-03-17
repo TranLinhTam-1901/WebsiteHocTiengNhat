@@ -1,4 +1,6 @@
-﻿namespace QuizzTiengNhat.DTOs.Admin
+﻿using QuizzTiengNhat.Models.Enums;
+
+namespace QuizzTiengNhat.DTOs.Admin
 {
     public class GrammarDTO
     {
@@ -7,36 +9,26 @@
         public string Structure { get; set; }
         public string Meaning { get; set; }
         public string Explanation { get; set; }
+        public GrammarCategory GrammarType { get; set; } // Phân loại: Trợ từ, Thể Te...
 
-        // --- Thêm các thuộc tính UX mới ---
-        public string? Formality { get; set; }
-        public string? SimilarGrammar { get; set; }
+        // --- SỬA CHỖ NÀY ---
+        public int Formality { get; set; } // Trả về giá trị int của Enum FormalityLevel
+        public Guid? GrammarGroupID { get; set; } // ID nhóm tương đồng
+        public string? GrammarGroupName { get; set; } // Tên nhóm để hiển thị
+        // -------------------
+
         public string? UsageNote { get; set; }
         public int Status { get; set; }
 
         public string LevelName { get; set; }
-        public string TopicName { get; set; }
+        public List<TopicDTO> Topics { get; set; } = new List<TopicDTO>();
         public string LessonName { get; set; }
-
-        public Guid LevelID { get; set; }
-        public Guid TopicID { get; set; }
-        public Guid LessonID { get; set; }
 
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
 
-        // --- QUAN TRỌNG: Thay thế Example cũ bằng danh sách List ---
-        public List<ExampleDTO> Examples { get; set; } = new List<ExampleDTO>();
+        public List<GrammarExampleDTO> Examples { get; set; } = new List<GrammarExampleDTO>();
 
         public string DisplayTitle => $"{Title} — {Structure}";
-    }
-
-    // Class phụ để hứng dữ liệu ví dụ
-    public class ExampleDTO
-    {
-        public Guid ExampleID { get; set; }
-        public string Content { get; set; }
-        public string Translation { get; set; }
-        public string? AudioURL { get; set; }
     }
 }

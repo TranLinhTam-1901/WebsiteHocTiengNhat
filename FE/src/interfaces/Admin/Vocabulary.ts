@@ -1,6 +1,22 @@
+import { TopicItem } from "./Topic";
+
 export interface ExampleItem {
+    id?: string;
     content: string;
     translation: string;
+}
+
+export interface WordTypeItem {
+    id: string; // Hoặc Guid
+    name: string; // Danh từ, Động từ, Tính từ...
+}
+
+export interface RelatedKanjiItem {
+    KanjiID: string; 
+    character: string; 
+    onyomi: string;
+    kunyomi: string;
+    meaning: string; 
 }
 
 export interface VocabularyItem {
@@ -8,32 +24,33 @@ export interface VocabularyItem {
     word: string;
     reading: string;
     meaning: string;
-    wordType: string;
+    wordTypes: WordTypeItem[];
     isCommon: boolean;
     mnemonics?: string;
     imageURL?: string;
     audioURL?: string;
     priority: number;
-    status: number; // 0: Draft, 1: Active, 2: Hidden
+    status: number;
     
     levelID: string;
-    topicID: string;
     lessonID: string;
-    
-    levelName: string; // Trả về từ Get-all
-    topicName: string; // Trả về từ Get-all
+    levelName: string;
+    lessonName: string;
+    topics: TopicItem[];
+
+    createdAt: string;
     updatedAt: string;
 
     // Chi tiết (dùng cho GetById)
     examples: ExampleItem[];
-    relatedKanjiIDs?: string[];
+    relatedKanjis?: RelatedKanjiItem[];
 }
 
 export interface CreateUpdateVocabDTO {
     word: string;
     reading: string;
     meaning: string;
-    wordType: string;
+    wordTypeIDs: string[];
     isCommon: boolean;
     mnemonics?: string | null;
     imageURL?: string | null; // Base64 string khi upload
@@ -41,14 +58,8 @@ export interface CreateUpdateVocabDTO {
     priority: number;
     status: number;
     levelID: string;
-    topicID: string;
+    topicIDs: string[];
     lessonID: string;
     examples: ExampleItem[];
-    relatedKanjiIDs?: { 
-        KanjiID: string; 
-        character: string; 
-        onyomi: string;
-        kunyomi: string;
-        meaning: string; 
-  }[];
+    relatedKanjis?: RelatedKanjiItem[];
 }

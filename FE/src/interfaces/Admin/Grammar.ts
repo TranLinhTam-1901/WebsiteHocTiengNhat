@@ -1,4 +1,7 @@
+import { TopicItem } from "./Topic";
+
 export interface GrammarExampleItem {
+    exampleID?: string | null; // Thêm ID để hỗ trợ cập nhật ví dụ cũ
     content: string;
     translation: string;
     audioURL?: string | null;
@@ -9,12 +12,23 @@ export interface GrammarItem {
     title: string;           
     structure: string;       
     meaning: string;         
-    levelName: string;       
-    topicName: string;       
+    explanation: string;     // Thêm trường giải thích
+    grammarType: number;     // Mapping với Enum GrammarCategory
+    formality: number;       // Mapping với Enum FormalityLevel
+    groupName?: string;
+    usageNote?: string | null;
     status: number;
+    
+    levelID: string;
+    lessonID: string;
+    levelName: string;       
+    lessonName: string;      // Thêm tên bài học
+    topics: TopicItem[]; // Mapping với List<TopicDTO>
+    
+    createdAt: string;
     updatedAt: string;
-
     examples: GrammarExampleItem[];
+    displayTitle: string;    // Title — Structure
 }
 
 export interface CreateUpdateGrammarDTO {
@@ -22,13 +36,14 @@ export interface CreateUpdateGrammarDTO {
     structure: string;
     meaning: string;
     explanation: string;
-    formality?: string | null;
-    similarGrammar?: string | null;
+    grammarType: number;     // Đồng bộ với backend
+    formality: number;       // Giá trị số (0, 1, 2...)
+    grammarGroupID?: string | null; // Dùng ID nhóm thay vì text "similarGrammar"
     usageNote?: string | null;
     status: number;
     
     levelID: string;
-    topicID: string;
+    topicIDs: string[];      // Backend dùng List<Guid> nên ở đây là array
     lessonID: string;
     examples: GrammarExampleItem[];
 }

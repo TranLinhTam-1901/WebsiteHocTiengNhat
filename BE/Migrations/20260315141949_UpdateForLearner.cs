@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace QuizzTiengNhat.Migrations
 {
     /// <inheritdoc />
-    public partial class UpdateQuestionModel : Migration
+    public partial class UpdateForLearner : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -27,6 +27,19 @@ namespace QuizzTiengNhat.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "GrammarGroups",
+                columns: table => new
+                {
+                    GrammarGroupID = table.Column<Guid>(type: "uuid", nullable: false),
+                    GroupName = table.Column<string>(type: "text", nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_GrammarGroups", x => x.GrammarGroupID);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "JLPT_Levels",
                 columns: table => new
                 {
@@ -36,6 +49,22 @@ namespace QuizzTiengNhat.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_JLPT_Levels", x => x.LevelID);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Radicals",
+                columns: table => new
+                {
+                    RadicalID = table.Column<Guid>(type: "uuid", nullable: false),
+                    Character = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: false),
+                    Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    Meaning = table.Column<string>(type: "text", nullable: true),
+                    StrokeCount = table.Column<int>(type: "integer", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Radicals", x => x.RadicalID);
                 });
 
             migrationBuilder.CreateTable(
@@ -49,6 +78,19 @@ namespace QuizzTiengNhat.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Topics", x => x.TopicID);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "WordTypes",
+                columns: table => new
+                {
+                    WordTypeID = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_WordTypes", x => x.WordTypeID);
                 });
 
             migrationBuilder.CreateTable(
@@ -121,6 +163,29 @@ namespace QuizzTiengNhat.Migrations
                         column: x => x.LevelID,
                         principalTable: "JLPT_Levels",
                         principalColumn: "LevelID",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "RadicalVariants",
+                columns: table => new
+                {
+                    VariantID = table.Column<Guid>(type: "uuid", nullable: false),
+                    Character = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: false),
+                    Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    Meaning = table.Column<string>(type: "text", nullable: true),
+                    StrokeCount = table.Column<int>(type: "integer", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    RadicalID = table.Column<Guid>(type: "uuid", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RadicalVariants", x => x.VariantID);
+                    table.ForeignKey(
+                        name: "FK_RadicalVariants_Radicals_RadicalID",
+                        column: x => x.RadicalID,
+                        principalTable: "Radicals",
+                        principalColumn: "RadicalID",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -251,7 +316,7 @@ namespace QuizzTiengNhat.Migrations
                         column: x => x.CourseID,
                         principalTable: "Courses",
                         principalColumn: "CourseID",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Lessons_JLPT_Levels_JLPT_LevelLevelID",
                         column: x => x.JLPT_LevelLevelID,
@@ -268,43 +333,37 @@ namespace QuizzTiengNhat.Migrations
                     Structure = table.Column<string>(type: "text", nullable: false),
                     Meaning = table.Column<string>(type: "text", nullable: false),
                     Explanation = table.Column<string>(type: "text", nullable: false),
-                    Formality = table.Column<string>(type: "text", nullable: true),
-                    SimilarGrammar = table.Column<string>(type: "text", nullable: true),
+                    GrammarType = table.Column<int>(type: "integer", nullable: false),
+                    Formality = table.Column<int>(type: "integer", nullable: false),
+                    GrammarGroupID = table.Column<Guid>(type: "uuid", nullable: true),
                     UsageNote = table.Column<string>(type: "text", nullable: true),
                     Status = table.Column<int>(type: "integer", nullable: false, defaultValue: 1),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     LevelID = table.Column<Guid>(type: "uuid", nullable: false),
-                    TopicID = table.Column<Guid>(type: "uuid", nullable: false),
-                    LessonID = table.Column<Guid>(type: "uuid", nullable: false),
-                    JLPT_LevelLevelID = table.Column<Guid>(type: "uuid", nullable: true)
+                    LessonID = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Grammars", x => x.GrammarID);
                     table.ForeignKey(
-                        name: "FK_Grammars_JLPT_Levels_JLPT_LevelLevelID",
-                        column: x => x.JLPT_LevelLevelID,
-                        principalTable: "JLPT_Levels",
-                        principalColumn: "LevelID");
+                        name: "FK_Grammars_GrammarGroups_GrammarGroupID",
+                        column: x => x.GrammarGroupID,
+                        principalTable: "GrammarGroups",
+                        principalColumn: "GrammarGroupID",
+                        onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
                         name: "FK_Grammars_JLPT_Levels_LevelID",
                         column: x => x.LevelID,
                         principalTable: "JLPT_Levels",
                         principalColumn: "LevelID",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Grammars_Lessons_LessonID",
                         column: x => x.LessonID,
                         principalTable: "Lessons",
                         principalColumn: "LessonID",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Grammars_Topics_TopicID",
-                        column: x => x.TopicID,
-                        principalTable: "Topics",
-                        principalColumn: "TopicID",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -318,7 +377,7 @@ namespace QuizzTiengNhat.Migrations
                     Meaning = table.Column<string>(type: "text", nullable: false),
                     StrokeCount = table.Column<int>(type: "integer", nullable: false),
                     StrokeGif = table.Column<string>(type: "text", nullable: true),
-                    Radical = table.Column<string>(type: "text", nullable: false),
+                    RadicalID = table.Column<Guid>(type: "uuid", nullable: false),
                     SearchVector = table.Column<string>(type: "text", nullable: true),
                     Note = table.Column<string>(type: "text", nullable: true),
                     Mnemonics = table.Column<string>(type: "text", nullable: true),
@@ -338,13 +397,19 @@ namespace QuizzTiengNhat.Migrations
                         column: x => x.LevelID,
                         principalTable: "JLPT_Levels",
                         principalColumn: "LevelID",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Kanjis_Lessons_LessonID",
                         column: x => x.LessonID,
                         principalTable: "Lessons",
                         principalColumn: "LessonID",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Kanjis_Radicals_RadicalID",
+                        column: x => x.RadicalID,
+                        principalTable: "Radicals",
+                        principalColumn: "RadicalID",
+                        onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
                         name: "FK_Kanjis_Topics_TopicID",
                         column: x => x.TopicID,
@@ -368,13 +433,13 @@ namespace QuizzTiengNhat.Migrations
                         column: x => x.LessonsID,
                         principalTable: "Lessons",
                         principalColumn: "LessonID",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Lessons_Topics_Topics_TopicID",
                         column: x => x.TopicID,
                         principalTable: "Topics",
                         principalColumn: "TopicID",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -392,7 +457,6 @@ namespace QuizzTiengNhat.Migrations
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     LevelID = table.Column<Guid>(type: "uuid", nullable: false),
-                    TopicID = table.Column<Guid>(type: "uuid", nullable: false),
                     LessonID = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
@@ -403,19 +467,13 @@ namespace QuizzTiengNhat.Migrations
                         column: x => x.LevelID,
                         principalTable: "JLPT_Levels",
                         principalColumn: "LevelID",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Listenings_Lessons_LessonID",
                         column: x => x.LessonID,
                         principalTable: "Lessons",
                         principalColumn: "LessonID",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Listenings_Topics_TopicID",
-                        column: x => x.TopicID,
-                        principalTable: "Topics",
-                        principalColumn: "TopicID",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -461,7 +519,6 @@ namespace QuizzTiengNhat.Migrations
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     LevelID = table.Column<Guid>(type: "uuid", nullable: false),
-                    TopicID = table.Column<Guid>(type: "uuid", nullable: false),
                     LessonID = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
@@ -472,19 +529,13 @@ namespace QuizzTiengNhat.Migrations
                         column: x => x.LevelID,
                         principalTable: "JLPT_Levels",
                         principalColumn: "LevelID",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Readings_Lessons_LessonID",
                         column: x => x.LessonID,
                         principalTable: "Lessons",
                         principalColumn: "LessonID",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Readings_Topics_TopicID",
-                        column: x => x.TopicID,
-                        principalTable: "Topics",
-                        principalColumn: "TopicID",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -495,46 +546,80 @@ namespace QuizzTiengNhat.Migrations
                     Word = table.Column<string>(type: "text", nullable: false),
                     Reading = table.Column<string>(type: "text", nullable: false),
                     Meaning = table.Column<string>(type: "text", nullable: false),
-                    WordType = table.Column<string>(type: "text", nullable: false),
                     IsCommon = table.Column<bool>(type: "boolean", nullable: false),
                     Mnemonics = table.Column<string>(type: "text", nullable: true),
                     ImageURL = table.Column<string>(type: "text", nullable: true),
                     Priority = table.Column<int>(type: "integer", nullable: false),
-                    Status = table.Column<int>(type: "integer", nullable: false, defaultValue: 1),
+                    Status = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     LevelID = table.Column<Guid>(type: "uuid", nullable: false),
-                    TopicID = table.Column<Guid>(type: "uuid", nullable: false),
                     LessonID = table.Column<Guid>(type: "uuid", nullable: false),
-                    AudioURL = table.Column<string>(type: "text", nullable: true),
-                    JLPT_LevelLevelID = table.Column<Guid>(type: "uuid", nullable: true)
+                    AudioURL = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Vocabularies", x => x.VocabID);
                     table.ForeignKey(
-                        name: "FK_Vocabularies_JLPT_Levels_JLPT_LevelLevelID",
-                        column: x => x.JLPT_LevelLevelID,
-                        principalTable: "JLPT_Levels",
-                        principalColumn: "LevelID");
-                    table.ForeignKey(
                         name: "FK_Vocabularies_JLPT_Levels_LevelID",
                         column: x => x.LevelID,
                         principalTable: "JLPT_Levels",
                         principalColumn: "LevelID",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Vocabularies_Lessons_LessonID",
                         column: x => x.LessonID,
                         principalTable: "Lessons",
                         principalColumn: "LessonID",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "GrammarTopics",
+                columns: table => new
+                {
+                    GrammarID = table.Column<Guid>(type: "uuid", nullable: false),
+                    TopicID = table.Column<Guid>(type: "uuid", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_GrammarTopics", x => new { x.GrammarID, x.TopicID });
                     table.ForeignKey(
-                        name: "FK_Vocabularies_Topics_TopicID",
+                        name: "FK_GrammarTopics_Grammars_GrammarID",
+                        column: x => x.GrammarID,
+                        principalTable: "Grammars",
+                        principalColumn: "GrammarID",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_GrammarTopics_Topics_TopicID",
                         column: x => x.TopicID,
                         principalTable: "Topics",
                         principalColumn: "TopicID",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ListeningTopics",
+                columns: table => new
+                {
+                    ListeningID = table.Column<Guid>(type: "uuid", nullable: false),
+                    TopicID = table.Column<Guid>(type: "uuid", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ListeningTopics", x => new { x.ListeningID, x.TopicID });
+                    table.ForeignKey(
+                        name: "FK_ListeningTopics_Listenings_ListeningID",
+                        column: x => x.ListeningID,
+                        principalTable: "Listenings",
+                        principalColumn: "ListeningID",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ListeningTopics_Topics_TopicID",
+                        column: x => x.TopicID,
+                        principalTable: "Topics",
+                        principalColumn: "TopicID",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -548,10 +633,10 @@ namespace QuizzTiengNhat.Migrations
                     Content = table.Column<string>(type: "text", nullable: false),
                     QuestionType = table.Column<int>(type: "integer", nullable: false),
                     AudioURL = table.Column<string>(type: "text", nullable: true),
-                    ImageURL = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    ImageURL = table.Column<string>(type: "text", nullable: true),
                     Difficulty = table.Column<int>(type: "integer", nullable: false),
                     Explanation = table.Column<string>(type: "text", nullable: true),
-                    Status = table.Column<int>(type: "integer", nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: false, defaultValue: 1),
                     EquivalentID = table.Column<Guid>(type: "uuid", nullable: true),
                     MediaTimestamp = table.Column<string>(type: "text", nullable: true),
                     DisplayOrder = table.Column<int>(type: "integer", nullable: true),
@@ -579,8 +664,7 @@ namespace QuizzTiengNhat.Migrations
                         name: "FK_Questions_Listenings_ListeningID",
                         column: x => x.ListeningID,
                         principalTable: "Listenings",
-                        principalColumn: "ListeningID",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "ListeningID");
                     table.ForeignKey(
                         name: "FK_Questions_Questions_ParentID",
                         column: x => x.ParentID,
@@ -591,7 +675,30 @@ namespace QuizzTiengNhat.Migrations
                         name: "FK_Questions_Readings_ReadingID",
                         column: x => x.ReadingID,
                         principalTable: "Readings",
+                        principalColumn: "ReadingID");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ReadingTopics",
+                columns: table => new
+                {
+                    ReadingID = table.Column<Guid>(type: "uuid", nullable: false),
+                    TopicID = table.Column<Guid>(type: "uuid", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ReadingTopics", x => new { x.ReadingID, x.TopicID });
+                    table.ForeignKey(
+                        name: "FK_ReadingTopics_Readings_ReadingID",
+                        column: x => x.ReadingID,
+                        principalTable: "Readings",
                         principalColumn: "ReadingID",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ReadingTopics_Topics_TopicID",
+                        column: x => x.TopicID,
+                        principalTable: "Topics",
+                        principalColumn: "TopicID",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -626,6 +733,30 @@ namespace QuizzTiengNhat.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "VocabTopics",
+                columns: table => new
+                {
+                    VocabID = table.Column<Guid>(type: "uuid", nullable: false),
+                    TopicID = table.Column<Guid>(type: "uuid", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_VocabTopics", x => new { x.VocabID, x.TopicID });
+                    table.ForeignKey(
+                        name: "FK_VocabTopics_Topics_TopicID",
+                        column: x => x.TopicID,
+                        principalTable: "Topics",
+                        principalColumn: "TopicID",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_VocabTopics_Vocabularies_VocabID",
+                        column: x => x.VocabID,
+                        principalTable: "Vocabularies",
+                        principalColumn: "VocabID",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "VocabularyKanjis",
                 columns: table => new
                 {
@@ -646,6 +777,30 @@ namespace QuizzTiengNhat.Migrations
                         column: x => x.VocabID,
                         principalTable: "Vocabularies",
                         principalColumn: "VocabID",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "VocabWordTypes",
+                columns: table => new
+                {
+                    VocabID = table.Column<Guid>(type: "uuid", nullable: false),
+                    WordTypeID = table.Column<Guid>(type: "uuid", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_VocabWordTypes", x => new { x.VocabID, x.WordTypeID });
+                    table.ForeignKey(
+                        name: "FK_VocabWordTypes_Vocabularies_VocabID",
+                        column: x => x.VocabID,
+                        principalTable: "Vocabularies",
+                        principalColumn: "VocabID",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_VocabWordTypes_WordTypes_WordTypeID",
+                        column: x => x.WordTypeID,
+                        principalTable: "WordTypes",
+                        principalColumn: "WordTypeID",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -674,8 +829,7 @@ namespace QuizzTiengNhat.Migrations
                 columns: table => new
                 {
                     QuestionID = table.Column<Guid>(type: "uuid", nullable: false),
-                    TopicID = table.Column<Guid>(type: "uuid", nullable: false),
-                    TopicsTopicID = table.Column<Guid>(type: "uuid", nullable: true)
+                    TopicID = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -692,11 +846,6 @@ namespace QuizzTiengNhat.Migrations
                         principalTable: "Topics",
                         principalColumn: "TopicID",
                         onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Questions_Topics_Topics_TopicsTopicID",
-                        column: x => x.TopicsTopicID,
-                        principalTable: "Topics",
-                        principalColumn: "TopicID");
                 });
 
             migrationBuilder.CreateIndex(
@@ -767,9 +916,9 @@ namespace QuizzTiengNhat.Migrations
                 column: "VocabID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Grammars_JLPT_LevelLevelID",
+                name: "IX_Grammars_GrammarGroupID",
                 table: "Grammars",
-                column: "JLPT_LevelLevelID");
+                column: "GrammarGroupID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Grammars_LessonID",
@@ -782,8 +931,8 @@ namespace QuizzTiengNhat.Migrations
                 column: "LevelID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Grammars_TopicID",
-                table: "Grammars",
+                name: "IX_GrammarTopics_TopicID",
+                table: "GrammarTopics",
                 column: "TopicID");
 
             migrationBuilder.CreateIndex(
@@ -795,6 +944,11 @@ namespace QuizzTiengNhat.Migrations
                 name: "IX_Kanjis_LevelID",
                 table: "Kanjis",
                 column: "LevelID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Kanjis_RadicalID",
+                table: "Kanjis",
+                column: "RadicalID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Kanjis_TopicID",
@@ -827,8 +981,8 @@ namespace QuizzTiengNhat.Migrations
                 column: "LevelID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Listenings_TopicID",
-                table: "Listenings",
+                name: "IX_ListeningTopics_TopicID",
+                table: "ListeningTopics",
                 column: "TopicID");
 
             migrationBuilder.CreateIndex(
@@ -872,9 +1026,9 @@ namespace QuizzTiengNhat.Migrations
                 column: "TopicID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Questions_Topics_TopicsTopicID",
-                table: "Questions_Topics",
-                column: "TopicsTopicID");
+                name: "IX_RadicalVariants_RadicalID",
+                table: "RadicalVariants",
+                column: "RadicalID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Readings_LessonID",
@@ -887,14 +1041,14 @@ namespace QuizzTiengNhat.Migrations
                 column: "LevelID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Readings_TopicID",
-                table: "Readings",
+                name: "IX_ReadingTopics_TopicID",
+                table: "ReadingTopics",
                 column: "TopicID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Vocabularies_JLPT_LevelLevelID",
-                table: "Vocabularies",
-                column: "JLPT_LevelLevelID");
+                name: "IX_VocabTopics_TopicID",
+                table: "VocabTopics",
+                column: "TopicID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Vocabularies_LessonID",
@@ -907,14 +1061,14 @@ namespace QuizzTiengNhat.Migrations
                 column: "LevelID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Vocabularies_TopicID",
-                table: "Vocabularies",
-                column: "TopicID");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_VocabularyKanjis_KanjiID",
                 table: "VocabularyKanjis",
                 column: "KanjiID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_VocabWordTypes_WordTypeID",
+                table: "VocabWordTypes",
+                column: "WordTypeID");
         }
 
         /// <inheritdoc />
@@ -945,7 +1099,13 @@ namespace QuizzTiengNhat.Migrations
                 name: "Examples");
 
             migrationBuilder.DropTable(
+                name: "GrammarTopics");
+
+            migrationBuilder.DropTable(
                 name: "Lessons_Topics");
+
+            migrationBuilder.DropTable(
+                name: "ListeningTopics");
 
             migrationBuilder.DropTable(
                 name: "Progresses");
@@ -954,7 +1114,19 @@ namespace QuizzTiengNhat.Migrations
                 name: "Questions_Topics");
 
             migrationBuilder.DropTable(
+                name: "RadicalVariants");
+
+            migrationBuilder.DropTable(
+                name: "ReadingTopics");
+
+            migrationBuilder.DropTable(
+                name: "VocabTopics");
+
+            migrationBuilder.DropTable(
                 name: "VocabularyKanjis");
+
+            migrationBuilder.DropTable(
+                name: "VocabWordTypes");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
@@ -975,16 +1147,25 @@ namespace QuizzTiengNhat.Migrations
                 name: "Vocabularies");
 
             migrationBuilder.DropTable(
+                name: "WordTypes");
+
+            migrationBuilder.DropTable(
+                name: "GrammarGroups");
+
+            migrationBuilder.DropTable(
                 name: "Listenings");
 
             migrationBuilder.DropTable(
                 name: "Readings");
 
             migrationBuilder.DropTable(
-                name: "Lessons");
+                name: "Radicals");
 
             migrationBuilder.DropTable(
                 name: "Topics");
+
+            migrationBuilder.DropTable(
+                name: "Lessons");
 
             migrationBuilder.DropTable(
                 name: "Courses");

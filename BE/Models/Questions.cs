@@ -23,7 +23,7 @@ namespace QuizzTiengNhat.Models
         public string? ImageURL { get; set; }
         public int Difficulty { get; set; }
         public string? Explanation { get; set; }
-        public QuestionStatus Status { get; set; } 
+        public Status Status { get; set; }
 
         public Guid? EquivalentID { get; set; } // Dùng cho các câu hỏi tương đương
 
