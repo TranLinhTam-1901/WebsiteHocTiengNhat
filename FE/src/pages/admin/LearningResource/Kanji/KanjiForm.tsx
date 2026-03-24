@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import AdminHeader from '../../../../components/layout/admin/AdminHeader';
 import { kanjiService } from '../../../../services/Admin/kanjiService';
 import { vocabService } from '../../../../services/Admin/vocabService';
-import { CreateUpdateKanjiDTO } from '../../../../interfaces/Admin/Kanji';
+import { CreateUpdateKanjiDTO, RadicalItem } from '../../../../interfaces/Admin/Kanji';
 
 const KanjiEditorPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -19,7 +19,7 @@ const KanjiEditorPage: React.FC = () => {
         meaning: '',
         strokeCount: 0,
         strokeGif: '',
-        radical: '',
+        radicalID: '',
         mnemonics: '',
         popularity: 0,
         note: '',
@@ -29,23 +29,53 @@ const KanjiEditorPage: React.FC = () => {
         lessonID: '' 
     });
 
-    // 2. Load dữ liệu khi ở chế độ Edit
+    // 1. State quản lý đóng mở và tìm kiếm nội bộ dropdown
+    const [isRadicalOpen, setIsRadicalOpen] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [strokeFilter, setStrokeFilter] = useState<number | ''>('');
+    const [radicals, setRadicals] = useState<RadicalItem[]>([]);
+
+    // 2. Logic lọc danh sách bộ thủ từ props hoặc context
+    const filteredRadicals = (radicals || []).filter((r: RadicalItem) => {
+        if (!searchTerm) return true;
+
+        const searchLower = searchTerm.toLowerCase().trim();
+        
+        // Kiểm tra nếu người dùng nhập số (Ví dụ: "3")
+        const searchAsNumber = parseInt(searchLower);
+        const isNumber = !isNaN(searchAsNumber);
+
+        if (isNumber) {
+            return r.stroke === searchAsNumber;
+        }
+
+        // Nếu không phải số, tìm theo tên hoặc mặt chữ bộ thủ
+        return (
+            r.name.toLowerCase().includes(searchLower) || 
+            r.character.includes(searchLower)
+        );
+    });
+
+    // Tìm radical đã chọn để hiển thị
+    const selectedRadical = (radicals || []).find((r: RadicalItem) => r.id === formData.radicalID);
+
     useEffect(() => {
         if (isEditMode && id) {
             const fetchKanji = async () => {
                 try {
                     const data = await kanjiService.getById(id);
                     
-                    // 1. Cập nhật toàn bộ form
-                    setFormData(data);
+                    // Cập nhật formData nhưng phải đảm bảo lấy đúng radicalID từ object radical
+                    setFormData({
+                        ...data,
+                        // Nếu data trả về object radical { id, character... }, ta lấy id của nó
+                        radicalID: data.radical?.id || data.radicalID || ''
+                    });
 
-                    // 2. Cập nhật chữ hiển thị trên nút Dropdown (Rất quan trọng)
                     const statusLabel = data.status === 0 ? "Draft" : data.status === 2 ? "Archived" : "Published";
                     setVisibility(statusLabel);
-
                 } catch (error) {
                     console.error("Lỗi khi lấy dữ liệu Kanji:", error);
-                    alert("Không thể tải dữ liệu Kanji này.");
                 }
             };
             fetchKanji();
@@ -182,14 +212,16 @@ const KanjiEditorPage: React.FC = () => {
         const fetchMetadata = async () => {
             try {
                 // Sử dụng Promise.all để gọi đồng thời 3 hàm từ Service
-                const [levels, topics, lessons] = await Promise.all([
+                const [levels, topics, lessons, radicalsData] = await Promise.all([
                     kanjiService.getLevels(),
                     kanjiService.getTopics(),
-                    kanjiService.getLessons()
+                    kanjiService.getLessons(),
+                    kanjiService.getRadicals()
                 ]);
                 
                 // Vì trong Service bạn đã return response.data nên ở đây ta nhận trực tiếp data luôn
                 setMetadata({ levels, topics, lessons });
+                setRadicals(radicalsData);
             } catch (e) { 
                 console.error("Lỗi khi tải Metadata:", e); 
             }
@@ -284,21 +316,112 @@ const KanjiEditorPage: React.FC = () => {
                                                 name="strokeCount"
                                                 value={formData.strokeCount}
                                                 onChange={handleInputChange}
-                                                className="w-full bg-[#fbf9fa] border-[#f4f0f2] border rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                                                className="w-full bg-[#fbf9fa] font-bold border-[#f4f0f2] border rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                                                 placeholder="13"
                                                 type="number"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-bold text-[#886373] uppercase tracking-wider mb-2">Radical</label>
-                                            <input
-                                                name="radical"
-                                                value={formData.radical}
-                                                onChange={handleInputChange}
-                                                className="w-full bg-[#fbf9fa] border-[#f4f0f2] border rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-japanese"
-                                                placeholder="斤"
-                                                type="text"
-                                            />
+                                            <label className="block text-xs font-bold text-[#886373] uppercase tracking-wider mb-3">
+                                                Radical Assignment
+                                            </label>
+                                            <div className="relative">
+                                                <div className="relative">
+                                                    <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[#886373]">
+                                                        {formData.radicalID ? 'link' : 'manage_search'}
+                                                    </span>
+                                                    
+                                                    <input 
+                                                        type="text"
+                                                        // Nếu đã chọn thì hiện "Chữ - Tên (Số nét)", chưa chọn thì hiện placeholder
+                                                        placeholder={selectedRadical 
+                                                            ? `${selectedRadical.character} - ${selectedRadical.name} (${selectedRadical.stroke} nét)` 
+                                                            : "Tìm theo tên, chữ hoặc số nét..."
+                                                        }
+                                                        value={searchTerm}
+                                                        onChange={(e) => { 
+                                                            setSearchTerm(e.target.value); 
+                                                            setIsRadicalOpen(true); 
+                                                        }}
+                                                        onFocus={() => setIsRadicalOpen(true)}
+                                                        // Khi focus vào ô đã có dữ liệu, ta xóa text search tạm thời để user thấy list
+                                                        className={`w-full border rounded-xl pl-9 pr-10 py-2.5 text-sm outline-none transition-all ${
+                                                            formData.radicalID && !searchTerm 
+                                                            ? "bg-primary/5 border-primary/20 text-primary font-bold placeholder:text-primary" 
+                                                            : "bg-[#fbf9fa] border-[#f4f0f2] text-gray-700"
+                                                        } focus:ring-2 focus:ring-primary/10 focus:border-primary`}
+                                                    />
+
+                                                    {/* Nút Xóa nhanh lựa chọn hiện tại */}
+                                                    {formData.radicalID && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setFormData({ ...formData, radicalID: '' });
+                                                                setSearchTerm('');
+                                                            }}
+                                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500 transition-colors"
+                                                        >
+                                                            <span className="material-symbols-outlined text-sm">close</span>
+                                                        </button>
+                                                    )}
+                                                    
+                                                    {/* Loading Spinner */}
+                                                    {radicals.length === 0 && !selectedRadical && (
+                                                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                                            <div className="animate-spin size-4 border-2 border-primary/20 border-t-primary rounded-full"></div>
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {isRadicalOpen && (
+                                                    <>
+                                                        <div className="fixed inset-0 z-10" onClick={() => { setIsRadicalOpen(false); setSearchTerm(''); }} />
+                                                        <div className="absolute left-0 right-0 mt-2 bg-white border border-[#f4f0f2] rounded-xl shadow-xl z-20 max-h-80 overflow-y-auto p-1 custom-scrollbar animate-in fade-in slide-in-from-top-2 duration-200">
+                                                            
+                                                            {radicals.length === 0 ? (
+                                                                <div className="px-3 py-4 text-center text-xs text-gray-400 italic">
+                                                                    Đang tải danh sách bộ thủ...
+                                                                </div>
+                                                            ) : filteredRadicals.length > 0 ? (
+                                                                filteredRadicals.map(r => (
+                                                                    <button 
+                                                                        key={r.id} 
+                                                                        type="button"
+                                                                        onClick={() => { 
+                                                                            setFormData({ ...formData, radicalID: r.id }); 
+                                                                            setSearchTerm(''); // Xóa term để hiện placeholder mới
+                                                                            setIsRadicalOpen(false); 
+                                                                        }}
+                                                                        className={`w-full text-left px-3 py-2 text-sm rounded-lg transition-colors flex items-center justify-between group ${
+                                                                            formData.radicalID === r.id ? "bg-primary text-white" : "hover:bg-primary/5 hover:text-primary"
+                                                                        }`}
+                                                                    >
+                                                                        <div className="flex items-center gap-3">
+                                                                            <span className={`font-japanese text-lg font-bold w-6 text-center ${formData.radicalID === r.id ? "text-white" : "text-gray-800 group-hover:text-primary"}`}>
+                                                                                {r.character}
+                                                                            </span>
+                                                                            <div className="flex flex-col">
+                                                                                <span className="font-medium">{r.name}</span>
+                                                                                <span className={`text-[12px] ${formData.radicalID === r.id ? "text-white/70" : "text-gray-400"}`}>
+                                                                                    {r.stroke} nét
+                                                                                </span>
+                                                                            </div>
+                                                                        </div>
+                                                                        {formData.radicalID === r.id && (
+                                                                            <span className="material-symbols-outlined text-sm">check_circle</span>
+                                                                        )}
+                                                                    </button>
+                                                                ))
+                                                            ) : (
+                                                                <div className="px-3 py-4 text-center text-xs text-gray-400 italic">
+                                                                    Không tìm thấy bộ thủ nào phù hợp
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </>
+                                                )}
+                                            </div>
                                         </div>
                                         <div className="col-span-2">
                                             <label className="block text-xs font-bold text-[#886373] uppercase tracking-wider mb-2">JLPT Level</label>

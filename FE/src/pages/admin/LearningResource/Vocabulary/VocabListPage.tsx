@@ -506,27 +506,25 @@ const VocabularyListPage: React.FC = () => {
                     </span>
 
                     {/* Hiển thị danh sách Hashtags cho Topics */}
-                    <div className="flex flex-wrap justify-end gap-x-2 gap-y-1 max-w-[70%]">
-                      {item.topics && item.topics.length > 0 ? (
-                        item.topics.map((t: any, index: number) => (
-                          <span 
-                            key={index} 
-                            className="text-[#886373]/50 text-[15px] font-bold italic truncate max-w-30"
-                          >
-                            #{typeof t === 'string' ? t : (t.name || t.topicName)}
-                          </span>
-                        ))
-                      ) : (
-                        <span className="text-[#886373]/30 text-[14px] font-bold italic">
-                          #General
+                    <div className="flex justify-end max-w-[70%] items-center">
+                      <div className="flex items-center gap-2">
+                        <span className="px-2.5 py-1 bg-primary/5 border border-primary/20 text-primary text-[15px] font-bold rounded-lg truncate max-w-32 whitespace-nowrap italic">
+                          {typeof item.topics[0] === 'string' ? item.topics[0] : (item.topics[0].name || item.topics[0].id)}
                         </span>
-                      )}
+
+                        {item.topics.length > 1 && (
+                          <div className="group relative flex items-center justify-center size-8 rounded-full bg-primary/10 border border-primary/20 text-primary transition-all duration-300">
+                            
+                            <span className="text-[15px] font-black">+{item.topics.length - 1}</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
 
                   {/* Word Content: Chữ siêu to cố định (Bỏ hover scale) */}
                   <div className="flex flex-col items-center mb-5">
-                    <span className="text-primary text-[15px] font-japanese mb-1 font-bold italic tracking-wide">
+                    <span className="text-primary text-[18px] font-japanese mb-1 font-bold italic tracking-wide">
                       {item.reading}
                     </span>
                     <span className="font-japanese text-[65px] font-black text-[#181114] tracking-tighter transition-colors duration-300">

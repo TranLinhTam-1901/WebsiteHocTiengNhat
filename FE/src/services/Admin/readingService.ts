@@ -34,17 +34,17 @@ export const readingService = {
 
   // --- Metadata Helpers ---
   getLevels: async () => {
-    const response = await axiosInstance.get("admin/vocabulary/metadata/levels");
+    const response = await axiosInstance.get("admin/reading/metadata/levels");
     return response.data;
   },
 
   getTopics: async () => {
-    const response = await axiosInstance.get("admin/vocabulary/metadata/topics");
+    const response = await axiosInstance.get("admin/reading/metadata/topics");
     return response.data;
   },
 
   getLessons: async () => {
-    const response = await axiosInstance.get("admin/vocabulary/metadata/lessons");
+    const response = await axiosInstance.get("admin/reading/metadata/lessons");
     return response.data;
   }
 };

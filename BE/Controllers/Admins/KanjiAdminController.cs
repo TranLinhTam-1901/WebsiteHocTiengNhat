@@ -28,23 +28,30 @@ namespace QuizzTiengNhat.Controllers.Admins
         {
             var kanjis = await _context.Kanjis
                 .Include(k => k.JLPTLevel)
-                .Include(k => k.Radical) // SỬA: Include bảng Radicals mới
+                .Include(k => k.Topic)
+                .Include(k => k.Radical)
                 .OrderByDescending(k => k.UpdatedAt)
                 .Select(k => new
                 {
-                    Id = k.KanjiID,
-                    Character = k.Character,
-                    Meaning = k.Meaning,
-                    Onyomi = k.Onyomi,
-                    Kunyomi = k.Kunyomi,
-                    StrokeCount = k.StrokeCount,
+                    id = k.KanjiID,
+                    character = k.Character,
+                    meaning = k.Meaning,
+                    onyomi = k.Onyomi,
+                    kunyomi = k.Kunyomi,
+                    strokeCount = k.StrokeCount,
                     // SỬA: Lấy tên bộ thủ từ bảng mới
-                    RadicalName = k.Radical != null ? k.Radical.Name : "N/A",
-                    RadicalChar = k.Radical != null ? k.Radical.Character : "",
-                    Status = k.Status, // Giờ là Enum
-                    Popularity = k.Popularity,
+                    radical = k.Radical != null ? new
+                    {
+                        id = k.Radical.RadicalID, // Đổi radicalID -> id
+                        character = k.Radical.Character,
+                        name = k.Radical.Name,
+                        stroke = k.Radical.StrokeCount // Đổi strokeCount -> stroke
+                    } : null,
+                    status = k.Status, // Giờ là Enum
+                    popularity = k.Popularity,
                     LevelName = k.JLPTLevel != null ? k.JLPTLevel.LevelName : "N/A",
-                    UpdatedAt = k.UpdatedAt
+                    TopicName = k.Topic != null ? k.Topic.TopicName : "N/A",
+                    updatedAt = k.UpdatedAt
                 })
                 .ToListAsync();
 
@@ -72,7 +79,7 @@ namespace QuizzTiengNhat.Controllers.Admins
                 meaning = k.Meaning,
                 strokeCount = k.StrokeCount,
                 strokeGif = k.StrokeGif,
-                radicalID = k.RadicalID, // SỬA: Trả về ID để chọn trong Dropdown
+                radicalID = k.RadicalID,
                 mnemonics = k.Mnemonics,
                 popularity = k.Popularity,
                 note = k.Note,

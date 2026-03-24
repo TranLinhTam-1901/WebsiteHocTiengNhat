@@ -26,7 +26,7 @@ namespace QuizzTiengNhat.Controllers.Admins
         {
             var readings = await _context.Readings
                 .Include(r => r.JLPTLevel)
-                .Include(r => r.ReadingTopics).ThenInclude(rt => rt.Topic) // MỚI: Lấy danh sách Topic
+                .Include(r => r.ReadingTopics).ThenInclude(rt => rt.Topic)
                 .OrderByDescending(r => r.UpdatedAt)
                 .Select(r => new
                 {

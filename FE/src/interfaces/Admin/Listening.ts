@@ -1,3 +1,5 @@
+import { TopicItem } from "./Topic";
+
 export interface ListeningAnswerDTO {
   answerID?: string;
   answerText: string;
@@ -27,7 +29,7 @@ export interface CreateUpdateListeningDTO {
   duration: number;              // Độ dài tính bằng giây
   speedCategory?: string | null;  // "Chậm", "Bình thường", "Nhanh"
   levelID: string;
-  topicID: string;
+  topicIDs: string[];
   lessonID: string;
   status: number;
   questions: ListeningQuestionDTO[];
@@ -38,7 +40,7 @@ export interface ListeningItem {
   title: string;
   audioURL: string;
   levelName: string;
-  topicName: string;
+  topics: TopicItem[];
   duration: number;
   speedCategory: string;
   status: number;
