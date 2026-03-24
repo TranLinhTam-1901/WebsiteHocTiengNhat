@@ -23,7 +23,7 @@ export interface GrammarItem {
     lessonID: string;
     levelName: string;       
     lessonName: string;      // Thêm tên bài học
-    topics: TopicItem[]; // Mapping với List<TopicDTO>
+    topics: TopicItem[];
     
     createdAt: string;
     updatedAt: string;
@@ -38,12 +38,12 @@ export interface CreateUpdateGrammarDTO {
     explanation: string;
     grammarType: number;     // Đồng bộ với backend
     formality: number;       // Giá trị số (0, 1, 2...)
-    grammarGroupID?: string | null; // Dùng ID nhóm thay vì text "similarGrammar"
+    grammarGroupID?: string | null;
     usageNote?: string | null;
     status: number;
     
     levelID: string;
-    topicIDs: string[];      // Backend dùng List<Guid> nên ở đây là array
+    topicIDs: string[];
     lessonID: string;
     examples: GrammarExampleItem[];
 }

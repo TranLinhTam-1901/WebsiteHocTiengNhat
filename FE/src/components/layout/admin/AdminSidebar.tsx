@@ -62,6 +62,8 @@ const Sidebar: React.FC = () => {
 
             {isContentOpen && (
               <div className="pl-12 flex flex-col gap-1 mt-1 transition-all">
+                <SubNavItem to="/admin/resource/topic" label="Chủ đề" active={location.pathname === '/admin/content/topic'} />
+                <SubNavItem to="/admin/resource/grammar-group" label="Nhóm ngữ pháp" active={location.pathname === '/admin/content/grammar-group'} />
                 <SubNavItem to="/admin/resource/grammar" label="Ngữ pháp" active={location.pathname === '/admin/content/grammar'} />
                 <SubNavItem to="/admin/resource/kanji" label="Kanji" active={location.pathname === '/admin/content/kanji'} />
                 <SubNavItem to="/admin/resource/vocabulary" label="Từ vựng" active={location.pathname === '/admin/content/vocabulary'} />

@@ -106,6 +106,10 @@ const GrammarListPage: React.FC = () => {
 
     // 4. Logic Lọc & Tìm kiếm
     const filteredGrammars = useMemo(() => {
+        if (grammars.length > 0) {
+            console.log("Mẫu Topic từ danh sách:", grammars[0].topics);
+            console.log("Mẫu Topic từ Filter:", topics[0]);
+        }
         return grammars.filter((item: GrammarItem) => {
             // 1. Tìm kiếm theo tiêu đề hoặc cấu trúc
             const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -118,9 +122,15 @@ const GrammarListPage: React.FC = () => {
             const matchesGroup = selectedGroups.length === 0 || 
                                 (item.groupName && selectedGroups.includes(item.groupName));
 
-            // 4. Lọc theo Chủ đề (Array.some kiểm tra trong mảng topics)
+            // 4. Lọc theo Chủ đề
             const matchesTopic = selectedTopics.length === 0 || 
-                                item.topics?.some(t => selectedTopics.includes(t.name));
+            item.topics?.some(t => {
+                return selectedTopics.some((selected: any) => {
+                    const selectedId = typeof selected === 'object' ? selected.id : selected;
+                    const topicId = typeof t === 'object' ? t.id : t;
+                    return selectedId == topicId;
+                });
+            });
 
             // 5. Lọc theo Trạng thái (status: number)
             const statusMap: Record<string, number> = { 'Hoạt động': 1, 'Đang sửa': 0, 'Lưu trữ': 2 };
@@ -569,15 +579,56 @@ const GrammarListPage: React.FC = () => {
                                     {/* Right Side */}
                                     <div className="flex-1 p-8 flex flex-col justify-center">
                                         <div className="flex justify-between items-start">
-                                            <div className="flex-1 pr-8">
-                                                <h4 className="text-xs font-bold text-[#886373] uppercase tracking-wider mb-2">Meaning</h4>
-                                                <p className="text-[#181114] font-medium text-base mb-1">{item.meaning}</p>
-                                                <p className="text-xs text-[#886373] mb-4">
-                                                    Chủ đề: {item.topics && item.topics.length > 0 
-                                                        ? item.topics.map(t => t.name).join(", ") 
-                                                        : "Chưa phân loại"}
-                                                </p>
-                                                <h4 className="text-xs font-bold text-[#886373] uppercase tracking-wider mb-2">Structure</h4>
+                                           <div className="flex-1 pr-8">
+                                                {/* Bố cục Grid chia 2 cột, cả 2 đều căn trái */}
+                                                <div className="grid grid-cols-10 gap-4 mb-4 items-start">
+                                                    
+                                                    {/* Cột 1: Meaning (chiếm 4/10) */}
+                                                    <div className="col-span-4">
+                                                        <h4 className="text-xs font-bold text-[#886373] uppercase tracking-wider mb-2">
+                                                            Meaning
+                                                        </h4>
+                                                        <p className="text-[#181114] font-semibold text-base leading-snug">
+                                                            {item.meaning}
+                                                        </p>
+                                                    </div>
+
+                                                    {/* Cột 2: Topics (chiếm 6/10) */}
+                                                    <div className="col-span-6 border-l border-[#f4f0f2] pl-4">
+                                                        <h4 className="text-xs font-bold text-[#886373] uppercase tracking-wider mb-2">
+                                                            Topics
+                                                        </h4>
+                                                        <div className="flex flex-wrap gap-1.5">
+                                                            {item.topics && item.topics.length > 0 ? (
+                                                                <>
+                                                                    {item.topics.slice(0, 3).map((t: any, index: number) => {
+                                                                        const displayLabel = typeof t === 'object' ? (t.name || t.topicName) : t;
+                                                                        return (
+                                                                            <span 
+                                                                                key={t.id || index} 
+                                                                                className="px-2 py-0.5 bg-primary/5 border border-primary/20 text-primary rounded-md text-[12px] font-bold uppercase whitespace-nowrap"
+                                                                            >
+                                                                                {displayLabel}
+                                                                            </span>
+                                                                        );
+                                                                    })}
+                                                                    {item.topics.length > 3 && (
+                                                                        <span className="text-[12px] font-bold px-1.5 py-0.5 bg-primary/5 border border-primary/20 text-primary rounded-md">
+                                                                            +{item.topics.length - 3}
+                                                                        </span>
+                                                                    )}
+                                                                </>
+                                                            ) : (
+                                                                <span className="text-[10px] text-gray-400 italic">None</span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Section Structure - Nằm toàn bộ chiều ngang phía dưới */}
+                                                <h4 className="text-xs font-bold text-[#886373] uppercase tracking-wider mb-2">
+                                                    Structure
+                                                </h4>
                                                 <p className="text-[#181114] font-japanese text-sm bg-background-light/50 p-3 rounded-xl border border-[#f4f0f2] leading-relaxed mb-0">
                                                     {item.structure}
                                                 </p>

@@ -148,7 +148,7 @@ const ListenEditor: React.FC = () => {
       duration: 0,
       speedCategory: '',
       levelID: '', 
-      topicID: '', 
+      topicIDs: [] as string[],
       lessonID: '',
       status: 1,
       questions: []
@@ -183,6 +183,9 @@ const ListenEditor: React.FC = () => {
   };
 
   const handleSave = async () => {
+    // 1. Định nghĩa hàm kiểm tra GUID (Regex chuẩn)
+    const isGuid = (id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+
     const statusMap: Record<string, number> = { 'Draft': 0, 'Published': 1, 'Archived': 2 };
 
     try {
@@ -195,7 +198,7 @@ const ListenEditor: React.FC = () => {
         duration: Number(formData.duration),
         speedCategory: formData.speedCategory, 
         levelID: formData.levelID,
-        topicID: formData.topicID,
+       topicIDs: formData.topicIDs,
         lessonID: formData.lessonID,
         status: statusMap[visibility] ?? 1,
         
@@ -218,11 +221,22 @@ const ListenEditor: React.FC = () => {
         }))
       };
 
-      // 2. Validation GUID (Giữ nguyên)
-      const isGuid = (id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
-      if (!payload.levelID || !payload.topicID || !payload.lessonID) {
-          alert("Vui lòng chọn đầy đủ Level, Topic và Lesson!");
-          return;
+      // 3. KIỂM TRA TỪNG TRƯỜNG ID
+      const isLevelValid = isGuid(payload.levelID);
+      
+      // Kiểm tra từng ID trong mảng Topic
+      const areTopicsValid = payload.topicIDs.length > 0 && 
+                            payload.topicIDs.every((tid: string) => isGuid(tid));
+      
+      // LessonID có thể để trống (tùy nghiệp vụ), nếu có thì phải là GUID
+      const isLessonValid = payload.lessonID ? isGuid(payload.lessonID) : true;
+
+      if (!isLevelValid || !areTopicsValid || !isLessonValid) {
+        alert("Lỗi: Level, Topic (ít nhất 1) hoặc Lesson không đúng định dạng GUID hoặc chưa được chọn!");
+        console.log("Check Level:", isLevelValid, payload.levelID);
+        console.log("Check Topics:", areTopicsValid, payload.topicIDs);
+        console.log("Check Lesson:", isLessonValid, payload.lessonID);
+        return;
       }
 
       // 3. Gọi API
@@ -286,7 +300,7 @@ const ListenEditor: React.FC = () => {
             duration: data.duration || 0,
             speedCategory: data.speedCategory?.toString() || '1',
             levelID: data.levelID || '',
-            topicID: data.topicID || '',
+            topicIDs: data.topicIDs || [],
             lessonID: data.lessonID || '',
             status: data.status ?? 0, 
             questions: (data.questions || []).map((q: any) => ({
@@ -314,7 +328,7 @@ const ListenEditor: React.FC = () => {
     };
 
     initPage();
-  }, [id, isEditMode]); // API_URL thường là hằng số nên không cần đưa vào dependency
+  }, [id, isEditMode]);
 
   return (
     /* Đổi flex-row thành flex-col để Header nằm trên cùng */
@@ -641,49 +655,98 @@ const ListenEditor: React.FC = () => {
             <div className="bg-white p-6 rounded-2xl border border-[#f4f0f2] shadow-sm space-y-6">
               {/* 1. SECTION TOPIC (Giữ nguyên logic Searchable của bạn) */}
               <div>
-                  <label className="block text-xs font-bold text-[#886373] uppercase tracking-wider mb-3">Topic Assignment</label>
+                <label className="block text-xs font-bold text-[#886373] uppercase tracking-wider mb-2">
+                  Topic Assignment
+                </label>
+                <div className="relative">
                   <div className="relative">
-                      <div className="relative">
-                          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[#886373]">search</span>
-                          <input 
-                              type="text"
-                              placeholder="Tìm và chọn Topic..."
-                              value={topicSearch}
-                              onChange={(e) => { setTopicSearch(e.target.value); setIsTopicMenuOpen(true); }}
-                              onFocus={() => setIsTopicMenuOpen(true)}
-                              className="w-full bg-[#fbf9fa] border border-[#f4f0f2] rounded-xl pl-9 pr-4 py-2.5 text-sm focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all"
-                          />
-                      </div>
-                      {isTopicMenuOpen && (
-                          <>
-                              <div className="fixed inset-0 z-10" onClick={() => setIsTopicMenuOpen(false)} />
-                              <div className="absolute left-0 right-0 mt-2 bg-white border border-[#f4f0f2] rounded-xl shadow-xl z-20 max-h-48 overflow-y-auto p-1 custom-scrollbar animate-in fade-in slide-in-from-top-2 duration-200">
-                                  {filteredTopics.map(t => (
-                                      <button key={t.topicID} onClick={() => { setFormData({ ...formData, topicID: t.topicID }); setTopicSearch(''); setIsTopicMenuOpen(false); }}
-                                          className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-primary/5 hover:text-primary transition-colors flex items-center justify-between group">
-                                          {t.topicName}
-                                          <span className="material-symbols-outlined text-xs opacity-0 group-hover:opacity-100 transition-opacity">add</span>
-                                      </button>
-                                  ))}
-                              </div>
-                          </>
-                      )}
+                    <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[#886373]">
+                      search
+                    </span>
+                    <input
+                      type="text"
+                      placeholder="Tìm và chọn Topic..."
+                      value={topicSearch}
+                      onChange={(e) => {
+                        setTopicSearch(e.target.value);
+                        setIsTopicMenuOpen(true);
+                      }}
+                      onFocus={() => setIsTopicMenuOpen(true)}
+                      className="w-full bg-[#fbf9fa] border border-[#f4f0f2] rounded-xl pl-9 pr-4 py-2.5 text-sm focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all"
+                    />
                   </div>
-                  {/* Tag Topic hiển thị bên dưới */}
-                  <div className="mt-3 min-h-8">
-                      {formData.topicID && (
-                          <div className="inline-flex group relative">
-                              <div className="pl-3 pr-8 py-1.5 bg-primary/5 border border-primary/20 text-primary text-[11px] font-bold rounded-full flex items-center">
-                                  <span className="material-symbols-outlined text-[14px] mr-1.5 text-primary/60">label</span>
-                                  {metadata.topics.find(t => t.topicID === formData.topicID)?.topicName}
-                              </div>
-                              <button onClick={() => setFormData({ ...formData, topicID: '' })}
-                                  className="absolute right-1 top-1/2 -translate-y-1/2 size-5 rounded-full bg-primary/20 text-primary flex items-center justify-center hover:bg-primary hover:text-white transition-all scale-75 group-hover:scale-100">
-                                  <span className="material-symbols-outlined text-[14px]">close</span>
+
+                  {isTopicMenuOpen && (
+                    <>
+                      <div className="fixed inset-0 z-10" onClick={() => setIsTopicMenuOpen(false)} />
+                      <div className="absolute left-0 right-0 mt-2 bg-white border border-[#f4f0f2] rounded-xl shadow-xl z-20 max-h-48 overflow-y-auto p-1 custom-scrollbar animate-in fade-in slide-in-from-top-2 duration-200">
+                        {/* Sử dụng filteredTopics đã khai báo ở trên để đồng nhất, 
+                            nhưng thêm điều kiện lọc những cái ĐÃ CHỌN */}
+                        {filteredTopics
+                          .filter(t => !formData.topicIDs.includes(t.id || t.topicID)) 
+                          .map((t) => {
+                            const id = t.id || t.topicID; // Đảm bảo lấy đúng ID dù là field nào
+                            const name = t.name || t.topicName;
+                            return (
+                              <button
+                                key={id}
+                                type="button"
+                                onClick={() => {
+                                  setFormData({ 
+                                    ...formData, 
+                                    topicIDs: [...formData.topicIDs, id] 
+                                  });
+                                  setTopicSearch("");
+                                  setIsTopicMenuOpen(false);
+                                }}
+                                className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-primary/5 hover:text-primary transition-colors flex items-center justify-between group"
+                              >
+                                {name}
+                                <span className="material-symbols-outlined text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                                  add
+                                </span>
                               </button>
+                            );
+                          })}
+                        
+                        {/* Logic kiểm tra rỗng dựa trên danh sách đã lọc */}
+                        {filteredTopics.filter(t => !formData.topicIDs.includes(t.id || t.topicID)).length === 0 && (
+                          <div className="p-3 text-center text-xs text-gray-400 italic">
+                            Không còn topic nào phù hợp
                           </div>
-                      )}
-                  </div>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {/* Tags Display */}
+                <div className="mt-3 flex flex-wrap gap-2 min-h-8">
+                  {formData.topicIDs.map((id) => {
+                    // Tìm topic trong metadata để lấy tên hiển thị
+                    const topicObj = metadata.topics.find(t => (t.id === id || t.topicID === id));
+                    return (
+                      <div key={id} className="inline-flex group relative animate-in zoom-in duration-200">
+                        <div className="pl-3 pr-8 py-1.5 bg-primary/5 border border-primary/20 text-primary text-[11px] font-bold rounded-full flex items-center">
+                          <span className="material-symbols-outlined text-[14px] mr-1.5 text-primary/60">
+                            label
+                          </span>
+                          {topicObj?.name || topicObj?.topicName || "Unknown Topic"}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setFormData({ 
+                            ...formData, 
+                            topicIDs: formData.topicIDs.filter(tid => tid !== id) 
+                          })}
+                          className="absolute right-1 top-1/2 -translate-y-1/2 size-5 rounded-full bg-primary/20 text-primary flex items-center justify-center hover:bg-primary hover:text-white transition-all scale-75 group-hover:scale-100"
+                        >
+                          <span className="material-symbols-outlined text-[14px]">close</span>
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
 
               {/* 2. SECTION LESSON */}

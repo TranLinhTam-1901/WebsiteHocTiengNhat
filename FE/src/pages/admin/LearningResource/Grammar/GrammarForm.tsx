@@ -92,10 +92,6 @@ const GrammarEditorPage: React.FC = () => {
       if (type === 'visibility') setIsVisibilityMenuOpen(!isVisibilityMenuOpen);
   };
 
-  const filteredTopics = metadata.topics.filter(t =>
-    t.name.toLowerCase().includes(topicSearch.toLowerCase())
-  );
-
   // 2. Fetch dữ liệu
   useEffect(() => {
     const fetchData = async () => {

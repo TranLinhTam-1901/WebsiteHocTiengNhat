@@ -1481,7 +1481,8 @@ BEGIN
     (gen_random_uuid(), '穴', 'Huyệt', 'Cái hang', 5, NOW()),
     (gen_random_uuid(), '立', 'Lập', 'Đứng', 5, NOW()),
 	(gen_random_uuid(), '目', 'Mục', 'Mắt', 5, NOW()),
-    (gen_random_uuid(), '矛', 'Mâu', 'Cái giáo', 5, NOW())
+    (gen_random_uuid(), '矛', 'Mâu', 'Cái giáo', 5, NOW()),
+	(gen_random_uuid(), '母', 'Mẫu', 'Mẹ', 5, NOW())
 	ON CONFLICT ("Character") DO NOTHING;
 
     -- NHÓM 6 NÉT
@@ -1643,7 +1644,7 @@ BEGIN
     SELECT "LessonID" INTO l_id FROM "Lessons" WHERE "Title" = 'Bài 1' LIMIT 1;
 
     INSERT INTO "Kanjis" 
-    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "LevelID", "TopicID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
+    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "TopicID", "LevelID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
     VALUES
     (gen_random_uuid(), '人', 'ジン, ニン', 'ひと', 'Người', 2, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '人' LIMIT 1), 1, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
     (gen_random_uuid(), '学', 'ガク', 'まな.bu', 'Học', 8, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '子' LIMIT 1), 2, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
@@ -1658,7 +1659,7 @@ BEGIN
     SELECT "LessonID" INTO l_id FROM "Lessons" WHERE "Title" = 'Bài 2' LIMIT 1;
 
     INSERT INTO "Kanjis" 
-    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "LevelID", "TopicID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
+    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "TopicID", "LevelID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
     VALUES
     (gen_random_uuid(), '本', 'ホン', 'もと', 'Sách/Gốc', 5, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '木' LIMIT 1), 6, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
     (gen_random_uuid(), '車', 'シャ', 'くるま', 'Xe ô tô', 7, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '車' LIMIT 1), 7, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
@@ -1673,9 +1674,9 @@ BEGIN
     SELECT "LessonID" INTO l_id FROM "Lessons" WHERE "Title" = 'Bài 3' LIMIT 1;
 
     INSERT INTO "Kanjis" 
-    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "LevelID", "TopicID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
+    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "TopicID", "LevelID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
     VALUES
-    (gen_random_uuid(), '円', 'エン', 'まる.い', 'Tiền Yên/Tròn', 4, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '囗' LIMIT 1), 11, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
+    (gen_random_uuid(), '円', 'エン', 'まる.い', 'Tiền Yên/Tròn', 4, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '冂' LIMIT 1), 11, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
     (gen_random_uuid(), '万', 'マン, バン', 'よろず', 'Vạn (10.000)', 3, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '一' LIMIT 1), 12, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
     (gen_random_uuid(), '百', 'ヒャク', 'もも', 'Trăm', 6, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '白' LIMIT 1), 13, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
     (gen_random_uuid(), '千', 'セン', 'ち', 'Nghìn', 3, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '十' LIMIT 1), 14, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
@@ -1688,10 +1689,10 @@ BEGIN
     SELECT "LessonID" INTO l_id FROM "Lessons" WHERE "Title" = 'Bài 4' LIMIT 1;
 
     INSERT INTO "Kanjis" 
-    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "LevelID", "TopicID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
+    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "TopicID", "LevelID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
     VALUES
     (gen_random_uuid(), '時', 'ジ', 'とき', 'Giờ', 10, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '日' LIMIT 1), 16, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
-    (gen_random_uuid(), '分', 'ブン, フン', 'わ.ける', 'Phút/Hiểu', 4, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '刀' LIMIT 1), 17, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
+    (gen_random_uuid(), '分', 'ブン, フン', 'わ.かる, わ.ける', 'Phút/Hiểu', 4, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '刀' LIMIT 1), 17, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
     (gen_random_uuid(), '半', 'ハン', 'なか.ba', 'Một nửa', 5, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '十' LIMIT 1), 18, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
     (gen_random_uuid(), '午', 'ゴ', 'うま', 'Ngọ (Trưa)', 4, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '十' LIMIT 1), 19, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
     (gen_random_uuid(), '月', 'ゲツ, ガツ', 'つき', 'Tháng/Trăng', 4, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '月' LIMIT 1), 20, 1, t_id, n5_id, l_id, NOW(), NOW(), '')
@@ -1703,14 +1704,14 @@ BEGIN
     SELECT "LessonID" INTO l_id FROM "Lessons" WHERE "Title" = 'Bài 5' LIMIT 1;
 
     INSERT INTO "Kanjis" 
-    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "LevelID", "TopicID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
+    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "TopicID", "LevelID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
     VALUES
     (gen_random_uuid(), '行', 'コウ', 'い.く', 'Đi', 6, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '行' LIMIT 1), 21, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
     (gen_random_uuid(), '来', 'ライ', 'く.る', 'Đến', 7, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '木' LIMIT 1), 22, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
     (gen_random_uuid(), '帰', 'キ', 'かえ.る', 'Về', 10, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '止' LIMIT 1), 23, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
     (gen_random_uuid(), '年', 'ネン', 'とし', 'Năm', 6, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '干' LIMIT 1), 24, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
     -- Lưu ý: Bộ Sước viết là 辵 hoặc biến thể 辶
-    (gen_random_uuid(), '週', 'シュウ', '---', 'Tuần', 11, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '辵' LIMIT 1), 25, 1, t_id, n5_id, l_id, NOW(), NOW(), '')
+    (gen_random_uuid(), '週', 'シュウ', '---', 'Tuần', 11, ((SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '辵' LIMIT 1)), 25, 1, t_id, n5_id, l_id, NOW(), NOW(), '')
     ON CONFLICT ("Character") DO NOTHING;
 
     -------------------------------------------------------
@@ -1719,12 +1720,12 @@ BEGIN
     SELECT "LessonID" INTO l_id FROM "Lessons" WHERE "Title" = 'Bài 6' LIMIT 1;
 
     INSERT INTO "Kanjis" 
-    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "LevelID", "TopicID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
+    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "TopicID", "LevelID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
     VALUES
     (gen_random_uuid(), '食', 'ショク', 'た.べる', 'Ăn', 9, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '食' LIMIT 1), 26, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
     (gen_random_uuid(), '飲', 'イン', 'の.む', 'Uống', 12, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '食' LIMIT 1), 27, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
     (gen_random_uuid(), '見', 'ケン', 'み.る', 'Nhìn/Xem', 7, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '見' LIMIT 1), 28, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
-    (gen_random_uuid(), '聞', 'ブン', 'き.く', 'Nghe', 14, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '耳' LIMIT 1), 29, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
+    (gen_random_uuid(), '聞', 'ブン, モン', 'き.く', 'Nghe', 14, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '耳' LIMIT 1), 29, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
     (gen_random_uuid(), '買', 'バイ', 'か.う', 'Mua', 12, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '貝' LIMIT 1), 30, 1, t_id, n5_id, l_id, NOW(), NOW(), '')
     ON CONFLICT ("Character") DO NOTHING;
 
@@ -1734,12 +1735,12 @@ BEGIN
     SELECT "LessonID" INTO l_id FROM "Lessons" WHERE "Title" = 'Bài 7' LIMIT 1;
 
     INSERT INTO "Kanjis" 
-    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "LevelID", "TopicID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
+    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "TopicID", "LevelID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
     VALUES
     (gen_random_uuid(), '手', 'シュ', 'て', 'Tay', 4, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '手' LIMIT 1), 31, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
     (gen_random_uuid(), '紙', 'シ', 'かみ', 'Giấy', 10, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '糸' LIMIT 1), 32, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
     (gen_random_uuid(), '父', 'フ', 'ちち', 'Bố', 4, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '父' LIMIT 1), 33, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
-    (gen_random_uuid(), '母', 'ボ', 'はは', 'Mẹ', 5, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '毋' LIMIT 1), 34, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
+    (gen_random_uuid(), '母', 'ボ', 'はは', 'Mẹ', 5, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '母' LIMIT 1), 34, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
     (gen_random_uuid(), '子', 'シ', 'こ', 'Con', 3, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '子' LIMIT 1), 35, 1, t_id, n5_id, l_id, NOW(), NOW(), '')
     ON CONFLICT ("Character") DO NOTHING;
 
@@ -1749,12 +1750,12 @@ BEGIN
     SELECT "LessonID" INTO l_id FROM "Lessons" WHERE "Title" = 'Bài 8' LIMIT 1;
 
     INSERT INTO "Kanjis" 
-    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "LevelID", "TopicID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
+    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "TopicID", "LevelID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
     VALUES
-    (gen_random_uuid(), '大', 'ダイ', 'おお.kiい', 'Lớn', 3, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '大' LIMIT 1), 36, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
+    (gen_random_uuid(), '大', 'ダイ', 'おお.kいい', 'Lớn', 3, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '大' LIMIT 1), 36, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
     (gen_random_uuid(), '小', 'ショウ', 'ちい.さい', 'Nhỏ', 3, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '小' LIMIT 1), 37, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
-    (gen_random_uuid(), '高', 'コウ', 'たか.i', 'Cao/Đắt', 10, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '高' LIMIT 1), 38, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
-    (gen_random_uuid(), '安', 'アン', 'やす.i', 'Rẻ/An tâm', 6, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '宀' LIMIT 1), 39, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
+    (gen_random_uuid(), '高', 'コウ', 'たか.い', 'Cao/Đắt', 10, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '高' LIMIT 1), 38, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
+    (gen_random_uuid(), '安', 'アン', 'やす.い', 'Rẻ/An tâm', 6, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '宀' LIMIT 1), 39, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
     (gen_random_uuid(), '新', 'シン', 'あたら.しい', 'Mới', 13, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '斤' LIMIT 1), 40, 1, t_id, n5_id, l_id, NOW(), NOW(), '')
     ON CONFLICT ("Character") DO NOTHING;
 
@@ -1764,13 +1765,13 @@ BEGIN
     SELECT "LessonID" INTO l_id FROM "Lessons" WHERE "Title" = 'Bài 9' LIMIT 1;
 
     INSERT INTO "Kanjis" 
-    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "LevelID", "TopicID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
+    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "TopicID", "LevelID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
     VALUES
     (gen_random_uuid(), '友', 'ユウ', 'とも', 'Bạn bè', 4, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '又' LIMIT 1), 41, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
-    (gen_random_uuid(), '書', 'ショ', 'か.く', 'Viết', 10, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '曰' LIMIT 1), 42, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
+    (gen_random_uuid(), '書', 'ショ', 'か.く', 'Viết', 10, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '聿' LIMIT 1), 42, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
     (gen_random_uuid(), '少', 'ショウ', 'すく.ない', 'Ít', 4, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '小' LIMIT 1), 43, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
-    (gen_random_uuid(), '多', 'タ', 'おお.i', 'Nhiều', 6, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '夕' LIMIT 1), 44, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
-    (gen_random_uuid(), '長', 'チョウ', 'なが.i', 'Dài', 8, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '長' LIMIT 1), 45, 1, t_id, n5_id, l_id, NOW(), NOW(), '')
+    (gen_random_uuid(), '多', 'タ', 'おお.い', 'Nhiều', 6, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '夕' LIMIT 1), 44, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
+    (gen_random_uuid(), '長', 'チョウ', 'なが.い', 'Dài', 8, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '長' LIMIT 1), 45, 1, t_id, n5_id, l_id, NOW(), NOW(), '')
     ON CONFLICT ("Character") DO NOTHING;
 
     -------------------------------------------------------
@@ -1779,13 +1780,13 @@ BEGIN
     SELECT "LessonID" INTO l_id FROM "Lessons" WHERE "Title" = 'Bài 10' LIMIT 1;
 
     INSERT INTO "Kanjis" 
-    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "LevelID", "TopicID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
+    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "TopicID", "LevelID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
     VALUES
     (gen_random_uuid(), '上', 'ジョウ', 'うえ', 'Trên', 3, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '一' LIMIT 1), 46, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
     (gen_random_uuid(), '下', 'カ', 'した', 'Dưới', 3, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '一' LIMIT 1), 47, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
-    (gen_random_uuid(), '中', 'チュウ', 'なか', 'Trong/Giữa', 4, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '丨' LIMIT 1), 48, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
+    (gen_random_uuid(), '中', 'チュウ', 'なか', 'Trong/Giữa', 4, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '口' LIMIT 1), 48, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
     (gen_random_uuid(), '右', 'ウ', 'みぎ', 'Bên phải', 5, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '口' LIMIT 1), 49, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
-    (gen_random_uuid(), '左', 'サ', 'ひだり', 'Bên trái', 5, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '工' LIMIT 1), 50, 1, t_id, n5_id, l_id, NOW(), NOW(), '')
+    (gen_random_uuid(), '左', 'サ', 'ひだり', 'Bên trái', 5, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '口' LIMIT 1), 50, 1, t_id, n5_id, l_id, NOW(), NOW(), '')
     ON CONFLICT ("Character") DO NOTHING;
     
     -------------------------------------------------------
@@ -1794,7 +1795,7 @@ BEGIN
     SELECT "LessonID" INTO l_id FROM "Lessons" WHERE "Title" = 'Bài 11' LIMIT 1;
 
     INSERT INTO "Kanjis" 
-    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "LevelID", "TopicID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
+    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "TopicID", "LevelID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
     VALUES
     (gen_random_uuid(), '枚', 'マイ', '---', 'Tờ, lá (vật mỏng)', 8, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '木' LIMIT 1), 51, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
     (gen_random_uuid(), '台', 'ダイ, タイ', '---', 'Cái (máy móc, xe)', 5, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '口' LIMIT 1), 52, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
@@ -1807,7 +1808,7 @@ BEGIN
     SELECT "LessonID" INTO l_id FROM "Lessons" WHERE "Title" = 'Bài 12' LIMIT 1;
 
     INSERT INTO "Kanjis" 
-    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "LevelID", "TopicID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
+    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "TopicID", "LevelID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
     VALUES
     (gen_random_uuid(), '雨', 'ウ', 'あめ', 'Mưa', 8, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '雨' LIMIT 1), 54, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
     (gen_random_uuid(), '天', 'テン', 'あめ', 'Trời', 4, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '大' LIMIT 1), 55, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
@@ -1821,7 +1822,7 @@ BEGIN
     SELECT "LessonID" INTO l_id FROM "Lessons" WHERE "Title" = 'Bài 13' LIMIT 1;
 
     INSERT INTO "Kanjis" 
-    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "LevelID", "TopicID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
+    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "TopicID", "LevelID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
     VALUES
     (gen_random_uuid(), '口', 'コウ', 'くち', 'Miệng', 3, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '口' LIMIT 1), 58, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
     (gen_random_uuid(), '目', 'モク', 'め', 'Mắt', 5, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '目' LIMIT 1), 59, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
@@ -1835,12 +1836,12 @@ BEGIN
     SELECT "LessonID" INTO l_id FROM "Lessons" WHERE "Title" = 'Bài 14' LIMIT 1;
 
     INSERT INTO "Kanjis" 
-    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "LevelID", "TopicID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
+    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "TopicID", "LevelID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
     VALUES
     (gen_random_uuid(), '駅', 'エキ', '---', 'Nhà ga', 14, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '馬' LIMIT 1), 62, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
     (gen_random_uuid(), '電', 'デン', '---', 'Điện', 13, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '雨' LIMIT 1), 63, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
     (gen_random_uuid(), '話', 'ワ', 'はな.す', 'Nói chuyện', 13, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '言' LIMIT 1), 64, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
-    (gen_random_uuid(), '出', 'シュツ', 'đe.ru, đa.su', 'Ra / Đưa ra', 5, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '凵' LIMIT 1), 65, 1, t_id, n5_id, l_id, NOW(), NOW(), '')
+    (gen_random_uuid(), '出', 'シュツ', 'で.る, だ.す', 'Ra / Đưa ra', 5, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '凵' LIMIT 1), 65, 1, t_id, n5_id, l_id, NOW(), NOW(), '')
     ON CONFLICT ("Character") DO NOTHING;
 
     -------------------------------------------------------
@@ -1849,7 +1850,7 @@ BEGIN
     SELECT "LessonID" INTO l_id FROM "Lessons" WHERE "Title" = 'Bài 15' LIMIT 1;
 
     INSERT INTO "Kanjis" 
-    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "LevelID", "TopicID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
+    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "TopicID", "LevelID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
     VALUES
     (gen_random_uuid(), '住', 'ジュウ', 'す.む', 'Cư trú / Sống', 7, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '人' LIMIT 1), 66, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
     (gen_random_uuid(), '所', 'ショ', 'ところ', 'Nơi chốn', 8, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '戸' LIMIT 1), 67, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
@@ -1863,7 +1864,7 @@ BEGIN
     SELECT "LessonID" INTO l_id FROM "Lessons" WHERE "Title" = 'Bài 16' LIMIT 1;
 
     INSERT INTO "Kanjis" 
-    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "LevelID", "TopicID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
+    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "TopicID", "LevelID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
     VALUES
     (gen_random_uuid(), '入', 'ニュウ', 'はい.る, い.れる', 'Vào / Cho vào', 2, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '入' LIMIT 1), 70, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
     (gen_random_uuid(), '体', 'タイ', 'からだ', 'Cơ thể', 7, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '人' LIMIT 1), 71, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
@@ -1877,7 +1878,7 @@ BEGIN
     SELECT "LessonID" INTO l_id FROM "Lessons" WHERE "Title" = 'Bài 17' LIMIT 1;
 
     INSERT INTO "Kanjis" 
-    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "LevelID", "TopicID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
+    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "TopicID", "LevelID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
     VALUES
     (gen_random_uuid(), '病', 'ビョウ', 'やまい', 'Bệnh', 10, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '疒' LIMIT 1), 74, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
     (gen_random_uuid(), '院', 'イン', '---', 'Viện (Bệnh viện)', 10, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '阜' LIMIT 1), 75, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
@@ -1891,7 +1892,7 @@ BEGIN
     SELECT "LessonID" INTO l_id FROM "Lessons" WHERE "Title" = 'Bài 18' LIMIT 1;
 
     INSERT INTO "Kanjis" 
-    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "LevelID", "TopicID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
+    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "TopicID", "LevelID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
     VALUES
     (gen_random_uuid(), '山', 'サン', 'やま', 'Núi', 3, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '山' LIMIT 1), 78, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
     (gen_random_uuid(), '川', 'セン', 'かわ', 'Sông', 3, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '巛' LIMIT 1), 79, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
@@ -1905,7 +1906,7 @@ BEGIN
     SELECT "LessonID" INTO l_id FROM "Lessons" WHERE "Title" = 'Bài 19' LIMIT 1;
 
     INSERT INTO "Kanjis" 
-    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "LevelID", "TopicID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
+    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "TopicID", "LevelID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
     VALUES
     (gen_random_uuid(), '火', 'カ', 'ひ', 'Lửa', 4, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '火' LIMIT 1), 82, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
     (gen_random_uuid(), '水', 'スイ', 'みず', 'Nước', 4, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '水' LIMIT 1), 83, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
@@ -1920,7 +1921,7 @@ BEGIN
     SELECT "LessonID" INTO l_id FROM "Lessons" WHERE "Title" = 'Bài 20' LIMIT 1;
     
     INSERT INTO "Kanjis" 
-    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "LevelID", "TopicID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
+    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "TopicID", "LevelID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
     VALUES
     (gen_random_uuid(), '道', 'ドウ', 'みち', 'Đường / Đạo', 12, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '辵' LIMIT 1), 87, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
     (gen_random_uuid(), '店', 'テン', 'みせ', 'Cửa hàng', 8, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '广' LIMIT 1), 88, 1, t_id, n5_id, l_id, NOW(), NOW(), '') 
@@ -1932,7 +1933,7 @@ BEGIN
     SELECT "LessonID" INTO l_id FROM "Lessons" WHERE "Title" = 'Bài 21' LIMIT 1;
     
     INSERT INTO "Kanjis" 
-    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "LevelID", "TopicID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
+    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "TopicID", "LevelID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
     VALUES
     (gen_random_uuid(), '思', 'シ', 'おmo.u', 'Nghĩ', 9, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '心' LIMIT 1), 89, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
     (gen_random_uuid(), '言', 'ゲン, ゴン', 'い.u, こと', 'Nói', 7, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '言' LIMIT 1), 90, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
@@ -1946,7 +1947,7 @@ BEGIN
     SELECT "LessonID" INTO l_id FROM "Lessons" WHERE "Title" = 'Bài 22' LIMIT 1;
     
     INSERT INTO "Kanjis" 
-    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "LevelID", "TopicID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
+    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "TopicID", "LevelID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
     VALUES
     (gen_random_uuid(), '着', 'チャク', 'き.る, つ.く', 'Mặc / Đến nơi', 12, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '羊' LIMIT 1), 93, 1, t_id, n5_id, l_id, NOW(), NOW(), '') 
     ON CONFLICT ("Character") DO NOTHING;
@@ -1957,7 +1958,7 @@ BEGIN
     SELECT "LessonID" INTO l_id FROM "Lessons" WHERE "Title" = 'Bài 23' LIMIT 1;
     
     INSERT INTO "Kanjis" 
-    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "LevelID", "TopicID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
+    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "TopicID", "LevelID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
     VALUES
     (gen_random_uuid(), '東', 'トウ', 'ひがし', 'Phía Đông', 8, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '木' LIMIT 1), 94, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
     (gen_random_uuid(), '西', 'セイ, サイ', 'にし', 'Phía Tây', 6, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '襾' LIMIT 1), 95, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
@@ -1971,7 +1972,7 @@ BEGIN
     SELECT "LessonID" INTO l_id FROM "Lessons" WHERE "Title" = 'Bài 24' LIMIT 1;
     
     INSERT INTO "Kanjis" 
-    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "LevelID", "TopicID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
+    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "TopicID", "LevelID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
     VALUES
     (gen_random_uuid(), '兄', 'キョウ', 'あに', 'Anh trai', 5, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '儿' LIMIT 1), 98, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
     (gen_random_uuid(), '姉', 'シ', 'あね', 'Chị gái', 8, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '女' LIMIT 1), 99, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
@@ -1986,7 +1987,7 @@ BEGIN
     SELECT "LessonID" INTO l_id FROM "Lessons" WHERE "Title" = 'Bài 25' LIMIT 1;
     
     INSERT INTO "Kanjis" 
-    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "LevelID", "TopicID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
+    ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "TopicID", "LevelID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") 
     VALUES
     (gen_random_uuid(), '運', 'ウン', 'はこ.ぶ', 'Vận chuyển', 12, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '辵' LIMIT 1), 103, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
     (gen_random_uuid(), '動', 'ドウ', 'うご.く', 'Chuyển động', 11, (SELECT "RadicalID" FROM "Radicals" WHERE "Character" = '力' LIMIT 1), 104, 1, t_id, n5_id, l_id, NOW(), NOW(), ''),
@@ -3988,6 +3989,9 @@ BEGIN
     45, 5, 1, n5_id, l_id, NOW(), NOW())
     ON CONFLICT ("Title") DO NOTHING;
 
+	INSERT INTO "ReadingTopics" ("ReadingID", "TopicID") 
+    SELECT r_id, t_id WHERE EXISTS (SELECT 1 FROM "Readings" WHERE "ReadingID" = r_id) ON CONFLICT DO NOTHING;
+
     -- Câu hỏi 1 cho bài 1
     q_id := gen_random_uuid();
     INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
@@ -4000,6 +4004,7 @@ BEGIN
     (gen_random_uuid(), q_id, '４人です', true),
     (gen_random_uuid(), q_id, '５人です', false),
 	(gen_random_uuid(), q_id, '２人です', false);
+
 
     -- Câu hỏi 2 cho bài 1
     q_id := gen_random_uuid();
@@ -4393,10 +4398,14 @@ END $$;
 
 
 
+TRUNCATE TABLE "Kanjis" RESTART IDENTITY CASCADE;
+TRUNCATE TABLE "Radicals" RESTART IDENTITY CASCADE;
+TRUNCATE TABLE "RadicalVariants" RESTART IDENTITY CASCADE;
+
 -------------------------------------------------------
 -- SELECT VD
 -------------------------------------------------------
-SELECT * FROM "VocabTopics"
+SELECT * FROM "Kanjis"
 WHERE "VocabID" = '014415d9-f006-4558-9a09-f4dcdee4a742';
 
 SELECT * FROM "Vocabularies"
