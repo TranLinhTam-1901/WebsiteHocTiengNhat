@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
-
+using System.ComponentModel.DataAnnotations.Schema;
 namespace QuizzTiengNhat.Models
 {
     public class Exam_Results
@@ -14,5 +14,8 @@ namespace QuizzTiengNhat.Models
 
         // Navigation properties
         public virtual ApplicationUser User { get; set; }
+
+        [ForeignKey("ExamID")]
+        public virtual Exams Exam { get; set; }
     }
 }

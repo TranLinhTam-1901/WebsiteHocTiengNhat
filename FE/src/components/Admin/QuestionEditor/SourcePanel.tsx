@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import QuestionService from '../../../services/Admin/QuestionService';
+import QuestionService from '../../../services/Admin/questionService';
 import { LessonLookupDTO, SourceMaterial } from '../../../interfaces/Admin/QuestionBank';
 import { SOURCE_TYPE_OPTIONS, DIFFICULTY_OPTIONS } from '../../../constants/admin/questionOptions';
 

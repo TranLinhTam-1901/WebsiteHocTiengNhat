@@ -220,6 +220,7 @@ namespace QuizzTiengNhat.Controllers.Admins
                     Status = dto.Status,
                     SourceID = dto.SourceID,
                     LessonID = dto.LessonID,
+                    SkillType = dto.SkillType, 
                     CreatedAt = DateTime.UtcNow
                 };
 
@@ -280,6 +281,7 @@ namespace QuizzTiengNhat.Controllers.Admins
                 question.Explanation = dto.Explanation;
                 question.Status = dto.Status;
                 question.LessonID = dto.LessonID;
+                question.SkillType = dto.SkillType;
                 question.UpdatedAt = DateTime.UtcNow;
                 question.EquivalentID = dto.EquivalentID;
 
@@ -346,7 +348,7 @@ namespace QuizzTiengNhat.Controllers.Admins
             if (lessonId.HasValue && lessonId != Guid.Empty)
                 query = query.Where(q => q.LessonID == lessonId);
 
-            // 2. Lọc theo Topic (thông qua bảng trung gian)
+            // 2. Lọc theo Topic 
             if (topicId.HasValue)
                 query = query.Where(q => q.QuestionTopics.Any(qt => qt.TopicID == topicId));
 

@@ -17,8 +17,13 @@ namespace QuizzTiengNhat.Models
         public virtual Listenings Listening { get; set; }
         // ---------------------
         public Guid LessonID { get; set; }
+        // Navigation properties
+        [ForeignKey("LessonID")]
+        public virtual Lessons Lesson { get; set; }
+
         public string Content { get; set; }
         public QuestionType QuestionType { get; set; } 
+        public SkillType SkillType { get; set; }
         public string? AudioURL { get; set; }
         public int Difficulty { get; set; }
         public string? Explanation { get; set; }
@@ -32,10 +37,7 @@ namespace QuizzTiengNhat.Models
         // lưu vết nguồn gốc
         public Guid? SourceID { get; set; }
         public Guid? ParentID { get; set; } // Khóa ngoại tự tham chiếu cho câu hỏi con
-        // Navigation properties
-        [ForeignKey("LessonID")]
-        public virtual Lessons Lesson { get; set; }
-
+        
         [ForeignKey("ParentID")]
         public virtual Questions ParentQuestion { get; set; } // Tham chiếu đến câu hỏi cha
 
@@ -45,5 +47,6 @@ namespace QuizzTiengNhat.Models
         
         // Liên kết với bảng trung gian Topic
         public virtual ICollection<Questions_Topic> QuestionTopics { get; set; } = new List<Questions_Topic>();
+        public virtual ICollection<Exam_Questions> ExamQuestions { get; set; } = new List<Exam_Questions>();
     }
 }
