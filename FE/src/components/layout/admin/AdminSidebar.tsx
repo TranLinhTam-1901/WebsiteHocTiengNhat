@@ -72,12 +72,12 @@ const Sidebar: React.FC = () => {
           </div>
 
           <NavItem to="/admin/question-bank" icon="add_box" label="Ngân hàng câu hỏi" active={location.pathname.includes('/admin/question-bank')} />
-          <NavItem to="/admin/exams" icon="assignment" label="Kỳ thi" active={location.pathname === '/admin/exams'} />
           <NavItem to="/admin/learners" icon="group" label="Người dùng" active={location.pathname === '/admin/learners'} />
-          
+          <NavItem to="/admin/exams" icon="assignment" label="Kho đề thi và kiểm tra" active={location.pathname === '/admin/exams'} />
+
           <div className="my-4 border-t border-[#f4f0f2]"></div>
           
-          <NavItem icon="neurology" label="Cài đặt AI" to="/admin/ai-settings" active={location.pathname === '/admin/ai-settings'} />
+          {/* <NavItem icon="neurology" label="Cài đặt AI" to="/admin/ai-settings" active={location.pathname === '/admin/ai-settings'} /> */}
         </nav>
 
         {/* Thông tin User & Đăng xuất */}

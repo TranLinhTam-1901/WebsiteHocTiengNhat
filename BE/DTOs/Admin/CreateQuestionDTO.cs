@@ -15,6 +15,7 @@ namespace QuizzTiengNhat.DTOs.Admin
         public Guid? SourceID { get; set; }
         public Guid LessonID { get; set; } // Thêm trường này để liên kết câu hỏi với bài học cụ thể
         public QuestionStatus Status { get; set; } = QuestionStatus.Draft;
+        public SkillType SkillType { get; set; } // Thêm trường này để xác định kỹ năng của câu hỏi
         public List<AnswerCreateDTO> Answers { get; set; } = new List<AnswerCreateDTO>();
 
     }

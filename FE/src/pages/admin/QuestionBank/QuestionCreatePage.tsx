@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react'; // Đảm bảo có useEffec
 import { useParams, useNavigate } from 'react-router-dom';
 import SourcePanel from '../../../components/Admin/QuestionEditor/SourcePanel';
 import AnswerEditor from '../../../components/Admin/QuestionEditor/AnswerEditor';
-import QuestionService from '../../../services/Admin/QuestionService';
-import { CreateQuestionDTO, QuestionType, SourceMaterial, AnswerDTO, Topics, QuestionStatus } from '../../../interfaces/Admin/QuestionBank';
-import { QUESTION_TYPE_OPTIONS, DIFFICULTY_OPTIONS, QUESTION_TYPE_LABELS } from '../../../constants/admin/questionOptions';
+import QuestionService from '../../../services/Admin/questionService';
+import { CreateQuestionDTO, QuestionType, SourceMaterial, AnswerDTO, Topics, QuestionStatus, SkillType } from '../../../interfaces/Admin/QuestionBank';
+import { QUESTION_TYPE_OPTIONS, DIFFICULTY_OPTIONS, QUESTION_TYPE_LABELS, SKILL_TYPE_OPTIONS } from '../../../constants/admin/questionOptions';
+import { toast } from 'react-hot-toast';
 
 const QuestionCreatePage: React.FC = () => {
     // --- 1. HOOKS (Luôn để trên cùng) ---
@@ -26,7 +27,7 @@ const QuestionCreatePage: React.FC = () => {
             { answerText: '', isCorrect: false }
         ],
         sourceID: null,
-
+        skillType: SkillType.Vocabulary,
         // audioURL: '',
         // mediaTimestamp: 0
     });
@@ -87,10 +88,12 @@ const QuestionCreatePage: React.FC = () => {
         let autoContent = '';
         let autoExplanation = item.meaning || '';
         let autoAnswers: AnswerDTO[] = [];
+        let autoSkillType = SkillType.Vocabulary;
 
         switch (type) {
 
             case 'Vocabulary':
+                autoSkillType = SkillType.Vocabulary;
                 autoContent = `Chọn nghĩa đúng của từ: ${item.word}`;
                 autoAnswers = [
                     { answerText: item.meaning || '', isCorrect: true },
@@ -99,6 +102,7 @@ const QuestionCreatePage: React.FC = () => {
                 ];
                 break;
             case 'Kanji':
+                autoSkillType = SkillType.Kanji;
                 autoContent = `Cách đọc Onyomi của chữ Hán "${item.character}" là gì?`;
                  autoAnswers = [
                 { answerText: item.onyomi || '', isCorrect: true },
@@ -108,6 +112,7 @@ const QuestionCreatePage: React.FC = () => {
                 break;
 
             case 'Grammar': 
+            autoSkillType = SkillType.Grammar;
             autoContent = `Hoàn thành cấu trúc ngữ pháp: ${item.structure || 'N/A'}`;
             autoAnswers = [
                 { answerText: item.meaning || '', isCorrect: true },
@@ -122,6 +127,7 @@ const QuestionCreatePage: React.FC = () => {
             content: autoContent,
             explanation: autoExplanation,
             sourceID: item.id,
+            skillType: autoSkillType,
             // audioURL: item.audioURL || '',
             // mediaTimestamp: (item as any).mediaTimestamp || 0,
             answers: autoAnswers.length > 0 ? autoAnswers : prev.answers,
@@ -132,7 +138,7 @@ const QuestionCreatePage: React.FC = () => {
     const processSubmit = async (status: QuestionStatus) => {
     // Validate cơ bản cho cả 2 trường hợp
     if (!formData.lessonID) {
-        alert("Vui lòng chọn bài học trước khi lưu!");
+        toast.error("Vui lòng chọn bài học trước khi lưu!");
         return;
     }
 
@@ -140,11 +146,11 @@ const QuestionCreatePage: React.FC = () => {
     if (status === QuestionStatus.Active) {
         const hasCorrect = formData.answers.some(a => a.isCorrect);
         if (!hasCorrect) {
-            alert("Câu hỏi chính thức phải có ít nhất một đáp án đúng!");
+            toast.error("Câu hỏi chính thức phải có ít nhất một đáp án đúng!");
             return;
         }
         if (!formData.content.trim()) {
-            alert("Nội dung câu hỏi không được để trống!");
+            toast.error("Nội dung câu hỏi không được để trống!");
             return;
         }
     }
@@ -168,21 +174,17 @@ const QuestionCreatePage: React.FC = () => {
                 : "🚀 Đã tạo câu hỏi chính thức thành công!";
         }
 
-        alert(message);
+        toast.success(message);
+        setTimeout(() => {
         navigate(-1);
+    }, 1500);
+        
     } catch (error: any) {
         const errorMsg = error.response?.data?.detail || "Không thể lưu câu hỏi";
-        alert("Lỗi: " + errorMsg);
+        toast.error("Lỗi: " + errorMsg);
     }
     };
 
-    // 2. Hàm xử lý sự kiện Submit của Form (dành cho nút chính thức)
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        processSubmit(QuestionStatus.Active);
-    };
-
-  
 
     // Câu hỏi tương đương
         // --- STATE CHO CÂU HỎI TƯƠNG ĐƯƠNG ---
@@ -265,7 +267,17 @@ const QuestionCreatePage: React.FC = () => {
                     <div className="mb-[25px] flex items-center justify-between rounded-xl border border-[#FFD1D8] bg-[#FFF1F3] px-5 py-3 text-[#FF6B81]">
                         <span className="text-sm">✨ Nội dung đã được tự động điền từ phôi.</span>
                         <button 
-                            onClick={() => setFormData({...formData, sourceID: null})} 
+                           onClick={() => setFormData({
+                                ...formData, 
+                                sourceID: null,
+                                content: '',           // Xóa nội dung câu hỏi
+                                explanation: '',       // Xóa lời giải
+                                answers: [             // Reset về 2 đáp án trống mặc định
+                                    { answerText: '', isCorrect: true },
+                                    { answerText: '', isCorrect: false }
+                                ],
+                                
+                            })}
                             className="bg-none text-sm font-bold cursor-pointer border-none"
                         >
                             Xóa phôi
@@ -298,17 +310,33 @@ const QuestionCreatePage: React.FC = () => {
                         ))}
                     </div>
                 </div>
+                {/* CHỌN KỸ NĂNG (SKILL TYPE) */}
+                <div className="mb-[30px]">
+                    <label className="mb-3 block font-bold text-[#4A5568]">Loại kĩ năng</label>
+                    <div className="grid grid-cols-4 gap-2.5 sm:grid-cols-7">
+                        {SKILL_TYPE_OPTIONS
+                        .filter(skill => skill.value >= 1 && skill.value <= 3) 
+                        .map((skill) => (
+                            <button
+                                key={skill.value}
+                                type="button"
+                                onClick={() => setFormData({ ...formData, skillType: skill.value })}
+                                className={`flex flex-col items-center justify-center rounded-xl border p-2 text-[13px] font-bold transition-all cursor-pointer
+                                    ${Number(formData.skillType) === skill.value 
+                                        ? 'border-[#FF6B81] bg-[#FFF1F3] text-[#FF6B81]' 
+                                        : 'border-[#E2E8F0] bg-white text-[#64748B]'}`}
+                            >
+                                {skill.label}
+                            </button>
+                        ))}
+                    </div>
+                </div>
 
-               <form onSubmit={handleSubmit}>
+               <form>
                     {/* Rich Text Editor */}
                     <div className="mb-[25px]">
                         <label className="mb-2.5 block font-bold text-[#4A5568]">Nội dung câu hỏi (Rich Text)</label>
                         <div className="overflow-hidden rounded-xl border border-[#FFD1D8] bg-white">
-                            {/* <div className="flex gap-[15px] border-b border-[#F0F0F0] p-2.5">
-                                <button type="button" className="cursor-pointer border-none bg-none font-bold">B</button>
-                                <button type="button" className="cursor-pointer border-none bg-none italic">I</button>
-                                <button type="button" className="cursor-pointer border-none bg-none">🖼️</button>
-                            </div> */}
                             <textarea 
                                 className="min-h-[120px] w-full border-none p-[15px] text-lg outline-none"
                                 value={formData.content}
@@ -454,32 +482,30 @@ const QuestionCreatePage: React.FC = () => {
                     />
 
                     {/* Nút hành động */}
-                    <div className="mt-10 flex justify-end gap-[15px] pb-10">
-                    <button 
-                        type="button" 
-                        onClick={() => processSubmit(QuestionStatus.Draft)}
-                        className="cursor-pointer rounded-lg border-none bg-[#E2E8F0] px-[25px] py-3 font-bold hover:bg-[#CBD5E1] transition-all"
-                    >
-                        {/* Biến đổi text dựa trên chế độ Edit */}
-                        {isEditMode ? "Cập nhật bản nháp" : "Lưu nháp"}
-                    </button>
+                        <div className="mt-10 flex justify-end gap-[15px] pb-10">
+                            <button 
+                                type="button" 
+                                onClick={() => processSubmit(QuestionStatus.Draft)}
+                                className="cursor-pointer rounded-lg border-none bg-[#E2E8F0] px-[25px] py-3 font-bold hover:bg-[#CBD5E1] transition-all"
+                            >
+                                {/* Biến đổi text dựa trên chế độ Edit */}
+                                {isEditMode ? "Cập nhật bản nháp" : "Lưu nháp"}
+                            </button>
 
-                    <button 
-                        type="submit" 
-                        // Nếu bạn dùng form submit, hãy đảm bảo onSubmit của form gọi processSubmit(QuestionStatus.Active)
-                        // Hoặc dùng onClick trực tiếp như nút trên:
-                        onClick={(e) => {
-                            e.preventDefault(); 
-                            processSubmit(QuestionStatus.Active);
-                        }}
-                        className="cursor-pointer rounded-lg border-none bg-[#FF6B81] px-10 py-3 font-bold text-white shadow-[0_4px_12px_rgba(255,107,129,0.3)] hover:opacity-90 transition-all"
-                    >
-                        <span>{isEditMode ? "✓" : "➤"}</span> 
-                        <span className="ml-2">
-                            {isEditMode ? "Cập nhật câu hỏi" : "Tạo câu hỏi chính thức"}
-                        </span>
-                    </button>
-                </div>
+                            <button 
+                                type="button" 
+                                onClick={(e) => {
+                                    e.preventDefault(); 
+                                    processSubmit(QuestionStatus.Active);
+                                }}
+                                className="cursor-pointer rounded-lg border-none bg-[#FF6B81] px-10 py-3 font-bold text-white shadow-[0_4px_12px_rgba(255,107,129,0.3)] hover:opacity-90 transition-all"
+                            >
+                                <span>{isEditMode ? "✓" : "➤"}</span> 
+                                <span className="ml-2">
+                                    {isEditMode ? "Cập nhật câu hỏi" : "Tạo câu hỏi chính thức"}
+                                </span>
+                            </button>
+                    </div>
                 </form>
             </div>
         </div>
