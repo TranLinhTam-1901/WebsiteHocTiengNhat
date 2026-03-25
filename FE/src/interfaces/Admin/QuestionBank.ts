@@ -12,6 +12,23 @@ export enum QuestionStatus {
     Draft = 0
 }
 
+
+export enum SkillType {
+    General = 0,
+    Vocabulary = 1,
+    Grammar = 2,
+    Kanji = 3,
+    Reading = 4,
+    Listening = 5,
+    Practice = 6
+} 
+
+export enum ExamType {
+    StandardJLPT = 0,
+    LessonPractice = 1,
+    SkillPractice = 2
+}
+
 // 2. Interface cho Đáp án
 export interface AnswerDTO {
     answerText: string;
@@ -31,6 +48,7 @@ export interface CreateQuestionDTO {
     sourceID?: string | null;
     topicIds: string[];
     status: QuestionStatus;
+    skillType?: SkillType; 
     answers: AnswerDTO[];
 }
 

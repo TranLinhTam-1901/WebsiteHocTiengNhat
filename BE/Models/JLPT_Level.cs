@@ -16,5 +16,6 @@ namespace QuizzTiengNhat.Models
         public virtual ICollection<Vocabularies> Vocabularies { get; set; }
         public virtual ICollection<Kanjis> Kanjis { get; set; }
         public virtual ICollection<Grammars> Grammars { get; set; }
+        public virtual ICollection<ExamTemplate> ExamTemplates { get; set; } = new List<ExamTemplate>();
     }
 }

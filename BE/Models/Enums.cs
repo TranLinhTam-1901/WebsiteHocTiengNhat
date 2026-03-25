@@ -31,4 +31,11 @@ namespace QuizzTiengNhat.Models.Enums
         Hidden = 2
     }
 
+    public enum ExamType
+    {
+        MockTest = 0,    // Đề thi thử JLPT chuẩn (Theo cấu trúc Template)
+        LessonPractice = 1, // Luyện tập theo từng bài học (Theo LessonID)
+        SkillPractice = 2   // Luyện tập chuyên sâu kỹ năng (Theo QuestionType)
+    }
+
 }

@@ -22,6 +22,9 @@ import ReadingForm from '../pages/admin/LearningResource/Reading/ReadingForm';
 
 import VocabListPage from '../pages/admin/LearningResource/Vocabulary/VocabListPage';
 import VocabForm from '../pages/admin/LearningResource/Vocabulary/VocabForm';
+import ExamListPage from '../pages/admin/ExamManagement/ExamListPage'; 
+import ExamDetailPage from '../pages/admin/ExamManagement/ExamDetailPage';
+import ExamForgePage from '../pages/admin/ExamManagement/ExamForgePage';
 
 export const adminRoutes: RouteObject[] = [
   {
@@ -74,7 +77,28 @@ export const adminRoutes: RouteObject[] = [
                 { path: 'edit/:id', element: <QuestionCreatePage /> } // Tái sử dụng View 2 cho việc sửa
             ]
          },
-          
+         
+         // --- Quản lý Kỳ thi & Luyện tập (MỚI) ---
+          // {
+          //   path: 'exams',
+          //   children: [
+          //     { index: true, element: <ExamForgePage /> }, 
+             
+          //   ]
+          // },
+          {
+            path: 'exams',
+            children: [
+               // Trang danh sách đề đã tạo (Ví dụ: /admin/exams/list)
+              {  index : true, element: <ExamListPage /> },
+
+              // Khi vào /admin/exams, trang này sẽ hiện đầu tiên
+              { path :"edit", element: <ExamForgePage /> }, 
+              
+              // Trang chi tiết đề thi (Ví dụ: /admin/exams/123/details)
+              { path: ':id/details', element: <ExamDetailPage /> },
+            ]
+          },
         ],
       }
     ],

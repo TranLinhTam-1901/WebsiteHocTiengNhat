@@ -220,6 +220,7 @@ namespace QuizzTiengNhat.Controllers.Admins
                     Status = dto.Status,
                     SourceID = dto.SourceID,
                     LessonID = dto.LessonID,
+                    SkillType = dto.SkillType, 
                     CreatedAt = DateTime.UtcNow
                 };
 
@@ -280,6 +281,7 @@ namespace QuizzTiengNhat.Controllers.Admins
                 question.Explanation = dto.Explanation;
                 question.Status = dto.Status;
                 question.LessonID = dto.LessonID;
+                question.SkillType = dto.SkillType;
                 question.UpdatedAt = DateTime.UtcNow;
                 question.EquivalentID = dto.EquivalentID;
 
