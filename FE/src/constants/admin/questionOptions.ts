@@ -1,4 +1,4 @@
-import { QuestionType, QuestionStatus } from "../../interfaces/Admin/QuestionBank";
+import { QuestionType, QuestionStatus, SkillType } from "../../interfaces/Admin/QuestionBank";
 
 // 1. Nhãn hiển thị cho Loại câu hỏi (Dùng để hiển thị text thuần)
 export const QUESTION_TYPE_LABELS: Record<QuestionType, string> = {
@@ -34,3 +34,19 @@ export const SOURCE_TYPE_OPTIONS = [
     { value: 'Listening', label: 'Bài nghe' }
 ];
 
+
+
+export const SKILL_TYPE_LABELS: Record<SkillType, string> = {
+    [SkillType.General]: "Tổng hợp",
+    [SkillType.Vocabulary]: "Từ vựng",
+    [SkillType.Grammar]: "Ngữ pháp",
+    [SkillType.Kanji]: "Hán tự",
+    [SkillType.Reading]: "Bài đọc",
+    [SkillType.Listening]: "Bài nghe",
+    [SkillType.Practice]: "Luyện tập"
+};
+
+export const SKILL_TYPE_OPTIONS = Object.entries(SKILL_TYPE_LABELS).map(([value, label]) => ({
+    value: Number(value),
+    label
+}));
