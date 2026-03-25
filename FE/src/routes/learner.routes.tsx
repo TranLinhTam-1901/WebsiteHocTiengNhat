@@ -44,7 +44,7 @@ export const learnerRoutes: RouteObject = {
     { path: 'study/lesson/:id', element: <LessonDetail /> },
     { path: 'study/reviews', element: <ReviewList /> },
     { path: 'study/video', element: <VideoPlayer /> },
-  ]
-}
+      ]
+    }
   ],
 };

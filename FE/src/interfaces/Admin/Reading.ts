@@ -1,4 +1,4 @@
-import { QuestionType, QuestionStatus } from './Question';
+import { TopicItem } from "./Topic";
 
 export interface ReadingAnswerDTO {
   answerID?: string; // Thêm để hỗ trợ hiển thị/cập nhật
@@ -25,7 +25,7 @@ export interface CreateUpdateReadingDTO {
   wordCount: number;    // Thêm trường này theo Model C#
   estimatedTime: number; // Thêm trường này theo Model C#
   levelID: string;
-  topicID: string;
+  topicIDs: string[];
   lessonID: string;
   status: number;       // Theo C# Reading Status là int
   questions: ReadingQuestionDTO[]; 
@@ -35,7 +35,7 @@ export interface ReadingItem {
   id: string;
   title: string;
   levelName: string;
-  topicName: string;
+  topics: TopicItem[];
   wordCount: number;
   estimatedTime: number;
   status: number;

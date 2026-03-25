@@ -19,14 +19,14 @@ namespace QuizzTiengNhat.Controllers.Admins
             _context = context;
         }
 
-        // 1. Lấy danh sách phôi chất liệu từ Task 1 để "Pick"
         [HttpGet("source-materials")]
         public async Task<IActionResult> GetSourceMaterials([FromQuery] Guid? lessonId, [FromQuery] string type,[FromQuery] string? levelName)
         {
             try
             {
             bool isAllLessons = !lessonId.HasValue || lessonId == Guid.Empty;
-            // Trường hợp lấy Từ vựng
+
+            // 1. Trường hợp Từ vựng
             if (type == "Vocabulary")
             {
                 var query = _context.Vocabularies.AsNoTracking().AsQueryable();
@@ -40,21 +40,21 @@ namespace QuizzTiengNhat.Controllers.Admins
                     query = query.Where(v => v.Lesson.Course.Level.LevelName == levelName);
                 }
                 var vocabs = await query
-                    .Select(v => new { 
-                        Id = v.VocabID, 
-                        Word = v.Word, 
-                        Example = v.Examples,
-                        Meaning = v.Meaning, 
+                    .Select(v => new {
+                        Id = v.VocabID,
+                        Word = v.Word,
+                        Meaning = v.Meaning,
                         Reading = v.Reading,
-                        v.AudioURL, 
-                        v.TopicID 
+                        v.AudioURL,
+                        // Lấy danh sách ID chủ đề thay vì 1 ID duy nhất
+                        TopicIDs = v.VocabTopics.Select(vt => vt.TopicID).ToList()
                     })
                     .Take(100)
                     .ToListAsync();
                 return Ok(vocabs);
             }
 
-            // Trường hợp lấy Ngữ pháp
+            // 2. Trường hợp Ngữ pháp
             if (type == "Grammar")
             {
                 var query = _context.Grammars.AsNoTracking().AsQueryable();
@@ -67,18 +67,17 @@ namespace QuizzTiengNhat.Controllers.Admins
                 var grammars = await query
                     .Select(g => new {
                         Id = g.GrammarID,
-                        Title = g.Title, 
-                        Meaning = g.Explanation, 
-                        Example = g.Examples, 
+                        Title = g.Title,
+                        Meaning = g.Meaning,
                         Structure = g.Structure,
-                        g.TopicID
+                        TopicIDs = g.GrammarTopics.Select(gt => gt.TopicID).ToList()
                     })
                     .Take(100)
                     .ToListAsync();
                 return Ok(grammars);
             }
 
-            // Trường hợp lấy Hán tự (Kanji)
+            // 3. Trường hợp Hán tự (Kanji thường không chia theo Topic mà theo Lesson/Radical)
             if (type == "Kanji")
             {
                 var query = _context.Kanjis.AsNoTracking().AsQueryable();
@@ -92,16 +91,17 @@ namespace QuizzTiengNhat.Controllers.Admins
                 var kanjis = await query
                     .Select(k => new {
                         Id = k.KanjiID,
-                        Character = k.Character, // Chữ Hán
-                        Meaning = k.Meaning,   // Nghĩa Hán Việt/Ý nghĩa
+                        Character = k.Character,
+                        Meaning = k.Meaning,
                         Onyomi = k.Onyomi,
-                        Kunyomi = k.Kunyomi // Cách đọc để làm đáp án
+                        Kunyomi = k.Kunyomi
                     })
                     .Take(100)
                     .ToListAsync();
                 return Ok(kanjis);
             }
 
+            // 4. Trường hợp Bài đọc
             if (type == "Reading")
             {
                 var query = _context.Readings.AsQueryable();
@@ -115,17 +115,16 @@ namespace QuizzTiengNhat.Controllers.Admins
                 var readings = await query
                     .Select(r => new {
                         Id = r.ReadingID,
-                        Title = r.Title,     // Hiển thị tiêu đề bài đọc ở cột trái
-                        Content = r.Content,   // Nội dung để auto-fill vào Content câu hỏi
-                        Translation = r.Translation,
-                        r.TopicID
+                        Title = r.Title,
+                        Content = r.Content,
+                        TopicIDs = r.ReadingTopics.Select(rt => rt.TopicID).ToList()
                     })
                     .Take(100)
                     .ToListAsync();
                 return Ok(readings);
             }
 
-            // Trường hợp lấy Bài nghe (Listening)
+            // 5. Trường hợp Bài nghe
             if (type == "Listening")
             {
                 var query = _context.Listenings.AsQueryable();
@@ -140,9 +139,8 @@ namespace QuizzTiengNhat.Controllers.Admins
                     .Select(l => new {
                         Id = l.ListeningID,
                         Title = l.Title,
-                        AudioURL = l.AudioURL, // Link audio để auto-fill vào MediaURL
-                        Transcript = l.Transcript,
-                        l.TopicID
+                        AudioURL = l.AudioURL,
+                        TopicIDs = l.ListeningTopics.Select(lt => lt.TopicID).ToList()
                     })
                     .Take(100)
                     .ToListAsync();
@@ -154,37 +152,93 @@ namespace QuizzTiengNhat.Controllers.Admins
             return BadRequest(new { message = ex.Message, inner = ex.InnerException?.Message });
         }
 
-            // Nếu không khớp loại nào, trả về danh sách trống
             return Ok(new List<object>());
         }
-        
+
+        // Các phương thức Lookup và Search giữ nguyên vì không bị ảnh hưởng bởi Many-to-Many Topics
         [HttpGet("lessons-lookup")]
         public async Task<IActionResult> GetLessonsLookup()
         {
             var lessons = await _context.Lessons
-                .Select(l => new { 
-                    l.LessonID, 
-                    l.Title, 
-                    LevelValue = l.Course.Level.LevelID, 
+                .Include(l => l.Course).ThenInclude(c => c.Level)
+                .Select(l => new {
+                    l.LessonID,
+                    l.Title,
                     LevelName = l.Course.Level.LevelName
-                    })
+                })
                 .ToListAsync();
             return Ok(lessons);
         }
 
-        // 2. Lấy toàn bộ Topics để gán nhãn cho câu hỏi
         [HttpGet("topics")]
         public async Task<IActionResult> GetTopics()
         {
-            var topics = await _context.Topics
-            .Select(t => new 
-            {
-                t.TopicID,
-                t.TopicName,
-            })
-            .ToListAsync();
+            return Ok(await _context.Topics.Select(t => new { t.TopicID, t.TopicName }).ToListAsync());
+        }
 
-        return Ok(topics);
+        // Tạo câu hỏi: Đảm bảo bảng trung gian là Questions_Topic (đúng với DbContext)
+        [HttpPost("create")]
+        public async Task<IActionResult> CreateQuestion([FromBody] CreateQuestionDTO dto)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var question = new Questions
+                {
+                    QuestionID = Guid.NewGuid(),
+                    Content = dto.Content,
+                    QuestionType = dto.QuestionType,
+                    Difficulty = dto.Difficulty,
+                    // AudioURL = dto.AudioURL,
+                    // MediaTimestamp = dto.MediaTimestamp,
+                    Explanation = dto.Explanation,
+                    EquivalentID = dto.EquivalentID,
+                    Status = dto.Status,
+                    SourceID = dto.SourceID,
+                    LessonID = dto.LessonID,
+                    SkillType = dto.SkillType, 
+                    CreatedAt = DateTime.UtcNow
+                };
+                _context.Questions.Add(question);
+
+                // Thêm Answers
+                if (dto.Answers != null)
+                {
+                    foreach (var ans in dto.Answers)
+                    {
+                        _context.Answers.Add(new Answers
+                        {
+                            AnswerID = Guid.NewGuid(),
+                            QuestionID = question.QuestionID,
+                            AnswerText = ans.AnswerText,
+                            IsCorrect = ans.IsCorrect
+                        });
+                    }
+                }
+
+                // Gán Topics vào bảng trung gian Questions_Topic
+                if (dto.TopicIds != null)
+                {
+                    foreach (var topicId in dto.TopicIds)
+                    {
+                        // Đảm bảo tên class là Questions_Topic như bạn đã khai báo trong DbContext
+                        _context.Questions_Topics.Add(new Questions_Topic
+                        {
+                            QuestionID = question.QuestionID,
+                            TopicID = topicId
+                        });
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return Ok(new { message = "Thành công!", questionId = question.QuestionID });
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                return BadRequest(new { error = ex.Message, detail = ex.InnerException?.Message });
+            }
         }
 
         // 3. Tìm kiếm câu hỏi để thiết lập "Cặp câu hỏi tương đương"
@@ -197,72 +251,6 @@ namespace QuizzTiengNhat.Controllers.Admins
                 .Take(10)
                 .ToListAsync();
             return Ok(questions);
-        }
-
-        // 4. Tạo câu hỏi hoàn chỉnh (Gồm Question + Answers + Topics)
-        [HttpPost("create")]
-        public async Task<IActionResult> CreateQuestion([FromBody] CreateQuestionDTO dto)
-        {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
-            {
-                // Bước 1: Tạo đối tượng Question
-                var question = new Questions
-                {
-                    QuestionID = Guid.NewGuid(),
-                    Content = dto.Content,
-                    QuestionType = dto.QuestionType, // Sử dụng Enum
-                    Difficulty = dto.Difficulty,
-                    // AudioURL = dto.AudioURL,
-                    // MediaTimestamp = dto.MediaTimestamp,
-                    Explanation = dto.Explanation,
-                    EquivalentID = dto.EquivalentID,
-                    Status = dto.Status,
-                    SourceID = dto.SourceID,
-                    LessonID = dto.LessonID,
-                    SkillType = dto.SkillType, 
-                    CreatedAt = DateTime.UtcNow
-                };
-
-                _context.Questions.Add(question);
-
-                // Bước 2: Thêm danh sách đáp án
-                foreach (var ans in dto.Answers)
-                {
-                    _context.Answers.Add(new Answers
-                    {
-                        AnswerID = Guid.NewGuid(),
-                        QuestionID = question.QuestionID,
-                        AnswerText = ans.AnswerText,
-                        IsCorrect = ans.IsCorrect
-                    });
-                }
-
-                // Bước 3: Gán các chủ đề vào bảng trung gian (Questions_Topic)
-                if (dto.TopicIds != null)
-                {
-                    foreach (var topicId in dto.TopicIds)
-                    {
-                        // Giả sử tên thực thể bảng trung gian của bạn là QuestionTopic
-                        var qt = new Questions_Topic { QuestionID = question.QuestionID, TopicID = topicId };
-                        _context.Set<Questions_Topic>().Add(qt);
-                    }
-                }
-
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
-
-                return Ok(new { message = "Đã tạo câu hỏi và đáp án thành công!", questionId = question.QuestionID });
-            }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync();
-                // Lấy lỗi sâu nhất (InnerException) - Nơi Database than phiền
-                var message = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
-                return BadRequest(new { error = "Lỗi Database chi tiết", detail = message });
-            }
-        }
-
   // Cập nhật câu hỏi
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateQuestion(Guid id, [FromBody] CreateQuestionDTO dto)

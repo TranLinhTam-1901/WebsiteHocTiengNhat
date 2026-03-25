@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using QuizzTiengNhat.DTOs.Admin;
 using QuizzTiengNhat.Helpers;
 using QuizzTiengNhat.Models;
-using System.Net.NetworkInformation;
+using QuizzTiengNhat.Models.Enums;
 
 namespace QuizzTiengNhat.Controllers.Admins
 {
@@ -22,12 +22,15 @@ namespace QuizzTiengNhat.Controllers.Admins
             _env = env;
         }
 
+        // 1. Lấy danh sách từ vựng
         [HttpGet("get-all")]
         public async Task<IActionResult> GetVocabularies()
         {
             var vocabs = await _context.Vocabularies
                 .Include(v => v.JLPTLevel)
-                .Include(v => v.Topic)
+                .Include(v => v.Lesson)
+                .Include(v => v.VocabTopics).ThenInclude(vt => vt.Topic)
+                .Include(v => v.VocabWordTypes).ThenInclude(vw => vw.WordType)
                 .OrderByDescending(v => v.UpdatedAt)
                 .Select(v => new
                 {
@@ -35,11 +38,13 @@ namespace QuizzTiengNhat.Controllers.Admins
                     word = v.Word,
                     reading = v.Reading,
                     meaning = v.Meaning,
-                    wordType = v.WordType,
+                    wordTypes = v.VocabWordTypes.Select(vw => vw.WordType.Name).ToList(),
+                    topics = v.VocabTopics.Select(vt => vt.Topic.TopicName).ToList(),
                     isCommon = v.IsCommon,
+                    priority = v.Priority,
                     status = v.Status,
                     levelName = v.JLPTLevel != null ? v.JLPTLevel.LevelName : "N/A",
-                    topicName = v.Topic != null ? v.Topic.TopicName : "N/A",
+                    lessonName = v.Lesson != null ? v.Lesson.Title : "N/A",
                     updatedAt = v.UpdatedAt
                 })
                 .ToListAsync();
@@ -47,11 +52,14 @@ namespace QuizzTiengNhat.Controllers.Admins
             return Ok(vocabs);
         }
 
+        // 2. Lấy chi tiết
         [HttpGet("get-by-id/{id}")]
         public async Task<IActionResult> GetById(Guid id)
         {
             var v = await _context.Vocabularies
                 .Include(v => v.Examples)
+                .Include(v => v.VocabWordTypes)
+                .Include(v => v.VocabTopics) // SỬA: Lấy danh sách Topic liên kết
                 .Include(v => v.RelatedKanjis).ThenInclude(rk => rk.Kanji)
                 .FirstOrDefaultAsync(v => v.VocabID == id);
 
@@ -62,7 +70,9 @@ namespace QuizzTiengNhat.Controllers.Admins
                 word = v.Word,
                 reading = v.Reading,
                 meaning = v.Meaning,
-                wordType = v.WordType,
+                wordTypeIDs = v.VocabWordTypes.Select(vw => vw.WordTypeID).ToList(),
+                // SỬA: Trả về danh sách TopicIDs thay vì 1 TopicID duy nhất
+                topicIDs = v.VocabTopics.Select(vt => vt.TopicID).ToList(),
                 isCommon = v.IsCommon,
                 mnemonics = v.Mnemonics,
                 imageURL = v.ImageURL,
@@ -70,33 +80,30 @@ namespace QuizzTiengNhat.Controllers.Admins
                 priority = v.Priority,
                 status = v.Status,
                 levelID = v.LevelID,
-                topicID = v.TopicID,
                 lessonID = v.LessonID,
                 examples = v.Examples.Select(e => new { e.Content, e.Translation }),
                 relatedKanjiIDs = v.RelatedKanjis.Select(rk => rk.KanjiID).ToList()
             });
         }
 
+        // 3. Thêm mới
         [HttpPost("create")]
         public async Task<IActionResult> Create([FromBody] CreateUpdateVocabDTO dto)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                // 1. Xử lý Files
-                string audioPath = !string.IsNullOrEmpty(dto.AudioURL)
-                    ? await FileHelper.SaveBase64Image(dto.AudioURL, "vocab-audios", dto.Word, _env.WebRootPath) : null;
-                string imagePath = !string.IsNullOrEmpty(dto.ImageURL)
-                    ? await FileHelper.SaveBase64Image(dto.ImageURL, "vocab-images", dto.Word, _env.WebRootPath) : null;
+                string audioPath = !string.IsNullOrEmpty(dto.AudioURL) && dto.AudioURL.Contains("base64,")
+                    ? await FileHelper.SaveBase64Image(dto.AudioURL, "vocab-audios", dto.Word, _env.WebRootPath) : dto.AudioURL;
+                string imagePath = !string.IsNullOrEmpty(dto.ImageURL) && dto.ImageURL.Contains("base64,")
+                    ? await FileHelper.SaveBase64Image(dto.ImageURL, "vocab-images", dto.Word, _env.WebRootPath) : dto.ImageURL;
 
-                // 2. Tạo Vocab
                 var vocab = new Vocabularies
                 {
                     VocabID = Guid.NewGuid(),
                     Word = dto.Word,
                     Reading = dto.Reading,
                     Meaning = dto.Meaning,
-                    WordType = dto.WordType,
                     IsCommon = dto.IsCommon,
                     Mnemonics = dto.Mnemonics,
                     AudioURL = audioPath,
@@ -104,39 +111,37 @@ namespace QuizzTiengNhat.Controllers.Admins
                     Priority = dto.Priority,
                     Status = dto.Status,
                     LevelID = dto.LevelID,
-                    TopicID = dto.TopicID,
                     LessonID = dto.LessonID,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
                 _context.Vocabularies.Add(vocab);
 
-                // 3. Thêm Ví dụ
+                // SỬA: Thêm nhiều loại từ
+                if (dto.WordTypeIDs != null)
+                {
+                    foreach (var typeId in dto.WordTypeIDs)
+                        _context.VocabWordTypes.Add(new VocabWordTypes { VocabID = vocab.VocabID, WordTypeID = typeId });
+                }
+
+                // MỚI: Thêm nhiều Topic vào bảng trung gian VocabTopics
+                if (dto.TopicIDs != null)
+                {
+                    foreach (var topicId in dto.TopicIDs)
+                        _context.VocabTopics.Add(new VocabTopics { VocabID = vocab.VocabID, TopicID = topicId });
+                }
+
+                // Thêm ví dụ & Kanji
                 if (dto.Examples != null)
                 {
                     foreach (var ex in dto.Examples)
-                    {
-                        _context.Examples.Add(new Examples
-                        {
-                            ExampleID = Guid.NewGuid(),
-                            Content = ex.Content,
-                            Translation = ex.Translation,
-                            VocabID = vocab.VocabID
-                        });
-                    }
+                        _context.Examples.Add(new Examples { ExampleID = Guid.NewGuid(), Content = ex.Content, Translation = ex.Translation, VocabID = vocab.VocabID });
                 }
 
-                // 4. Liên kết Kanji
                 if (dto.RelatedKanjiIDs != null)
                 {
                     foreach (var kanjiId in dto.RelatedKanjiIDs)
-                    {
-                        _context.VocabularyKanjis.Add(new VocabularyKanjis
-                        {
-                            VocabID = vocab.VocabID,
-                            KanjiID = kanjiId
-                        });
-                    }
+                        _context.VocabularyKanjis.Add(new VocabularyKanjis { VocabID = vocab.VocabID, KanjiID = kanjiId });
                 }
 
                 await _context.SaveChangesAsync();
@@ -146,10 +151,11 @@ namespace QuizzTiengNhat.Controllers.Admins
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                return BadRequest(ex.InnerException?.Message ?? ex.Message);
+                return BadRequest(ex.Message);
             }
         }
 
+        // 4. Cập nhật
         [HttpPut("update/{id}")]
         public async Task<IActionResult> Update(Guid id, [FromBody] CreateUpdateVocabDTO dto)
         {
@@ -159,76 +165,58 @@ namespace QuizzTiengNhat.Controllers.Admins
                 var vocab = await _context.Vocabularies
                     .Include(v => v.Examples)
                     .Include(v => v.RelatedKanjis)
+                    .Include(v => v.VocabWordTypes)
+                    .Include(v => v.VocabTopics) // SỬA: Thêm Include Topics
                     .FirstOrDefaultAsync(v => v.VocabID == id);
 
-                if (vocab == null) return NotFound("Không tìm thấy từ vựng.");
+                if (vocab == null) return NotFound();
 
-                // --- XỬ LÝ AUDIO ---
-                // Nếu dto.AudioURL là chuỗi Base64 (bắt đầu bằng data:audio...) thì mới lưu file mới
+                // Logic File giữ nguyên
                 if (!string.IsNullOrEmpty(dto.AudioURL) && dto.AudioURL.Contains("base64,"))
-                {
-                    // (Có thể thêm logic xóa file cũ tại vocab.AudioURL ở đây nếu muốn)
                     vocab.AudioURL = await FileHelper.SaveBase64Image(dto.AudioURL, "vocab-audios", dto.Word, _env.WebRootPath);
-                }
-                // Nếu dto.AudioURL trống, nghĩa là người dùng xóa audio
-                else if (string.IsNullOrEmpty(dto.AudioURL))
-                {
-                    vocab.AudioURL = null;
-                }
-                // Nếu là URL cũ (không chứa base64) thì giữ nguyên vocab.AudioURL, không làm gì cả.
-
-                // --- XỬ LÝ ẢNH ---
                 if (!string.IsNullOrEmpty(dto.ImageURL) && dto.ImageURL.Contains("base64,"))
-                {
                     vocab.ImageURL = await FileHelper.SaveBase64Image(dto.ImageURL, "vocab-images", dto.Word, _env.WebRootPath);
-                }
-                else if (string.IsNullOrEmpty(dto.ImageURL))
-                {
-                    vocab.ImageURL = null;
-                }
 
-                // --- CẬP NHẬT THÔNG TIN CƠ BẢN ---
                 vocab.Word = dto.Word;
                 vocab.Reading = dto.Reading;
                 vocab.Meaning = dto.Meaning;
-                vocab.WordType = dto.WordType;
                 vocab.IsCommon = dto.IsCommon;
                 vocab.Mnemonics = dto.Mnemonics;
                 vocab.Priority = dto.Priority;
                 vocab.Status = dto.Status;
                 vocab.LevelID = dto.LevelID;
-                vocab.TopicID = dto.TopicID;
                 vocab.LessonID = dto.LessonID;
                 vocab.UpdatedAt = DateTime.UtcNow;
 
-                // --- XỬ LÝ EXAMPLES & KANJI LINKS (Dữ liệu quan hệ) ---
-                _context.Examples.RemoveRange(vocab.Examples);
-                _context.VocabularyKanjis.RemoveRange(vocab.RelatedKanjis);
+                // SỬA: Cập nhật danh sách loại từ
+                _context.VocabWordTypes.RemoveRange(vocab.VocabWordTypes);
+                if (dto.WordTypeIDs != null)
+                {
+                    foreach (var typeId in dto.WordTypeIDs)
+                        _context.VocabWordTypes.Add(new VocabWordTypes { VocabID = id, WordTypeID = typeId });
+                }
 
+                // MỚI: Cập nhật danh sách Topics (Xóa cũ thêm mới)
+                _context.VocabTopics.RemoveRange(vocab.VocabTopics);
+                if (dto.TopicIDs != null)
+                {
+                    foreach (var topicId in dto.TopicIDs)
+                        _context.VocabTopics.Add(new VocabTopics { VocabID = id, TopicID = topicId });
+                }
+
+                // Cập nhật Examples & Kanji (Xóa cũ thêm mới)
+                _context.Examples.RemoveRange(vocab.Examples);
                 if (dto.Examples != null)
                 {
                     foreach (var ex in dto.Examples)
-                    {
-                        _context.Examples.Add(new Examples
-                        {
-                            ExampleID = Guid.NewGuid(),
-                            Content = ex.Content,
-                            Translation = ex.Translation,
-                            VocabID = id
-                        });
-                    }
+                        _context.Examples.Add(new Examples { ExampleID = Guid.NewGuid(), Content = ex.Content, Translation = ex.Translation, VocabID = id });
                 }
 
+                _context.VocabularyKanjis.RemoveRange(vocab.RelatedKanjis);
                 if (dto.RelatedKanjiIDs != null)
                 {
                     foreach (var kanjiId in dto.RelatedKanjiIDs)
-                    {
-                        _context.VocabularyKanjis.Add(new VocabularyKanjis
-                        {
-                            VocabID = id,
-                            KanjiID = kanjiId
-                        });
-                    }
+                        _context.VocabularyKanjis.Add(new VocabularyKanjis { VocabID = id, KanjiID = kanjiId });
                 }
 
                 await _context.SaveChangesAsync();
@@ -238,7 +226,7 @@ namespace QuizzTiengNhat.Controllers.Admins
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                return BadRequest($"Lỗi: {ex.Message}");
+                return BadRequest(ex.Message);
             }
         }
 
@@ -255,6 +243,9 @@ namespace QuizzTiengNhat.Controllers.Admins
         }
 
         // --- Metadata Methods ---
+        [HttpGet("metadata/word-types")]
+        public async Task<IActionResult> GetWordTypes() =>Ok(await _context.WordTypes.Select(w => new { id = w.WordTypeID, name = w.Name }).ToListAsync());
+
         [HttpGet("metadata/levels")]
         public async Task<IActionResult> GetLevels() => Ok(await _context.JLPT_Levels.Select(l => new { id = l.LevelID, name = l.LevelName }).ToListAsync());
 

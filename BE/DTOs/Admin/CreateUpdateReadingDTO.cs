@@ -12,9 +12,16 @@ namespace QuizzTiengNhat.DTOs.Admin
         public int WordCount { get; set; }
         public int EstimatedTime { get; set; } // Phút
         public int Status { get; set; } // 0: Draft, 1: Active
+
+        [Required(ErrorMessage = "Vui lòng chọn trình độ")]
         public Guid LevelID { get; set; }
-        public Guid TopicID { get; set; }
+
+        [MinLength(1, ErrorMessage = "Vui lòng chọn ít nhất một chủ đề")]
+        public List<Guid> TopicIDs { get; set; } = new List<Guid>();
+
+        [Required(ErrorMessage = "Vui lòng chọn bài học")]
         public Guid LessonID { get; set; }
+
         public List<ReadingQuestionDTO> Questions { get; set; } = new();
     }
 

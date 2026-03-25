@@ -9,7 +9,6 @@ export const vocabService = {
   },
 
   // 2. Lấy chi tiết để sửa (Khớp với [HttpGet("get-by-id/{id}")])
-  // Lưu ý: Response từ Backend trả về object có cấu trúc khớp với VocabularyItem
   getById: async (id: string): Promise<VocabularyItem> => {
     const response = await axiosInstance.get(`admin/vocabulary/get-by-id/${id}`);
     return response.data;
@@ -47,6 +46,11 @@ export const vocabService = {
 
   getLessons: async (): Promise<{ id: string; name: string }[]> => {
     const response = await axiosInstance.get("admin/vocabulary/metadata/lessons");
+    return response.data;
+  },
+
+  getWordTypes: async (): Promise<{ id: string, name: string }[]> => {
+    const response = await axiosInstance.get("admin/vocabulary/metadata/word-types");
     return response.data;
   }
 };

@@ -25,15 +25,20 @@ namespace QuizzTiengNhat.Models
         public QuestionType QuestionType { get; set; } 
         public SkillType SkillType { get; set; }
         public string? AudioURL { get; set; }
+        public string? ImageURL { get; set; }
         public int Difficulty { get; set; }
         public string? Explanation { get; set; }
-        public QuestionStatus Status { get; set; } 
+        public Status Status { get; set; }
+
         public Guid? EquivalentID { get; set; } // Dùng cho các câu hỏi tương đương
 
         public string? MediaTimestamp { get; set; } // Lưu mốc thời gian bài nghe 
-        
+
+        public int? DisplayOrder { get; set; } // Thứ tự câu hỏi trong bài nghe/bài đọc
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public DateTime? UpdatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
         // lưu vết nguồn gốc
         public Guid? SourceID { get; set; }
         public Guid? ParentID { get; set; } // Khóa ngoại tự tham chiếu cho câu hỏi con

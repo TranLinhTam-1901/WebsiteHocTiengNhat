@@ -20,33 +20,37 @@ namespace QuizzTiengNhat.Controllers.Admins
             _context = context;
         }
 
+        // 1. Lấy danh sách bài đọc
         [HttpGet("get-all")]
         public async Task<IActionResult> GetReadings()
         {
             var readings = await _context.Readings
                 .Include(r => r.JLPTLevel)
-                .Include(r => r.Topic)
+                .Include(r => r.ReadingTopics).ThenInclude(rt => rt.Topic)
                 .OrderByDescending(r => r.UpdatedAt)
-                .Select(r => new ReadingDTO
+                .Select(r => new
                 {
-                    Id = r.ReadingID,
-                    Title = r.Title,
-                    LevelName = r.JLPTLevel != null ? r.JLPTLevel.LevelName : "N/A",
-                    TopicName = r.Topic != null ? r.Topic.TopicName : "N/A",
-                    WordCount = r.WordCount,
-                    EstimatedTime = r.EstimatedTime,
-                    Status = r.Status,
-                    UpdatedAt = r.UpdatedAt
+                    id = r.ReadingID,
+                    title = r.Title,
+                    levelName = r.JLPTLevel != null ? r.JLPTLevel.LevelName : "N/A",
+                    // MỚI: Trả về danh sách tên các chủ đề
+                    topics = r.ReadingTopics.Select(rt => rt.Topic.TopicName).ToList(),
+                    wordCount = r.WordCount,
+                    estimatedTime = r.EstimatedTime,
+                    status = r.Status,
+                    updatedAt = r.UpdatedAt
                 })
                 .ToListAsync();
 
             return Ok(readings);
         }
 
+        // 2. Lấy chi tiết bài đọc
         [HttpGet("get-by-id/{id}")]
         public async Task<IActionResult> GetById(Guid id)
         {
             var r = await _context.Readings
+                .Include(r => r.ReadingTopics) // MỚI
                 .Include(r => r.Questions)
                     .ThenInclude(q => q.Answers)
                 .FirstOrDefaultAsync(r => r.ReadingID == id);
@@ -62,11 +66,12 @@ namespace QuizzTiengNhat.Controllers.Admins
                 estimatedTime = r.EstimatedTime,
                 status = r.Status,
                 levelID = r.LevelID,
-                topicID = r.TopicID,
+                // SỬA: Trả về danh sách IDs để FE hiển thị Multi-select
+                topicIDs = r.ReadingTopics.Select(rt => rt.TopicID).ToList(),
                 lessonID = r.LessonID,
                 questions = r.Questions.Select(q => new
                 {
-                    questionID = q.QuestionID, // Thêm ID để dễ quản lý ở Front-end
+                    questionID = q.QuestionID,
                     content = q.Content,
                     explanation = q.Explanation,
                     difficulty = q.Difficulty,
@@ -82,6 +87,7 @@ namespace QuizzTiengNhat.Controllers.Admins
             });
         }
 
+        // 3. Thêm mới
         [HttpPost("create")]
         public async Task<IActionResult> Create([FromBody] CreateUpdateReadingDTO dto)
         {
@@ -98,7 +104,6 @@ namespace QuizzTiengNhat.Controllers.Admins
                     EstimatedTime = dto.EstimatedTime,
                     Status = dto.Status,
                     LevelID = dto.LevelID,
-                    TopicID = dto.TopicID,
                     LessonID = dto.LessonID,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
@@ -106,6 +111,20 @@ namespace QuizzTiengNhat.Controllers.Admins
 
                 _context.Readings.Add(reading);
 
+                // MỚI: Lưu quan hệ Many-to-Many với Topics
+                if (dto.TopicIDs != null && dto.TopicIDs.Any())
+                {
+                    foreach (var topicId in dto.TopicIDs)
+                    {
+                        _context.ReadingTopics.Add(new ReadingTopics
+                        {
+                            ReadingID = reading.ReadingID,
+                            TopicID = topicId
+                        });
+                    }
+                }
+
+                // Lưu Questions (Giữ nguyên logic của bạn)
                 if (dto.Questions != null)
                 {
                     foreach (var qDto in dto.Questions)
@@ -114,38 +133,35 @@ namespace QuizzTiengNhat.Controllers.Admins
                         {
                             QuestionID = Guid.NewGuid(),
                             ReadingID = reading.ReadingID,
-                            LessonID = dto.LessonID, // Đảm bảo Question thuộc cùng Lesson với Reading
+                            LessonID = dto.LessonID,
                             Content = qDto.Content,
                             Explanation = qDto.Explanation,
                             Difficulty = qDto.Difficulty,
-                            QuestionType = QuestionType.MultipleChoice, // Hoặc lấy từ DTO nếu có
-                            Status = QuestionStatus.Active
-                        };
-
-                        foreach (var aDto in qDto.Answers)
-                        {
-                            question.Answers.Add(new Answers
+                            QuestionType = QuestionType.MultipleChoice,
+                            Status = Status.Published,
+                            Answers = qDto.Answers.Select(aDto => new Answers
                             {
                                 AnswerID = Guid.NewGuid(),
                                 AnswerText = aDto.AnswerText,
                                 IsCorrect = aDto.IsCorrect
-                            });
-                        }
+                            }).ToList()
+                        };
                         _context.Questions.Add(question);
                     }
                 }
 
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
-                return Ok(new { message = "Thêm bài đọc và câu hỏi thành công", id = reading.ReadingID });
+                return Ok(new { message = "Thêm bài đọc thành công", id = reading.ReadingID });
             }
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                return BadRequest($"Lỗi hệ thống: {ex.Message}");
+                return BadRequest($"Lỗi: {ex.Message}");
             }
         }
 
+        // 4. Cập nhật
         [HttpPut("update/{id}")]
         public async Task<IActionResult> Update(Guid id, [FromBody] CreateUpdateReadingDTO dto)
         {
@@ -153,13 +169,13 @@ namespace QuizzTiengNhat.Controllers.Admins
             try
             {
                 var reading = await _context.Readings
+                    .Include(r => r.ReadingTopics) // MỚI
                     .Include(r => r.Questions)
                         .ThenInclude(q => q.Answers)
                     .FirstOrDefaultAsync(r => r.ReadingID == id);
 
-                if (reading == null) return NotFound("Không tìm thấy bài đọc để cập nhật.");
+                if (reading == null) return NotFound();
 
-                // 1. Cập nhật thông tin chính bài đọc
                 reading.Title = dto.Title;
                 reading.Content = dto.Content;
                 reading.Translation = dto.Translation;
@@ -167,18 +183,25 @@ namespace QuizzTiengNhat.Controllers.Admins
                 reading.EstimatedTime = dto.EstimatedTime;
                 reading.Status = dto.Status;
                 reading.LevelID = dto.LevelID;
-                reading.TopicID = dto.TopicID;
                 reading.LessonID = dto.LessonID;
                 reading.UpdatedAt = DateTime.UtcNow;
 
-                // 2. Xử lý Questions: Xóa triệt để các câu hỏi cũ thuộc bài đọc này
-                // (EF Core sẽ tự động xóa Answers nếu đã cấu hình Cascade Delete)
+                // MỚI: Cập nhật Topics (Xóa cũ thêm mới)
+                _context.ReadingTopics.RemoveRange(reading.ReadingTopics);
+                if (dto.TopicIDs != null)
+                {
+                    foreach (var tId in dto.TopicIDs)
+                    {
+                        _context.ReadingTopics.Add(new ReadingTopics { ReadingID = id, TopicID = tId });
+                    }
+                }
+
+                // Cập nhật Questions (Xóa cũ thêm mới - logic Cascade của bạn)
                 if (reading.Questions != null && reading.Questions.Any())
                 {
                     _context.Questions.RemoveRange(reading.Questions);
                 }
 
-                // 3. Thêm lại danh sách Questions mới từ DTO
                 if (dto.Questions != null)
                 {
                     foreach (var qDto in dto.Questions)
@@ -187,12 +210,12 @@ namespace QuizzTiengNhat.Controllers.Admins
                         {
                             QuestionID = Guid.NewGuid(),
                             ReadingID = id,
-                            LessonID = dto.LessonID, // Luôn đồng bộ LessonID với bài đọc
+                            LessonID = dto.LessonID,
                             Content = qDto.Content,
                             Explanation = qDto.Explanation,
                             Difficulty = qDto.Difficulty,
                             QuestionType = QuestionType.MultipleChoice,
-                            Status = QuestionStatus.Active,
+                            Status = Status.Published,
                             Answers = qDto.Answers.Select(aDto => new Answers
                             {
                                 AnswerID = Guid.NewGuid(),
@@ -206,12 +229,12 @@ namespace QuizzTiengNhat.Controllers.Admins
 
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
-                return Ok(new { message = "Cập nhật bài đọc và danh sách câu hỏi thành công" });
+                return Ok(new { message = "Cập nhật bài đọc thành công" });
             }
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                return BadRequest($"Lỗi cập nhật: {ex.Message}");
+                return BadRequest($"Lỗi: {ex.Message}");
             }
         }
 

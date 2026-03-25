@@ -26,6 +26,12 @@ import ExamListPage from '../pages/admin/ExamManagement/ExamListPage';
 import ExamDetailPage from '../pages/admin/ExamManagement/ExamDetailPage';
 import ExamForgePage from '../pages/admin/ExamManagement/ExamForgePage';
 
+import TopicListPage from '../pages/admin/LearningResource/Topic/TopicListPage';
+import TopicForm from '../pages/admin/LearningResource/Topic/TopicForm';
+
+import GrammarGroupListPage from '../pages/admin/LearningResource/GrammarGroup/GrammarGroupListPage';
+import GrammarGroupForm from '../pages/admin/LearningResource/GrammarGroup/GrammarGroupForm';
+
 export const adminRoutes: RouteObject[] = [
   {
     element: <PrivateRoute role="admin"></PrivateRoute>,
@@ -65,6 +71,16 @@ export const adminRoutes: RouteObject[] = [
               { path: 'vocabulary', element: <VocabListPage /> },
               { path: 'vocabulary/create', element: <VocabForm /> },
               { path: 'vocabulary/edit/:id', element: <VocabForm /> },
+
+              // Topic
+              { path: 'topic', element: <TopicListPage /> },
+              { path: 'topic/create', element: <TopicForm /> },
+              { path: 'topic/edit/:id', element: <TopicForm /> },
+
+              // GrammarGroup
+              { path: 'grammar-group', element: <GrammarGroupListPage /> },
+              { path: 'grammar-group/create', element: <GrammarGroupForm /> },
+              { path: 'grammar-group/edit/:id', element: <GrammarGroupForm /> },
             ]
           },
 

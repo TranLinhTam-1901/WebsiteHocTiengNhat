@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using QuizzTiengNhat.Models.Enums;
+using System.ComponentModel.DataAnnotations;
 
 namespace QuizzTiengNhat.DTOs.Admin
 {
@@ -14,22 +15,27 @@ namespace QuizzTiengNhat.DTOs.Admin
 
         public string Explanation { get; set; }
 
-        // --- Các trường UX mới bổ sung ---
-        public string? Formality { get; set; }
-        public string? SimilarGrammar { get; set; }
+        // --- SỬA CÁC TRƯỜNG NÀY ---
+        public GrammarCategory GrammarType { get; set; } // Ví dụ: "Trợ từ", "Liên từ"
+
+        [Range(0, 5, ErrorMessage = "Sắc thái không hợp lệ")]
+        public int Formality { get; set; } // 0: Neutral, 1: Casual, 2: Polite...
+
+        public Guid? GrammarGroupID { get; set; } // Chọn từ danh sách nhóm có sẵn
+        // -------------------------
+
         public string? UsageNote { get; set; }
         public int Status { get; set; } = 1;
 
         [Required(ErrorMessage = "Vui lòng chọn trình độ")]
         public Guid LevelID { get; set; }
 
-        [Required(ErrorMessage = "Vui lòng chọn chủ đề")]
-        public Guid TopicID { get; set; }
+        [MinLength(1, ErrorMessage = "Vui lòng chọn ít nhất một chủ đề")]
+        public List<Guid> TopicIDs { get; set; } = new List<Guid>();
 
         [Required(ErrorMessage = "Vui lòng chọn bài học")]
         public Guid LessonID { get; set; }
 
-        // Danh sách ví dụ đi kèm
         public List<GrammarExampleDTO> Examples { get; set; } = new List<GrammarExampleDTO>();
     }
 
@@ -37,11 +43,11 @@ namespace QuizzTiengNhat.DTOs.Admin
     {
         public Guid? ExampleID { get; set; }
 
-        [Required]
-        public string Content { get; set; } // Khớp với e.Content trong Model
+        [Required(ErrorMessage = "Nội dung ví dụ không được để trống")]
+        public string Content { get; set; }
 
-        [Required]
-        public string Translation { get; set; } // Khớp với e.Translation trong Model
+        [Required(ErrorMessage = "Bản dịch không được để trống")]
+        public string Translation { get; set; }
 
         public string? AudioURL { get; set; }
     }
