@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import QuestionService from '../../../services/Admin/QuestionService';
+import QuestionService from '../../../services/Admin/questionService';
 import { LessonLookupDTO, QuestionListItem, QuestionStatus, QuestionType, Topics } from '../../../interfaces/Admin/QuestionBank';
 import { Dropdown, Table, Tag, Switch, Modal, Button, Select, Input } from 'antd'; 
 import { PlusOutlined, LinkOutlined, EditOutlined, DeleteOutlined, SoundOutlined } from '@ant-design/icons';
@@ -209,7 +209,7 @@ const QuestionListView = () => {
                 </div>
                     <Button type="primary" 
                         size="large" 
-                        className="!bg-[#FF6B81] !border-none hover:!opacity-90 !rounded-lg shadow-[0_4px_12px_rgba(255,107,129,0.3)]"
+                        className="!bg-primary !border-none hover:!opacity-90 !rounded-lg shadow-[0_4px_12px_rgba(255,107,129,0.3)]"
                         icon={<PlusOutlined />}
                         onClick={() => navigate('/admin/question-bank/create')}
                     >    Tạo câu hỏi mới
@@ -247,7 +247,7 @@ const QuestionListView = () => {
 
                 {/* 3. Lọc theo Độ khó (Difficulty) - Khớp với int? difficulty của API */}
                 <Select 
-                    placeholder="Độ khó (N5 - N1)" 
+                    placeholder="Độ khó (N5 - N3)" 
                     className="w-48"
                     allowClear
                     value={filters.difficulty}

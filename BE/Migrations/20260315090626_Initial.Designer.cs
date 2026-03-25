@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using QuizzTiengNhat.Models;
@@ -11,9 +12,11 @@ using QuizzTiengNhat.Models;
 namespace QuizzTiengNhat.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260315090626_Initial")]
+    partial class Initial
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -43,15 +46,15 @@ namespace QuizzTiengNhat.Migrations
                     b.Property<double?>("MinReadingScore")
                         .HasColumnType("double precision");
 
-                    b.Property<decimal>("PassingScore")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<double>("PassingScore")
+                        .HasColumnType("double precision");
 
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<decimal>("TotalMaxScore")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<double>("TotalMaxScore")
+                        .HasColumnType("double precision");
 
                     b.HasKey("TemplateID");
 
@@ -66,8 +69,8 @@ namespace QuizzTiengNhat.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<decimal>("PointPerQuestion")
-                        .HasColumnType("decimal(18,4)");
+                    b.Property<double>("PointPerQuestion")
+                        .HasColumnType("double precision");
 
                     b.Property<int>("Quantity")
                         .HasColumnType("integer");
@@ -115,8 +118,8 @@ namespace QuizzTiengNhat.Migrations
                     b.Property<double>("MinReadingScore")
                         .HasColumnType("double precision");
 
-                    b.Property<decimal>("PassingScore")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<double>("PassingScore")
+                        .HasColumnType("double precision");
 
                     b.Property<bool>("ShowResultImmediately")
                         .HasColumnType("boolean");
@@ -421,8 +424,8 @@ namespace QuizzTiengNhat.Migrations
                     b.Property<Guid?>("QuestionsQuestionID")
                         .HasColumnType("uuid");
 
-                    b.Property<decimal>("Score")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<double>("Score")
+                        .HasColumnType("double precision");
 
                     b.HasKey("ExamQuestionID");
 

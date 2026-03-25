@@ -83,9 +83,11 @@ using (var scope = app.Services.CreateScope())
 
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+    var context = services.GetRequiredService<ApplicationDbContext>(); 
 
     await DbInitializer.SeedRoles(roleManager);
     await DbInitializer.SeedAdminUser(userManager);
+    await Data.Initialize(context);
 }
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
