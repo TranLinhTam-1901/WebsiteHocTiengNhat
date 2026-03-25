@@ -6,7 +6,7 @@ import PrivateRoute from './PrivateRoute';
 import Overview from '../pages/admin/Dashboard/Overview';
 import LearnerList from '../pages/admin/UserManagement/LearnerList';
 import QuestionCreatePage from '../pages/admin/QuestionBank/QuestionCreatePage';
-
+import QuestionListView from '../pages/admin/QuestionBank/Index';
 // Import 10 trang Content Management mới
 import GrammarListPage from '../pages/admin/LearningResource/Grammar/GrammarListPage';
 import GrammarForm from '../pages/admin/LearningResource/Grammar/GrammarForm';
@@ -22,6 +22,9 @@ import ReadingForm from '../pages/admin/LearningResource/Reading/ReadingForm';
 
 import VocabListPage from '../pages/admin/LearningResource/Vocabulary/VocabListPage';
 import VocabForm from '../pages/admin/LearningResource/Vocabulary/VocabForm';
+import ExamListPage from '../pages/admin/ExamManagement/ExamListPage'; 
+import ExamDetailPage from '../pages/admin/ExamManagement/ExamDetailPage';
+import ExamForgePage from '../pages/admin/ExamManagement/ExamForgePage';
 
 import TopicListPage from '../pages/admin/LearningResource/Topic/TopicListPage';
 import TopicForm from '../pages/admin/LearningResource/Topic/TopicForm';
@@ -82,9 +85,35 @@ export const adminRoutes: RouteObject[] = [
           },
 
           // --- Question Bank ---
+          { 
+            path: 'question-bank', 
+            children: [
+                { index: true, element: <QuestionListView /> }, // URL: /admin/question-bank -> Hiển thị View 1
+                { path: 'create/:lessonId?', element: <QuestionCreatePage /> }, // URL: /admin/question-bank/create -> Hiển thị View 2
+                { path: 'edit/:id', element: <QuestionCreatePage /> } // Tái sử dụng View 2 cho việc sửa
+            ]
+         },
+         
+         // --- Quản lý Kỳ thi & Luyện tập (MỚI) ---
+          // {
+          //   path: 'exams',
+          //   children: [
+          //     { index: true, element: <ExamForgePage /> }, 
+             
+          //   ]
+          // },
           {
-            path: 'question-bank/create/:lessonId?',
-            element: <QuestionCreatePage />
+            path: 'exams',
+            children: [
+               // Trang danh sách đề đã tạo (Ví dụ: /admin/exams/list)
+              {  index : true, element: <ExamListPage /> },
+
+              // Khi vào /admin/exams, trang này sẽ hiện đầu tiên
+              { path :"edit", element: <ExamForgePage /> }, 
+              
+              // Trang chi tiết đề thi (Ví dụ: /admin/exams/123/details)
+              { path: ':id/details', element: <ExamDetailPage /> },
+            ]
           },
         ],
       }
