@@ -457,7 +457,7 @@ const ReadingManagement: React.FC = () => {
                     />
                   </th>
 
-                  <th className="w-[15%] px-8 py-4 text-right text-sm font-bold text-[#886373] uppercase tracking-wider">Thao tác</th>
+                  <th className="w-[15%] px-8 pr-10 py-4 text-right text-sm font-bold text-[#886373] uppercase tracking-wider">Thao tác</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#f4f0f2]">
@@ -481,7 +481,7 @@ const ReadingManagement: React.FC = () => {
                       <span className={`${getLevelStyles(item.levelName)} px-3 py-1 rounded-lg text-xs font-bold uppercase`}>{item.levelName}</span>
                     </td>
                     <td className="px-8 py-5">
-                      <div className="flex flex-wrap gap-1.5 max-w-55"> {/* Khống chế chiều rộng tối đa */}
+                      <div className="flex flex-wrap gap-1.5 justify-center max-w-75"> {/* Khống chế chiều rộng tối đa */}
                         {item.topics && item.topics.length > 0 ? (
                           <>
                             {/* Chỉ hiển thị 2 tag đầu tiên */}

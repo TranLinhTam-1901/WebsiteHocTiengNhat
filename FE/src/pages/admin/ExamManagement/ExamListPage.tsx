@@ -67,7 +67,7 @@ const ExamListPage: React.FC = () => {
             <div className="bg-white p-4 rounded-2xl border border-gray-100 mb-6 flex gap-4">
                 <input 
                     type="text" placeholder="Tìm kiếm tên đề..." 
-                    className="flex-[2] p-3 bg-gray-50 rounded-xl outline-none border-2 border-transparent focus:border-pink-100"
+                    className="flex-2 p-3 bg-gray-50 rounded-xl outline-none border-2 border-transparent focus:border-pink-100"
                     onChange={(e) => setFilters({...filters, search: e.target.value})}
                 />
 
@@ -97,7 +97,7 @@ const ExamListPage: React.FC = () => {
             </div>
 
             {/* List Table */}
-            <div className="bg-white rounded-[2rem] border border-gray-100 overflow-hidden shadow-sm">
+            <div className="bg-white rounded-4xl border border-gray-100 overflow-hidden shadow-sm">
                 <table className="w-full">
                     <thead className="bg-gray-50 border-b border-gray-100">
                         <tr className="text-xs font-bold text-gray-400 uppercase">

@@ -4,6 +4,6 @@ namespace QuizzTiengNhat.Services
 {
     public interface ITokenService
     {
-        Task<String> CreateToken(ApplicationUser user);
+        Task<string> CreateToken(ApplicationUser user, bool rememberMe);
     }
 }

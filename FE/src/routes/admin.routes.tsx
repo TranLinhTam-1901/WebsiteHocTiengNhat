@@ -94,14 +94,6 @@ export const adminRoutes: RouteObject[] = [
             ]
          },
          
-         // --- Quản lý Kỳ thi & Luyện tập (MỚI) ---
-          // {
-          //   path: 'exams',
-          //   children: [
-          //     { index: true, element: <ExamForgePage /> }, 
-             
-          //   ]
-          // },
           {
             path: 'exams',
             children: [

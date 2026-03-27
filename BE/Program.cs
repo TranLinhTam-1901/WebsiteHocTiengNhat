@@ -1,12 +1,16 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using QuizzTiengNhat.Data;
+using QuizzTiengNhat.Hubs;
+using QuizzTiengNhat.Middlewares;
 using QuizzTiengNhat.Models;
 using QuizzTiengNhat.Services;
-using System.Text;
 using System.Security.Claims;
+using System.Text;
+using QuizzTiengNhat.Providers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,11 +22,13 @@ options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")
 // 2. Cấu hình CORS cho phép Frontend gọi API
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend", builder =>
+    options.AddPolicy("AllowFrontend", policy =>
     {
-        builder.AllowAnyOrigin()
-               .AllowAnyMethod()
-               .AllowAnyHeader();
+        // Thay .AllowAnyOrigin() bằng .WithOrigins(...)
+        policy.WithOrigins("http://localhost:5173") // URL chính xác của React/Vite
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials(); // Bắt buộc phải có cho SignalR
     });
 });
 
@@ -31,6 +37,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
+builder.Services.AddSingleton<IUserIdProvider, CustomEmailUserIdProvider>();
 
 builder.Services.AddAuthentication(options =>
 {
@@ -49,10 +56,25 @@ builder.Services.AddAuthentication(options =>
 
         ValidIssuer = builder.Configuration["JWT:Issuer"],
         ValidAudience = builder.Configuration["JWT:Audience"],
+        RoleClaimType = ClaimTypes.Role,
 
         IssuerSigningKey = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(builder.Configuration["JWT:SecretKey"])
         )
+    };
+
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+            var path = context.Request.Path;
+            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/presenceHub"))
+            {
+                context.Token = accessToken;
+            }
+            return Task.CompletedTask;
+        }
     };
 });
 
@@ -66,8 +88,12 @@ builder.Services.AddAuthorization();
 builder.Services.AddScoped<ITokenService, TokenService>();
 
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+builder.Services.AddSignalR(options => {
+    options.ClientTimeoutInterval = TimeSpan.FromSeconds(15);
+    options.KeepAliveInterval = TimeSpan.FromSeconds(7);
+});
 
 // Đảm bảo tạo folder wwwroot nếu nó chưa tồn tại để WebRootPath không bị null
 if (!Directory.Exists(Path.Combine(builder.Environment.ContentRootPath, "wwwroot")))
@@ -100,9 +126,8 @@ if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection(); // Chỉ bắt buộc dùng HTTPS ở môi trường thật
 }
 
-app.UseStaticFiles(); // Cho phép truy cập file trong wwwroot mặc định
+app.UseStaticFiles();
 
-// Cấu hình thêm để chắc chắn folder uploads có thể truy cập công khai
 app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
@@ -110,12 +135,14 @@ app.UseStaticFiles(new StaticFileOptions
     RequestPath = "/uploads"
 });
 
-// Áp dụng CORS policy
 app.UseCors("AllowFrontend");
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseMiddleware<SingleSessionMiddleware>();
 
 app.MapControllers();
+
+app.MapHub<PresenceHub>("/presenceHub");
 
 app.Run();
