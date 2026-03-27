@@ -24,7 +24,7 @@ const ExamDetailPage: React.FC = () => {
             <div className="grid grid-cols-12 gap-8">
                 {/* Cột trái: Danh sách câu hỏi */}
                 <div className="col-span-8 space-y-4">
-                    <section className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm">
+                    <section className="bg-white p-6 rounded-4xl border border-gray-100 shadow-sm">
                         <h2 className="text-xl font-bold text-gray-800 mb-6 flex justify-between items-center">
                             Danh sách câu hỏi 
                             <span className="text-sm bg-gray-100 px-4 py-1 rounded-full text-gray-500">{details.questions.length} câu</span>
@@ -52,7 +52,7 @@ const ExamDetailPage: React.FC = () => {
               
                 <div className="col-span-4 space-y-6">
                     {/* Card Thông tin chung */}
-                    <div className="bg-gradient-to-br from-pink-500 to-pink-400 p-6 rounded-[2rem] text-white shadow-xl relative overflow-hidden">
+                    <div className="bg-linear-to-br from-pink-500 to-pink-400 p-6 rounded-4xl text-white shadow-xl relative overflow-hidden">
                         <h4 className="font-bold mb-4 opacity-60 uppercase text-black">Thông tin chung</h4>
                         <div className="text-2xl font-black mb-1">{details.title}</div>
                         <div className="text-white font-bold text-sm">Điểm đạt: {details.passingScore}</div>
@@ -65,7 +65,7 @@ const ExamDetailPage: React.FC = () => {
 
                     {/* Chỉ hiển thị Điểm Liệt nếu là StandardJLPT */}
                     {details.examType === ExamType.StandardJLPT && (
-                        <div className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm transition-all duration-300">
+                        <div className="bg-white p-6 rounded-4xl border border-gray-100 shadow-sm transition-all duration-300">
                             <h4 className="font-bold text-gray-700 mb-4 text-xs uppercase flex items-center gap-2">
                                 <span className="w-2 h-2 bg-pink-500 rounded-full animate-pulse"></span>
                                 Điểm liệt quy định (JLPT)
@@ -92,7 +92,7 @@ const ExamDetailPage: React.FC = () => {
 
                     {/* Hiển thị thông tin khác nếu KHÔNG PHẢI là StandardJLPT */}
                     {details.examType !== ExamType.StandardJLPT && (
-                        <div className="bg-white p-6 rounded-[2rem] border border-dashed border-gray-200 text-center">
+                        <div className="bg-white p-6 rounded-4xl border border-dashed border-gray-200 text-center">
                             <p className="text-sm text-gray-400 italic">
                                 Kỳ thi này áp dụng cách tính điểm tổng quát, không có quy định điểm liệt từng phần.
                             </p>

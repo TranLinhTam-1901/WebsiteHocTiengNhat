@@ -346,7 +346,7 @@ const ExamForgePage: React.FC = () => {
                 {/* --- CỘT PHẢI: Summary & Actions (4 blocks) --- */}
                 <div className="col-span-4 space-y-6">
                     {/* Bảng tóm tắt màu hồng */}
-                    <div className="bg-gradient-to-br from-pink-400 to-pink-500 p-6 rounded-[2rem] text-white shadow-xl shadow-pink-100 relative overflow-hidden">
+                    <div className="bg-linear-to-br from-pink-400 to-pink-500 p-6 rounded-4xl text-white shadow-xl shadow-pink-100 relative overflow-hidden">
                         <div className="relative z-10">
                             <h4 className="font-bold mb-4">Bảng tóm tắt</h4>
                             <div className="flex justify-between items-center mb-4">
@@ -427,7 +427,7 @@ const ExamForgePage: React.FC = () => {
                                                     checked={formData.showResultImmediately}
                                                     onChange={e => setFormData({...formData, showResultImmediately: e.target.checked})}
                                                 />
-                                                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-500"></div>
+                                                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-500"></div>
                                             </label>
                                         </div>
 
@@ -533,7 +533,7 @@ const ExamForgePage: React.FC = () => {
                                             checked={formData.showResultImmediately}
                                             onChange={e => setFormData({...formData, showResultImmediately: e.target.checked})}
                                         />
-                                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-500"></div>
+                                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-500"></div>
                                     </label>
                                 </div>
                             </div>

@@ -231,7 +231,7 @@ const QuestionCreatePage: React.FC = () => {
         
         {/* CỘT 1: MATERIAL LIBRARY - Tăng nhẹ width để thoải mái hơn */}
         <div className="flex h-full w-[380px] min-w-[380px] flex-col overflow-hidden border-r border-[#E8E8E8] bg-white shadow-[4px_0_10px_rgba(0,0,0,0.03)]">
-            <div className="flex flex-1 flex-col min-h-0 px-[15px] pb-[10px] pt-[24px]">
+            <div className="flex flex-1 flex-col min-h-0 px-[15px] pb-2.5 pt-6">
                 <h3 className="mb-[15px] shrink-0 text-lg font-bold text-[#2D3748]">
                     <span className="mr-2">📕</span> Thư viện tài liệu
                 </h3>
@@ -453,7 +453,7 @@ const QuestionCreatePage: React.FC = () => {
 
                             {/* Suggestions Dropdown */}
                             {suggestions.length > 0 && (
-                                <div className="absolute left-0 right-0 top-full z-[100] mt-1 max-h-[200px] overflow-y-auto rounded-lg border border-[#E2E8F0] bg-white shadow-lg">
+                                <div className="absolute left-0 right-0 top-full z-100 mt-1 max-h-[200px] overflow-y-auto rounded-lg border border-[#E2E8F0] bg-white shadow-lg">
                                     {suggestions.map((item) => (
                                         <div 
                                             key={item.questionID} 
@@ -461,7 +461,7 @@ const QuestionCreatePage: React.FC = () => {
                                             className="cursor-pointer border-b border-[#F1F5F9] p-[12px_15px] transition-all hover:bg-[#FFF5F7]"
                                         >
                                             <div className="mb-1 flex justify-between">
-                                                <span className="rounded-[4px] bg-[#FFF1F3] px-1.5 py-[2px] text-[11px] font-bold uppercase text-[#FF6B81]">
+                                                <span className="rounded-sm bg-[#FFF1F3] px-1.5 py-0.5 text-[11px] font-bold uppercase text-[#FF6B81]">
                                                     {QUESTION_TYPE_LABELS[item.questionType as QuestionType] || "N/A"}
                                                 </span>
                                                 <span className="text-[11px] text-[#94A3B8]">#...{item.questionID.slice(-6)}</span>

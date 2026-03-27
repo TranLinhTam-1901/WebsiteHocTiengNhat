@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using QuizzTiengNhat.DTOs.Auth;
 using QuizzTiengNhat.Models;
 using QuizzTiengNhat.Services;
@@ -12,11 +13,13 @@ namespace QuizzTiengNhat.Controllers.Auth
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ITokenService _tokenService;
+        private readonly ApplicationDbContext _context;
 
-        public AuthController(UserManager<ApplicationUser> userManager, ITokenService tokenService)
+        public AuthController(UserManager<ApplicationUser> userManager, ITokenService tokenService, ApplicationDbContext context)
         {
             _userManager = userManager;
             _tokenService = tokenService;
+            _context = context;
         }
 
         [HttpPost("register")]
@@ -26,7 +29,8 @@ namespace QuizzTiengNhat.Controllers.Auth
             {
                 UserName = dto.Email,
                 Email = dto.Email,
-                FullName = dto.FullName
+                FullName = dto.FullName,
+                LevelID = dto.LevelID
             };
 
             var result = await _userManager.CreateAsync(user, dto.Password);
@@ -51,15 +55,21 @@ namespace QuizzTiengNhat.Controllers.Auth
             {
                 return BadRequest("Tài khoản của bạn đã bị khóa.");
             }
-                        var token = await _tokenService.CreateToken(user);
+
+            await _userManager.UpdateSecurityStampAsync(user);
+
+            var token = await _tokenService.CreateToken(user, dto.RememberMe);
             var roles = await _userManager.GetRolesAsync(user);
 
             return Ok(new AuthResponseDTO
             {
                 Token = token,
                 Email = user.Email,
-                Roles = roles
+                Roles = roles.ToList()
             });
         }
+
+        [HttpGet("metadata/levels")]
+        public async Task<IActionResult> GetLevels() => Ok(await _context.JLPT_Levels.Select(l => new { id = l.LevelID, name = l.LevelName }).ToListAsync());
     }
 }

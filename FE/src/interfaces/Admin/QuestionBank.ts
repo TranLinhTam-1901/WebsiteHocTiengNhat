@@ -12,7 +12,6 @@ export enum QuestionStatus {
     Draft = 0
 }
 
-
 export enum SkillType {
     General = 0,
     Vocabulary = 1,
@@ -87,7 +86,9 @@ export interface QuestionListItem {
   status: QuestionStatus; 
   hasAudio: boolean;
   linkedCount: number;
+  lessonId: string;
   lessonName: string;
+  topicName: string[];
 }
 
 

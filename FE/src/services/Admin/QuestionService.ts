@@ -1,6 +1,7 @@
 import axiosInstance from "../../utils/axiosInstance";
-import { CreateQuestionDTO, QuestionDetail, QuestionListItem, SourceMaterial, Topics } from '../../interfaces/Admin/QuestionBank';
+import { CreateQuestionDTO, QuestionDetail, QuestionListItem, SourceMaterial } from '../../interfaces/Admin/QuestionBank';
 import axios from "axios";
+import { TopicItem } from "@/interfaces/Admin/Topic";
 
 const QuestionService = {
     
@@ -37,8 +38,8 @@ const QuestionService = {
         return response.data;
     },
 
-    getTopicsLookup: async (): Promise<Topics[]> => {
-        const response = await axiosInstance.get('/admin/question-bank/topics');
+    getTopicsLookup: async () => {
+        const response = await axiosInstance.get("/admin/question-bank/metadata/topics");
         return response.data;
     },
 

@@ -51,164 +51,70 @@ namespace QuizzTiengNhat.Models
         public DbSet<ExamTemplateDetail> ExamTemplateDetails { get; set; }
         public DbSet<Exams> Exams { get; set; }
         public DbSet<Exam_Questions> Exam_Questions { get; set; }
-       
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // --- A. CẤU HÌNH KHÓA CHÍNH CHO BẢNG TRUNG GIAN (Composite Keys) ---
+            // --- A. COMPOSITE KEYS (BẢNG TRUNG GIAN) ---
             modelBuilder.Entity<Lessons_Topic>().HasKey(lt => new { lt.LessonsID, lt.TopicID });
             modelBuilder.Entity<Questions_Topic>().HasKey(qt => new { qt.QuestionID, qt.TopicID });
             modelBuilder.Entity<VocabularyKanjis>().HasKey(vk => new { vk.VocabID, vk.KanjiID });
             modelBuilder.Entity<VocabWordTypes>().HasKey(vw => new { vw.VocabID, vw.WordTypeID });
             modelBuilder.Entity<VocabTopics>().HasKey(vt => new { vt.VocabID, vt.TopicID });
-
-            // MỚI: Khai báo khóa chính cho các bảng trung gian mới
             modelBuilder.Entity<GrammarTopics>().HasKey(gt => new { gt.GrammarID, gt.TopicID });
             modelBuilder.Entity<ReadingTopics>().HasKey(rt => new { rt.ReadingID, rt.TopicID });
             modelBuilder.Entity<ListeningTopics>().HasKey(lt => new { lt.ListeningID, lt.TopicID });
 
-            // --- B. CẤU HÌNH CHI TIẾT QUAN HỆ ---
-
-            // 1. Examples: Cascade Delete
-            // Cấu hình Exams (Phân loại bài làm)
+            // --- B. EXAMS & TEMPLATES (MỚI) ---
             modelBuilder.Entity<Exams>(e => {
-                e.Property(x => x.Type);
-                e.Property(x => x.TargetSkill);
-
-                // Quan hệ với Template (SetNull để giữ lại bài làm khi xóa mẫu đề)
-                e.HasOne(x => x.Template)
-                 .WithMany()
-                 .HasForeignKey(x => x.TemplateID)
-                 .OnDelete(DeleteBehavior.SetNull);
-
-                // Quan hệ với Lesson
-                e.HasOne(x => x.Lesson)
-                 .WithMany()
-                 .HasForeignKey(x => x.LessonID)
-                 .OnDelete(DeleteBehavior.SetNull);
+                e.Property(x => x.Type).HasConversion<int>();
+                e.Property(x => x.TargetSkill).HasConversion<int>();
+                e.HasOne(x => x.Template).WithMany().HasForeignKey(x => x.TemplateID).OnDelete(DeleteBehavior.SetNull);
+                e.HasOne(x => x.Lesson).WithMany().HasForeignKey(x => x.LessonID).OnDelete(DeleteBehavior.SetNull);
             });
 
-            // Cấu hình ExamTemplate & Detail
             modelBuilder.Entity<ExamTemplateDetail>(ed => {
-                ed.Property(x => x.SkillType);
-                
-                ed.HasOne(x => x.Template)
-                  .WithMany(t => t.Details)
-                  .HasForeignKey(x => x.TemplateID)
-                  .OnDelete(DeleteBehavior.Cascade);
+                ed.Property(x => x.SkillType).HasConversion<int>();
+                ed.HasOne(x => x.Template).WithMany(t => t.Details).HasForeignKey(x => x.TemplateID).OnDelete(DeleteBehavior.Cascade);
             });
 
-            // Cấu hình Exam_Questions (Bảng liên kết câu hỏi cho đề thi)
             modelBuilder.Entity<Exam_Questions>(eq => {
-                eq.HasOne(x => x.Exam)
-                  .WithMany(e => e.ExamQuestions)
-                  .HasForeignKey(x => x.ExamID)
-                  .OnDelete(DeleteBehavior.Cascade);
-
-                eq.HasOne(x => x.Question)
-                  .WithMany()
-                  .HasForeignKey(x => x.QuestionID)
-                  .OnDelete(DeleteBehavior.Restrict); // Không xóa câu hỏi gốc khi xóa bài thi
+                eq.HasOne(x => x.Exam).WithMany(e => e.ExamQuestions).HasForeignKey(x => x.ExamID).OnDelete(DeleteBehavior.Cascade);
+                eq.HasOne(x => x.Question).WithMany().HasForeignKey(x => x.QuestionID).OnDelete(DeleteBehavior.Restrict);
             });
 
-            // Cấu hình Exam_Results
-            modelBuilder.Entity<Exam_Results>(er => {
-                er.HasOne(x => x.Exam)
-                  .WithMany()
-                  .HasForeignKey(x => x.ExamID)
-                  .OnDelete(DeleteBehavior.Cascade);
-            });
-
-
-            // Cấu hình thực thể Examples (Dùng chung cho Vocab & Grammar) ---
+            // --- C. NỘI DUNG HỌC TẬP (VOCAB, GRAMMAR, KANJI) ---
             modelBuilder.Entity<Examples>(e => {
                 e.HasOne(x => x.Vocabulary).WithMany(v => v.Examples).HasForeignKey(x => x.VocabID).OnDelete(DeleteBehavior.Cascade);
                 e.HasOne(x => x.Grammar).WithMany(g => g.Examples).HasForeignKey(x => x.GrammarID).OnDelete(DeleteBehavior.Cascade);
             });
 
-            // 2. Vocab Many-to-Many (Kanjis, Topics, WordTypes)
-            // Cấu hình Vocabularies & Kanjis (Many-to-Many qua VocabularyKanjis) ---
-            modelBuilder.Entity<VocabularyKanjis>()
-                .HasOne(vk => vk.Vocabulary).WithMany(v => v.RelatedKanjis).HasForeignKey(vk => vk.VocabID);
-
-            modelBuilder.Entity<VocabTopics>()
-                .HasOne(vt => vt.Vocabulary).WithMany(v => v.VocabTopics).HasForeignKey(vt => vt.VocabID);
-            modelBuilder.Entity<VocabularyKanjis>()
-                .HasOne(vk => vk.Kanji)
-                .WithMany(k => k.RelatedVocabularies)
-                .HasForeignKey(vk => vk.KanjiID);
-
-            // Cấu hình Quan hệ cho nội dung (Restrict để tránh lỗi xóa vòng) ---
-
-            // Vocabularies
-            modelBuilder.Entity<Vocabularies>(e => {
-                e.HasOne(x => x.JLPTLevel).WithMany().HasForeignKey(x => x.LevelID).OnDelete(DeleteBehavior.Restrict);
-                e.HasOne(x => x.Lesson).WithMany().HasForeignKey(x => x.LessonID).OnDelete(DeleteBehavior.Restrict);
-                e.HasOne(x => x.Topic).WithMany(t => t.Vocabularies).HasForeignKey(x => x.TopicID).OnDelete(DeleteBehavior.Restrict);
-                e.Property(x => x.Status).HasDefaultValue(1);
-            });
-
-            modelBuilder.Entity<VocabWordTypes>()
-                .HasOne(vw => vw.Vocabulary).WithMany(v => v.VocabWordTypes).HasForeignKey(vw => vw.VocabID);
-
-            // 3. Grammar Many-to-Many (Topics) - MỚI
-            modelBuilder.Entity<GrammarTopics>()
-                .HasOne(gt => gt.Grammar).WithMany(g => g.GrammarTopics).HasForeignKey(gt => gt.GrammarID);
-            modelBuilder.Entity<GrammarTopics>()
-                .HasOne(gt => gt.Topic).WithMany(t => t.GrammarTopics).HasForeignKey(gt => gt.TopicID);
-
-            // 4. Reading Many-to-Many (Topics) - MỚI
-            modelBuilder.Entity<ReadingTopics>()
-                .HasOne(rt => rt.Reading).WithMany(r => r.ReadingTopics).HasForeignKey(rt => rt.ReadingID);
-            modelBuilder.Entity<ReadingTopics>()
-                .HasOne(rt => rt.Topic).WithMany(t => t.ReadingTopics).HasForeignKey(rt => rt.TopicID);
-
-            // 5. Listening Many-to-Many (Topics) - MỚI
-            modelBuilder.Entity<ListeningTopics>()
-                .HasOne(lt => lt.Listening).WithMany(l => l.ListeningTopics).HasForeignKey(lt => lt.ListeningID);
-            modelBuilder.Entity<ListeningTopics>()
-                .HasOne(lt => lt.Topic).WithMany(t => t.ListeningTopics).HasForeignKey(lt => lt.TopicID);
-
-            // 6. Cấu hình Kanjis & Radicals
             modelBuilder.Entity<Kanjis>(e => {
                 e.HasOne(x => x.Radical).WithMany(r => r.Kanjis).HasForeignKey(x => x.RadicalID).OnDelete(DeleteBehavior.SetNull);
                 e.Property(x => x.Status).HasConversion<int>().HasDefaultValue(Status.Published);
             });
 
-            // 7. Cấu hình Grammars
             modelBuilder.Entity<Grammars>(e => {
                 e.HasOne(x => x.GrammarGroup).WithMany(gg => gg.Grammars).HasForeignKey(x => x.GrammarGroupID).OnDelete(DeleteBehavior.SetNull);
                 e.Property(x => x.Formality).HasConversion<int>();
                 e.Property(x => x.Status).HasConversion<int>().HasDefaultValue(Status.Published);
-            // Cấu hình Questions & Answers ---
-            modelBuilder.Entity<Questions>(e => {
-                // Tự tham chiếu (Cha-Con)
-                e.HasOne(q => q.ParentQuestion)
-                 .WithMany(q => q.SubQuestions)
-                 .HasForeignKey(q => q.ParentID)
-                 .OnDelete(DeleteBehavior.Restrict);
-
-                e.HasOne(q => q.Lesson)
-                 .WithMany()
-                 .HasForeignKey(q => q.LessonID)
-                 .OnDelete(DeleteBehavior.Restrict);
-
-                e.Property(q => q.Status);
             });
 
-            // --- C. CẤU HÌNH QUESTIONS & ANSWERS ---
+            // --- D. QUESTIONS & ANSWERS ---
             modelBuilder.Entity<Questions>(e => {
                 e.HasOne(q => q.ParentQuestion).WithMany(q => q.SubQuestions).HasForeignKey(q => q.ParentID).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(q => q.Lesson).WithMany().HasForeignKey(q => q.LessonID).OnDelete(DeleteBehavior.Restrict);
                 e.Property(q => q.QuestionType).HasConversion<int>();
+                e.Property(q => q.SkillType).HasConversion<int>(); // Bổ sung cho lỗi NOT NULL SkillType bạn gặp lúc nãy
                 e.Property(q => q.Status).HasConversion<int>().HasDefaultValue(Status.Published);
             });
 
-            // --- D. ĐĂNG KÝ ENUMS ---
+            // --- E. ĐĂNG KÝ ENUMS CHO CÁC BẢNG KHÁC ---
             modelBuilder.Entity<Lessons>().Property(l => l.SkillType).HasConversion<string>();
 
-            // --- E. GLOBAL RESTRICTIONS ---
+            // --- F. GLOBAL RESTRICTIONS (CHỐNG XÓA VÒNG) ---
             foreach (var relationship in modelBuilder.Model.GetEntityTypes().SelectMany(e => e.GetForeignKeys()))
             {
                 if (!relationship.IsOwnership && relationship.DeleteBehavior == DeleteBehavior.Cascade &&
