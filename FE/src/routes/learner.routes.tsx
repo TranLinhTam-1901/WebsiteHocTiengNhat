@@ -17,6 +17,7 @@ import RoadmapOverview from '../pages/learner/Roadmap/RoadmapOverview';
 import LessonDetail from '../pages/learner/Study/LessonDetail';
 import ReviewList from '../pages/learner/Study/ReviewList';
 import VideoPlayer from '../pages/learner/Study/VideoPlayer';
+import LearnerChatPage from '../pages/learner/Support/LearnerChatPage';
 
 export const learnerRoutes: RouteObject = {
   path: '/learner',
@@ -44,6 +45,7 @@ export const learnerRoutes: RouteObject = {
     { path: 'study/lesson/:id', element: <LessonDetail /> },
     { path: 'study/reviews', element: <ReviewList /> },
     { path: 'study/video', element: <VideoPlayer /> },
+    { path: 'support', element: <LearnerChatPage /> },
       ]
     }
   ],
