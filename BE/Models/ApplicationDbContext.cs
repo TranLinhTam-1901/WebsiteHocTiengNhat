@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using QuizzTiengNhat.Models.Enums;
 
@@ -52,6 +52,9 @@ namespace QuizzTiengNhat.Models
         public DbSet<Exams> Exams { get; set; }
         public DbSet<Exam_Questions> Exam_Questions { get; set; }
 
+        public DbSet<ChatConversation> ChatConversations { get; set; }
+        public DbSet<ChatMessage> ChatMessages { get; set; }
+        public DbSet<ChatRoundRobinState> ChatRoundRobinStates { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -83,6 +86,19 @@ namespace QuizzTiengNhat.Models
             modelBuilder.Entity<Exam_Questions>(eq => {
                 eq.HasOne(x => x.Exam).WithMany(e => e.ExamQuestions).HasForeignKey(x => x.ExamID).OnDelete(DeleteBehavior.Cascade);
                 eq.HasOne(x => x.Question).WithMany().HasForeignKey(x => x.QuestionID).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<ChatConversation>(e =>
+            {
+                e.HasIndex(x => x.LearnerId).IsUnique();
+                e.HasOne(x => x.Learner).WithMany().HasForeignKey(x => x.LearnerId).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(x => x.AssignedAdmin).WithMany().HasForeignKey(x => x.AssignedAdminId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<ChatMessage>(e =>
+            {
+                e.HasOne(x => x.Conversation).WithMany(c => c.Messages).HasForeignKey(x => x.ConversationId).OnDelete(DeleteBehavior.Cascade);
+                e.HasOne(x => x.Sender).WithMany().HasForeignKey(x => x.SenderId).OnDelete(DeleteBehavior.Restrict);
             });
 
             // --- C. NỘI DUNG HỌC TẬP (VOCAB, GRAMMAR, KANJI) ---
