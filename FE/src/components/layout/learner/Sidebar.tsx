@@ -1,11 +1,12 @@
 import React from 'react';
 import { logout } from '../../../store/auth.slice';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 
 const Sidebar: React.FC = () => {
   const dispatch = useDispatch();
-    const navigate = useNavigate();
+  const navigate = useNavigate();
+  const location = useLocation();
   
     const handleLogout = () => {
       dispatch(logout());
@@ -23,22 +24,27 @@ const Sidebar: React.FC = () => {
         </div>
         <nav className="flex flex-col gap-1">
           {[
-            { icon: 'dashboard', label: 'Dashboard', active: false },
-            { icon: 'map', label: 'Roadmap', active: true },
-            { icon: 'book_4', label: 'Study', active: false },
-            { icon: 'edit_note', label: 'Practice', active: false },
-            { icon: 'history', label: 'History', active: false },
-          ].map((item) => (
-            <div
+            { icon: 'dashboard', label: 'Dashboard', to: '/learner/dashboard' as const },
+            { icon: 'map', label: 'Roadmap', to: '/learner/roadmap' as const },
+            { icon: 'book_4', label: 'Study', to: '/learner/study/reviews' as const },
+            { icon: 'edit_note', label: 'Practice', to: '/learner/quiz/practice' as const },
+            { icon: 'history', label: 'History', to: '/learner/history' as const },
+            { icon: 'support_agent', label: 'Hỗ trợ', to: '/learner/support' as const },
+          ].map((item) => {
+            const active = location.pathname === item.to || location.pathname.startsWith(item.to + '/');
+            return (
+            <Link
               key={item.label}
+              to={item.to}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-full cursor-pointer transition-colors ${
-                item.active ? 'bg-[#f287ae]/10 text-[#f287ae]' : 'text-[#181114] hover:bg-zinc-100'
+                active ? 'bg-[#f287ae]/10 text-[#f287ae]' : 'text-[#181114] hover:bg-zinc-100'
               }`}
             >
-              <span className={`material-symbols-outlined ${item.active ? 'fill-1' : ''}`}>{item.icon}</span>
-              <p className={`text-sm ${item.active ? 'font-semibold' : 'font-medium'}`}>{item.label}</p>
-            </div>
-          ))}
+              <span className={`material-symbols-outlined ${active ? 'fill-1' : ''}`}>{item.icon}</span>
+              <p className={`text-sm ${active ? 'font-semibold' : 'font-medium'}`}>{item.label}</p>
+            </Link>
+            );
+          })}
         </nav>
       </div>
       <div className="bg-[#f287ae]/5 p-4 rounded-xl border border-[#f287ae]/20">

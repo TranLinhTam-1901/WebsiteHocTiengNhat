@@ -23,7 +23,7 @@ public static class Data
             MinLanguageKnowledgeScore = 19,
             MinReadingScore = 19,
             MinListeningScore = 19,
-           
+
         };
 
         var n3Details = new List<ExamTemplateDetail>
@@ -46,7 +46,7 @@ public static class Data
             MinLanguageKnowledgeScore = 38, // N4 liệt gộp
             MinReadingScore = 0, // Không dùng cho N4 liệt gộp
             MinListeningScore = 19,
-            
+
         };
 
         var n4Details = new List<ExamTemplateDetail>
@@ -69,7 +69,7 @@ public static class Data
             MinLanguageKnowledgeScore = 38,
             MinReadingScore = 0,
             MinListeningScore = 19,
-            
+
         };
 
         var n5Details = new List<ExamTemplateDetail>

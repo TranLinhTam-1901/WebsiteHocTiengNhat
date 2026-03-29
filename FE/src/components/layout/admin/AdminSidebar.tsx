@@ -40,6 +40,12 @@ const Sidebar: React.FC = () => {
             label="Tổng quan" 
             active={location.pathname === '/admin/dashboard'} 
           />
+          <NavItem 
+            to="/admin/support" 
+            icon="chat" 
+            label="Chat hỗ trợ" 
+            active={location.pathname === '/admin/support'} 
+          />
 
           {/* Menu đa cấp: Nội dung */}
           <div className="flex flex-col gap-1">
