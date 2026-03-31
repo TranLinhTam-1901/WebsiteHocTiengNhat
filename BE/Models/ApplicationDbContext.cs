@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using QuizzTiengNhat.Models.Enums;
 
@@ -57,6 +57,9 @@ namespace QuizzTiengNhat.Models
         public DbSet<FlashcardItem> FlashcardItems { get; set; }
         public DbSet<UserAnswerHistory> UserAnswerHistories { get; set; }
         public DbSet<UserInterest> UserInterests { get; set; }
+        public DbSet<ChatConversation> ChatConversations { get; set; }
+        public DbSet<ChatMessage> ChatMessages { get; set; }
+        public DbSet<ChatRoundRobinState> ChatRoundRobinStates { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

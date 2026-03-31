@@ -74,6 +74,7 @@ export const learnerRoutes: RouteObject = {
     { path: 'flashcards/review/:deckID', element: <FlashcardReviewPage /> },
     { path: 'flashcards/deck/:deckID', element: <DeckDetailPage /> },
     { path: 'flashcards/create', element: <DeckCreatePage /> },
+    { path: 'support', element: <LearnerChatPage /> },
       ]
     }
   ],
