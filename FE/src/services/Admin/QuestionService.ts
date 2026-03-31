@@ -1,7 +1,5 @@
 import axiosInstance from "../../utils/axiosInstance";
 import { CreateQuestionDTO, QuestionDetail, QuestionListItem, SourceMaterial } from '../../interfaces/Admin/QuestionBank';
-import axios from "axios";
-import { TopicItem } from "@/interfaces/Admin/Topic";
 
 const QuestionService = {
     

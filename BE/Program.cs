@@ -7,10 +7,11 @@ using QuizzTiengNhat.Data;
 using QuizzTiengNhat.Hubs;
 using QuizzTiengNhat.Middlewares;
 using QuizzTiengNhat.Models;
+using QuizzTiengNhat.Providers;
 using QuizzTiengNhat.Services;
+using QuizzTiengNhat.Services.Learners;
 using System.Security.Claims;
 using System.Text;
-using QuizzTiengNhat.Providers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -94,6 +95,13 @@ builder.Services.AddSignalR(options => {
     options.ClientTimeoutInterval = TimeSpan.FromSeconds(15);
     options.KeepAliveInterval = TimeSpan.FromSeconds(7);
 });
+
+// --- Đăng ký các Service cho Hệ thống Học tập ---
+builder.Services.AddScoped<IVocabService, VocabService>();
+builder.Services.AddScoped<IGrammarService, GrammarService>();
+builder.Services.AddScoped<IQuestionService, QuestionService>();
+builder.Services.AddScoped<IFlashcardService, FlashcardService>();
+builder.Services.AddScoped<IUserProgressService, UserProgressService>();
 
 // Đảm bảo tạo folder wwwroot nếu nó chưa tồn tại để WebRootPath không bị null
 if (!Directory.Exists(Path.Combine(builder.Environment.ContentRootPath, "wwwroot")))

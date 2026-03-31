@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using QuizzTiengNhat.DTOs.Admin;
+using QuizzTiengNhat.DTOs.Admin.Vocabulary;
 using QuizzTiengNhat.Helpers;
 using QuizzTiengNhat.Models;
 using QuizzTiengNhat.Models.Enums;

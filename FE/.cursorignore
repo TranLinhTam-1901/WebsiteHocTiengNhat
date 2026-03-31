@@ -1,0 +1,16 @@
+# Chặn các thư viện nặng (nguyên nhân gây tốn token nhất)
+node_modules/
+package-lock.json
+
+# Chặn các file build
+dist/
+build/
+.cache/
+
+# Chặn các file cấu hình IDE rác
+.vscode/
+.git/
+.DS_Store
+
+# Chặn các file log
+*.log

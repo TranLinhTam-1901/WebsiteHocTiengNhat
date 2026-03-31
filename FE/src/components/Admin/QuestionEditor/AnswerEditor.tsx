@@ -7,30 +7,25 @@ interface Props {
 }
 
 const AnswerEditor: React.FC<Props> = ({ answers, setAnswers }) => {
-    // Cập nhật nội dung hoặc trạng thái đúng/sai
     const updateAnswer = (index: number, field: keyof AnswerDTO, value: any) => {
         const newAnswers = [...answers];
         if (field === 'isCorrect') {
-            // Khi chọn một cái là Đúng, tất cả cái khác thành Sai (Radio logic)
-            newAnswers.forEach((ans, i) => ans.isCorrect = i === index);
+            newAnswers.forEach((ans, i) => (ans.isCorrect = i === index));
         } else {
             (newAnswers[index] as any)[field] = value;
         }
         setAnswers(newAnswers);
     };
 
-    // Hàm xóa đáp án
     const removeAnswer = (index: number) => {
-        // Không cho phép xóa nếu chỉ còn 2 đáp án (để đảm bảo tính trắc nghiệm)
         if (answers.length <= 2) {
-            alert("Một câu hỏi cần tối thiểu 2 đáp án!");
+            alert('Một câu hỏi cần tối thiểu 2 đáp án!');
             return;
         }
 
         const wasCorrect = answers[index].isCorrect;
         const newAnswers = answers.filter((_, i) => i !== index);
 
-        // Nếu xóa trúng đáp án đang được chọn là "Đúng", hãy đặt lại đáp án đầu tiên là "Đúng"
         if (wasCorrect && newAnswers.length > 0) {
             newAnswers[0].isCorrect = true;
         }
@@ -39,90 +34,61 @@ const AnswerEditor: React.FC<Props> = ({ answers, setAnswers }) => {
     };
 
     return (
-        <div style={{ marginTop: '20px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                <label style={{ fontWeight: 'bold', color: '#4A5568' }}>Danh sách đáp án lựa chọn</label>
-                <span style={{ fontSize: '12px', color: '#666' }}>Chọn một đáp án đúng nhất</span>
+        <div className="mt-2">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-[#886373]">
+                    Danh sách đáp án
+                </label>
+                <span className="text-[11px] font-medium text-[#886373]">Chọn một đáp án đúng</span>
             </div>
-            
+
             {answers.map((ans, index) => (
-                <div key={index} style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: '12px', 
-                    marginBottom: '12px',
-                    padding: '12px 16px',
-                    border: ans.isCorrect ? '2px solid #52C41A' : '1px solid #E8E8E8',
-                    borderRadius: '12px',
-                    backgroundColor: ans.isCorrect ? '#F6FFED' : '#FFFFFF',
-                    transition: 'all 0.3s',
-                    position: 'relative'
-                }}>
-                    {/* Radio chọn đáp án đúng */}
-                    <input 
-                        type="radio" 
+                <div
+                    key={index}
+                    className={`relative mb-3 flex items-center gap-3 rounded-xl border-2 px-4 py-3 transition-all ${
+                        ans.isCorrect
+                            ? 'border-primary bg-primary/5 shadow-sm'
+                            : 'border-[#f4f0f2] bg-white hover:border-primary/20'
+                    }`}
+                >
+                    <input
+                        type="radio"
                         name="correct-answer"
-                        checked={ans.isCorrect} 
+                        checked={ans.isCorrect}
                         onChange={() => updateAnswer(index, 'isCorrect', true)}
-                        style={{ accentColor: '#52C41A', width: '20px', height: '20px', cursor: 'pointer' }} 
+                        className="size-5 shrink-0 cursor-pointer accent-primary"
                     />
 
-                    {/* Ô nhập văn bản đáp án */}
-                    <input 
+                    <input
                         value={ans.answerText}
-                        placeholder={`Nhập nội dung đáp án ${index + 1}...`}
+                        placeholder={`Đáp án ${index + 1}...`}
                         onChange={(e) => updateAnswer(index, 'answerText', e.target.value)}
-                        style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: '15px' }}
+                        className="min-w-0 flex-1 border-none bg-transparent text-[15px] text-[#181114] outline-none placeholder:text-[#886373]/50"
                     />
 
-                    {/* Nhãn hiển thị nếu là đáp án đúng */}
                     {ans.isCorrect ? (
-                        <span style={{ color: '#52C41A', fontWeight: 'bold', fontSize: '11px', whiteSpace: 'nowrap' }}>
-                            ✓ ĐÁP ÁN ĐÚNG
+                        <span className="shrink-0 whitespace-nowrap text-[10px] font-bold uppercase tracking-wide text-primary">
+                            Đúng
                         </span>
                     ) : (
-                        // Nút xóa chỉ hiện ở các đáp án sai
-                        <button 
+                        <button
                             type="button"
                             onClick={() => removeAnswer(index)}
-                            style={{ 
-                                background: 'none', 
-                                border: 'none', 
-                                color: '#FF4D4F', 
-                                cursor: 'pointer', 
-                                fontSize: '18px',
-                                padding: '0 5px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center'
-                            }}
-                            title="Xóa đáp án này"
+                            className="flex size-8 shrink-0 items-center justify-center rounded-lg text-lg text-[#886373] transition-colors hover:bg-[#f4f0f2] hover:text-red-500"
+                            title="Xóa đáp án"
                         >
                             ×
                         </button>
                     )}
                 </div>
             ))}
-            
-            {/* Nút thêm đáp án */}
-            <button 
+
+            <button
                 type="button"
                 onClick={() => setAnswers([...answers, { answerText: '', isCorrect: false }])}
-                style={{ 
-                    width: '100%', 
-                    padding: '12px', 
-                    border: '1px dashed #1890ff', 
-                    color: '#1890ff', 
-                    background: '#F0F7FF', 
-                    borderRadius: '12px', 
-                    cursor: 'pointer',
-                    fontWeight: '500',
-                    transition: 'all 0.2s'
-                }}
-                onMouseOver={(e) => (e.currentTarget.style.background = '#BAE7FF')}
-                onMouseOut={(e) => (e.currentTarget.style.background = '#F0F7FF')}
+                className="w-full rounded-xl border border-dashed border-primary/40 bg-primary/5 py-3 text-sm font-bold text-primary transition-all hover:border-primary hover:bg-primary/10"
             >
-                + Thêm lựa chọn đáp án
+                + Thêm đáp án
             </button>
         </div>
     );

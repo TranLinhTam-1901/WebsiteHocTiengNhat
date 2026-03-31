@@ -2,9 +2,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QuizzTiengNhat.Models;
-using QuizzTiengNhat.DTOs.Admin;
 using QuizzTiengNhat.Helpers;
-using QuizzTiengNhat.Models.Enums; // Thêm để dùng Enum Status
+using QuizzTiengNhat.Models.Enums;
+using QuizzTiengNhat.DTOs.Admin.Kanji; // Thêm để dùng Enum Status
 
 namespace QuizzTiengNhat.Controllers.Admins
 {

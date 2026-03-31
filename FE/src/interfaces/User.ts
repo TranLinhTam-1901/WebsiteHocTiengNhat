@@ -5,7 +5,7 @@ export interface User {
   role: string;
   isLocked: boolean;
   
-  levelId?: string;     
+  levelId?: string;
   levelName?: string; 
   progressPercent?: number;
 }

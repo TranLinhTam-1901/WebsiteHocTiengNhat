@@ -1,169 +1,316 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import QuestionService from '../../../services/Admin/questionService';
 import { LessonLookupDTO, SourceMaterial } from '../../../interfaces/Admin/QuestionBank';
-import { SOURCE_TYPE_OPTIONS, DIFFICULTY_OPTIONS } from '../../../constants/admin/questionOptions';
+import { SOURCE_TYPE_OPTIONS } from '../../../constants/admin/questionOptions';
+
+export const SOURCE_PANEL_TYPES = SOURCE_TYPE_OPTIONS.filter((opt) =>
+    ['Vocabulary', 'Kanji', 'Grammar'].includes(opt.value)
+);
 
 interface Props {
-    // Page sẽ truyền hàm này vào để nhận dữ liệu khi Admin bấm "Select"
     onPick: (item: SourceMaterial, type: string) => void;
-    // Page sẽ truyền hàm này vào để đồng bộ difficulty khi Lesson thay đổi
     onLessonChange: (lessonID: string, levelName: string) => void;
-    // lessonId hiện tại từ Page (để đồng bộ nếu Page thay đổi)
     currentLessonId: string;
+    hideLessonSelect?: boolean;
+    /** Trình độ lọc API (điều khiển từ trang cha, cùng hàng tiêu đề) */
+    filterLevel: string;
+    /** Loại phôi: Vocabulary | Kanji | Grammar */
+    filterType: string;
+    /** Lọc cục bộ theo chuỗi tìm */
+    searchQuery: string;
 }
 
-const SourcePanel: React.FC<Props> = ({ onPick, onLessonChange, currentLessonId }) => {
-    // --- State cho Dữ liệu ---
+const typeVisual = {
+    Vocabulary: {
+        label: 'Từ vựng',
+        icon: 'dictionary' as const,
+        card: 'border-emerald-100 bg-gradient-to-b from-emerald-50/80 to-white',
+        badge: 'bg-emerald-100 text-emerald-800',
+        accent: 'text-emerald-700'
+    },
+    Kanji: {
+        label: 'Hán tự',
+        icon: 'menu' as const,
+        card: 'border-rose-100 bg-gradient-to-b from-rose-50/70 to-white',
+        badge: 'bg-rose-100 text-rose-800',
+        accent: 'text-rose-700'
+    },
+    Grammar: {
+        label: 'Ngữ pháp',
+        icon: 'account_tree' as const,
+        card: 'border-violet-100 bg-gradient-to-b from-violet-50/70 to-white',
+        badge: 'bg-violet-100 text-violet-800',
+        accent: 'text-violet-700'
+    }
+};
+
+function MaterialCard({
+    item,
+    type,
+    onPick
+}: {
+    item: SourceMaterial;
+    type: string;
+    onPick: () => void;
+}) {
+    const v = typeVisual[type as keyof typeof typeVisual] || typeVisual.Vocabulary;
+
+    const getVal = (v: any) => {
+        if (!v) return '';
+        if (typeof v === 'string') return v;
+        return v.content || v.translation || v.meaning || v.title || v.word || '—';
+    };
+
+    if (type === 'Kanji') {
+        return (
+            <div
+                className={`flex w-[244px] h-[244px] shrink-0 snap-start flex-col rounded-xl border p-3 shadow-sm transition-all hover:shadow-md ${v.card}`}
+            >
+                <div className="mb-2 flex items-center justify-between gap-1">
+                    <span className={`rounded-md px-1.5 py-0.5 text-[12px] font-bold uppercase ${v.badge}`}>{v.label}</span>
+                    <span className="material-symbols-outlined text-[18px] opacity-40 text-[#886373]">{v.icon}</span>
+                </div>
+                <div className="font-japanese py-1 text-center text-[40px] font-black leading-none text-[#181114]">
+                    {getVal(item.character)}
+                </div>
+                <div className="mb-2 flex flex-wrap justify-center gap-1 text-[15px] text-[#886373]">
+                    {item.onyomi && (
+                        <span className="rounded bg-white/80 px-1.5 py-0.5 font-medium">音 {getVal(item.onyomi)}</span>
+                    )}
+                    {item.kunyomi && (
+                        <span className="rounded bg-white/80 px-1.5 py-0.5 font-medium">訓 {getVal(item.kunyomi)}</span>
+                    )}
+                </div>
+                <p className="mb-2 line-clamp-2 min-h-9 text-center text-[15px] leading-snug text-[#886373]">
+                    {getVal(item.meaning)}
+                </p>
+                <button
+                    type="button"
+                    onClick={onPick}
+                    className="mt-auto w-full rounded-lg bg-primary py-2 text-[12px] font-bold text-white transition-opacity hover:opacity-90"
+                >
+                    Chọn phôi
+                </button>
+            </div>
+        );
+    }
+
+    if (type === 'Grammar') {
+        const renderExample = () => {
+            if (!item.example) return null;
+            if (typeof item.example === 'string') return item.example;
+            const ex = item.example as any;
+            return ex.content || ex.translation || '—';
+        };
+
+        return (
+            <div
+                className={`flex w-[244px] h-[244px] shrink-0 snap-start flex-col rounded-xl border p-3 shadow-sm transition-all hover:shadow-md ${v.card}`}
+            >
+                <div className="mb-2 flex items-center justify-between">
+                    <span className={`rounded-md px-1.5 py-0.5 text-[12px] font-bold uppercase ${v.badge}`}>{v.label}</span>
+                    <span className="material-symbols-outlined text-[18px] opacity-40 text-[#886373]">{v.icon}</span>
+                </div>
+                <p className="font-japanese mb-1.5 line-clamp-2 min-h-10 text-[25px] font-bold leading-snug text-[#181114]">
+                    {getVal(item.structure) || getVal(item.title) || '—'}
+                </p>
+                <p className="mb-2 line-clamp-2 flex-1 text-[15px] leading-relaxed text-[#886373]">{getVal(item.meaning)}</p>
+                <button
+                    type="button"
+                    onClick={onPick}
+                    className="mt-auto w-full rounded-lg bg-primary py-2 text-[12px] font-bold text-white transition-opacity hover:opacity-90"
+                >
+                    Chọn phôi
+                </button>
+            </div>
+        );
+    }
+
+    /* Vocabulary (default) */
+    return (
+        <div
+            className={`flex w-[244px] h-[244px] shrink-0 snap-start flex-col rounded-xl border p-3 shadow-sm transition-all hover:shadow-md ${v.card}`}
+        >
+            <div className="mb-2 flex items-center justify-between gap-1">
+                <span className={`rounded-md px-1.5 py-0.5 text-[12px] font-bold uppercase ${v.badge}`}>{v.label}</span>
+                <span className="material-symbols-outlined text-[18px] opacity-40 text-[#886373]">{v.icon}</span>
+            </div>
+            <p className={`mb-1 line-clamp-2 min-h-10 text-[40px] font-bold leading-tight text-[#181114] ${v.accent}`}>
+                {getVal(item.word)}
+            </p>
+            <p className="mb-2 line-clamp-2 flex-1 text-[15px] leading-snug text-[#886373]">{getVal(item.meaning)}</p>
+            <button
+                type="button"
+                onClick={onPick}
+                className="mt-auto w-full rounded-lg bg-primary py-2 text-[12px] font-bold text-white transition-opacity hover:opacity-90"
+            >
+                Chọn phôi
+            </button>
+        </div>
+    );
+}
+
+const SourcePanel: React.FC<Props> = ({
+    onPick,
+    onLessonChange,
+    currentLessonId,
+    hideLessonSelect = false,
+    filterLevel,
+    filterType,
+    searchQuery
+}) => {
     const [lessons, setLessons] = useState<LessonLookupDTO[]>([]);
     const [materials, setMaterials] = useState<SourceMaterial[]>([]);
-    
-    // --- State cho Bộ lọc ---
-    const [selectedLevel, setSelectedLevel] = useState<string>(""); // Lọc N5, N4, N3
-    const [type, setType] = useState('Vocabulary');
     const [loading, setLoading] = useState(false);
 
-    // Fetch danh sách Lessons Lookup một lần duy nhất khi mount
     useEffect(() => {
         const fetchLessons = async () => {
             try {
                 const data = await QuestionService.getLessonsLookup();
                 setLessons(data);
             } catch (error) {
-                console.error("Lỗi load lessons:", error);
+                console.error('Lỗi load lessons:', error);
             }
         };
         fetchLessons();
     }, []);
 
-    // Fetch Materials khi lessonId hoặc type thay đổi
     useEffect(() => {
-    const fetchSource = async () => {
-        try {
-            setLoading(true);
-            setMaterials([]);
-            const data = await QuestionService.getSourceMaterials(currentLessonId || "",
-                    type,
-                    selectedLevel || "");
-            setMaterials(data || []);
-        } catch (error) {
-            console.error("Lỗi lấy phôi:", error);
-            setMaterials([]);
-        } finally {
-            setLoading(false);
-        }
-    };
-    fetchSource();
-    }, [currentLessonId, type, selectedLevel]);
+        const fetchSource = async () => {
+            try {
+                setLoading(true);
+                setMaterials([]);
+                const data = await QuestionService.getSourceMaterials(
+                    currentLessonId || '',
+                    filterType,
+                    filterLevel || ''
+                );
+                setMaterials(data || []);
+            } catch (error) {
+                console.error('Lỗi lấy phôi:', error);
+                setMaterials([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchSource();
+    }, [currentLessonId, filterType, filterLevel]);
 
     useEffect(() => {
-    //kiểm tra xem bài học hiện tại có nằm trong danh sách bài học của Level mới không
-    const isCurrentLessonInLevel = lessons.some(
-        l => l.lessonID === currentLessonId && l.levelName === selectedLevel
-    );
+        if (hideLessonSelect) return;
 
-    if (!isCurrentLessonInLevel && selectedLevel !== "") {
-        // Nếu bài học cũ không thuộc Level mới, reset lessonId về rỗng
-        onLessonChange("", ""); 
-    }
-        }, [selectedLevel]);
-        
-    // 3. Hàm xử lý khi thay đổi bài học
-    const handleSelectLesson = (id: string) => {
-        const lesson = lessons.find(l => l.lessonID === id);
-        onLessonChange(id, lesson?.levelName || "");
-    };
-
-    const VIEW2_SOURCE_TYPES = SOURCE_TYPE_OPTIONS.filter(opt => 
-        ['Vocabulary', 'Kanji', 'Grammar'].includes(opt.value));
-        return (
-            <div className="flex flex-col h-full min-h-0 overflow-hidden">
-                {/* PHẦN BỘ LỌC (FILTER HEADER) */}
-                <div className="mb-5 flex flex-col gap-2 shrink-0">
-                    
-                    {/* Lọc theo Trình độ N */}
-                    <select 
-                        className="w-full p-2.5 rounded-lg border border-[#DDD] bg-[#FFF5F7] box-border min-h-0 outline-none focus:border-[#FF6B81]"
-                        value={selectedLevel}
-                        onChange={(e) => setSelectedLevel(e.target.value)}
-                    >
-                        <option value="">-- Tất cả trình độ --</option>
-                        {DIFFICULTY_OPTIONS.map(opt => (
-                            <option key={opt.value} value={opt.label}>{opt.label}</option>
-                        ))}
-                    </select>
-
-                    <div className="flex gap-2">
-                        {/* Lọc theo Lesson */}
-                        <select 
-                            className="flex-1 p-2.5 rounded-lg border border-[#DDD] w-full box-border outline-none focus:border-[#FF6B81]"
-                            value={currentLessonId}
-                            onChange={(e) => handleSelectLesson(e.target.value)}
-                        >
-                            <option value="">-- Bài học --</option>
-                            {lessons
-                                .filter(l => !selectedLevel || l.levelName === selectedLevel)
-                                .map(l => (
-                                    <option key={l.lessonID} value={l.lessonID}>
-                                        {l.title}
-                                    </option>
-                                ))
-                            }
-                        </select>
-
-                        {/* Lọc theo Type */}
-                        <select 
-                            className="flex-1 p-2.5 rounded-lg border border-[#DDD] w-full box-border outline-none focus:border-[#FF6B81]"
-                            value={type}
-                            onChange={(e) => setType(e.target.value)}
-                        >
-                            {VIEW2_SOURCE_TYPES.map(opt => (
-                                <option key={opt.value} value={opt.value}>{opt.label}</option>
-                            ))}
-                        </select>
-                    </div>
-                </div>
-
-                {/* PHẦN DANH SÁCH (Duy trì cuộn) */}
-                <div className="flex-1 overflow-y-auto min-h-0 pr-[5px] pb-5 scrollbar-thin">
-                    {loading ? (
-                        /* 1. Hiển thị khi đang tải */
-                        <p className="text-center px-[15px] text-[#FF6B81] min-h-0 font-medium">
-                            ⌛ Đang tải dữ liệu...
-                        </p>
-                    ) : materials.length > 0 ? (
-                        /* 2. Hiển thị khi CÓ dữ liệu */
-                        materials.map(item => (
-                            <div key={item.id} className="bg-white p-[15px] rounded-xl shadow-[0_2px_4px_rgba(0,0,0,0.05)] border border-[#eee] mb-[15px] transition-hover hover:shadow-md">
-                                <div className="flex justify-between mb-1.5">
-                                    <span className="font-bold text-base text-[#2D3748]">
-                                        {item.word || item.character || item.structure || "N/A"}
-                                    </span>
-                                    <span className="text-[10px] px-2 py-0.5 rounded bg-[#e6f7ff] text-[#1890ff] font-bold uppercase">
-                                        {type.toUpperCase()}
-                                    </span>
-                                </div>
-                                <div className="text-[#666] text-[13px] mb-2.5 line-clamp-2">
-                                    {item.meaning}
-                                </div>
-                                <button 
-                                    onClick={() => onPick(item, type)}
-                                    className="w-full p-2 rounded-lg border border-[#ff4d4f] text-[#ff4d4f] bg-transparent cursor-pointer font-bold transition-colors hover:bg-[#ff4d4f] hover:text-white"
-                                >
-                                    Chọn làm phôi
-                                </button>
-                            </div>
-                        ))
-                    ) : (
-                        /* 3. Hiển thị khi KHÔNG CÓ dữ liệu */
-                        <div className="text-center py-10 px-5 text-[#999]">
-                            <div className="text-4xl mb-2.5">📭</div>
-                            <p className="text-sm font-medium">Không có dữ liệu phôi cho mục này.</p>
-                            <p className="text-xs text-[#ccc]">Vui lòng chọn bài học khác.</p>
-                        </div>
-                    )}
-                </div>
-            </div>
+        const isCurrentLessonInLevel = lessons.some(
+            (l) => l.lessonID === currentLessonId && l.levelName === filterLevel
         );
+
+        if (!isCurrentLessonInLevel && filterLevel !== '') {
+            onLessonChange('', '');
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [filterLevel, hideLessonSelect, lessons, currentLessonId]);
+
+    const handleSelectLesson = (id: string) => {
+        const lesson = lessons.find((l) => l.lessonID === id);
+        onLessonChange(id, lesson?.levelName || '');
     };
+
+    const filteredMaterials = useMemo(() => {
+        const q = searchQuery.trim().toLowerCase();
+        if (!q) return materials;
+        return materials.filter((m) => {
+            const getFieldVal = (val: any) => {
+                if (!val) return '';
+                if (typeof val === 'string') return val;
+                if (typeof val === 'object') {
+                    return [val.content, val.translation, val.meaning, val.title]
+                        .filter(Boolean)
+                        .join(' ');
+                }
+                return String(val);
+            };
+
+            const blob = [
+                m.word,
+                m.character,
+                m.structure,
+                m.title,
+                m.meaning,
+                m.example,
+                m.onyomi,
+                m.kunyomi
+            ]
+                .map(getFieldVal)
+                .filter(Boolean)
+                .join(' ')
+                .toLowerCase();
+            return blob.includes(q);
+        });
+    }, [materials, searchQuery]);
+
+    return (
+        <div className="flex h-full min-h-0 flex-col gap-4">
+            {!hideLessonSelect && (
+                <div className="shrink-0 rounded-xl border border-[#f4f0f2] bg-[#fbf9fa] p-3">
+                    <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-[#886373]">
+                        Bài học
+                    </label>
+                    <select
+                        className="w-full rounded-lg border border-[#f4f0f2] bg-white p-2.5 text-sm text-[#181114] outline-none focus:border-primary"
+                        value={currentLessonId}
+                        onChange={(e) => handleSelectLesson(e.target.value)}
+                    >
+                        <option value="">-- Chọn bài học --</option>
+                        {lessons
+                            .filter((l) => !filterLevel || l.levelName === filterLevel)
+                            .map((l) => (
+                                <option key={l.lessonID} value={l.lessonID}>
+                                    {l.title}
+                                </option>
+                            ))}
+                    </select>
+                </div>
+            )}
+
+            <div className="flex min-h-[200px] min-w-0 flex-1 flex-col">
+                {loading ? (
+                    <div className="flex flex-1 items-center justify-center rounded-xl border border-dashed border-[#f4f0f2] bg-[#fbf9fa]/80 py-10">
+                        <p className="flex items-center gap-2 text-sm font-medium text-primary">
+                            <span className="material-symbols-outlined animate-pulse text-[22px]">hourglass_top</span>
+                            Đang tải phôi...
+                        </p>
+                    </div>
+                ) : filteredMaterials.length > 0 ? (
+                    <div className="custom-scroll-x -mx-0.5 flex flex-1 gap-3 overflow-x-auto overflow-y-hidden px-0.5 pb-2 pt-0.5">
+                        {filteredMaterials.map((item) => (
+                            <MaterialCard
+                                key={item.id}
+                                item={item}
+                                type={filterType}
+                                onPick={() => onPick(item, filterType)}
+                            />
+                        ))}
+                    </div>
+                ) : (
+                    <div className="flex flex-1 flex-col items-center justify-center rounded-xl border border-dashed border-[#f4f0f2] bg-[#fbf9fa]/50 px-4 py-10 text-center">
+                        <span className="material-symbols-outlined mb-2 text-3xl text-[#886373]/35">search_off</span>
+                        <p className="text-sm font-semibold text-[#181114]">
+                            {materials.length > 0 ? 'Không khớp tìm kiếm' : 'Chưa có phôi phù hợp'}
+                        </p>
+                        <p className="mt-1 max-w-sm text-xs text-[#886373]">
+                            {materials.length > 0
+                                ? 'Thử từ khóa khác hoặc xóa ô tìm kiếm.'
+                                : 'Chọn bài học hoặc đổi trình độ / loại phôi.'}
+                        </p>
+                    </div>
+                )}
+            </div>
+
+            <style>{`
+                .custom-scroll-x::-webkit-scrollbar { height: 6px; }
+                .custom-scroll-x::-webkit-scrollbar-thumb { background: #e8e0e4; border-radius: 10px; }
+            `}</style>
+        </div>
+    );
+};
 
 export default SourcePanel;
