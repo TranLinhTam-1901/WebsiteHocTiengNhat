@@ -2,9 +2,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QuizzTiengNhat.Models;
-using QuizzTiengNhat.DTOs.Admin;
 using QuizzTiengNhat.Data;
 using QuizzTiengNhat.Models.Enums;
+using QuizzTiengNhat.DTOs.Admin.Reading;
 
 namespace QuizzTiengNhat.Controllers.Admins
 {
@@ -138,6 +138,7 @@ namespace QuizzTiengNhat.Controllers.Admins
                             Explanation = qDto.Explanation,
                             Difficulty = qDto.Difficulty,
                             QuestionType = QuestionType.MultipleChoice,
+                            SkillType = SkillType.Reading,
                             Status = Status.Published,
                             Answers = qDto.Answers.Select(aDto => new Answers
                             {
@@ -215,6 +216,7 @@ namespace QuizzTiengNhat.Controllers.Admins
                             Explanation = qDto.Explanation,
                             Difficulty = qDto.Difficulty,
                             QuestionType = QuestionType.MultipleChoice,
+                            SkillType = SkillType.Reading,
                             Status = Status.Published,
                             Answers = qDto.Answers.Select(aDto => new Answers
                             {

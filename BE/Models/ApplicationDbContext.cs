@@ -52,6 +52,11 @@ namespace QuizzTiengNhat.Models
         public DbSet<Exams> Exams { get; set; }
         public DbSet<Exam_Questions> Exam_Questions { get; set; }
 
+        // --- 6. Hệ thống Flashcard & Cá nhân hóa (MỚI) ---
+        public DbSet<FlashcardDeck> FlashcardDecks { get; set; }
+        public DbSet<FlashcardItem> FlashcardItems { get; set; }
+        public DbSet<UserAnswerHistory> UserAnswerHistories { get; set; }
+        public DbSet<UserInterest> UserInterests { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -66,29 +71,48 @@ namespace QuizzTiengNhat.Models
             modelBuilder.Entity<GrammarTopics>().HasKey(gt => new { gt.GrammarID, gt.TopicID });
             modelBuilder.Entity<ReadingTopics>().HasKey(rt => new { rt.ReadingID, rt.TopicID });
             modelBuilder.Entity<ListeningTopics>().HasKey(lt => new { lt.ListeningID, lt.TopicID });
+            modelBuilder.Entity<UserInterest>().HasKey(ui => new { ui.UserID, ui.TopicID });
 
-            // --- B. EXAMS & TEMPLATES (MỚI) ---
+            // --- B. USER & LEVEL ---
+            modelBuilder.Entity<ApplicationUser>(entity => {
+                entity.HasOne(u => u.Level)
+                      .WithMany()
+                      .HasForeignKey(u => u.LevelID)
+                      .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            // --- C. FLASHCARD SYSTEM (Tối ưu hóa) ---
+            modelBuilder.Entity<FlashcardDeck>(entity => {
+                entity.HasIndex(d => d.UserID);
+                entity.HasIndex(d => d.LevelID);
+                entity.Property(d => d.SkillType).HasConversion<int>();
+                entity.HasOne(d => d.Level)
+                      .WithMany()
+                      .HasForeignKey(d => d.LevelID)
+                      .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            modelBuilder.Entity<FlashcardItem>(entity =>
+            {
+                entity.HasKey(e => e.ItemID);
+                entity.Property(e => e.ItemType).HasConversion<int>();
+
+                // Index để truy vấn nhanh
+                entity.HasIndex(e => e.DeckID);
+                entity.HasIndex(e => e.EntityID);
+
+                entity.HasOne(i => i.Deck)
+                      .WithMany(d => d.Items)
+                      .HasForeignKey(i => i.DeckID)
+                      .OnDelete(DeleteBehavior.Cascade); // Xóa bộ thẻ là mất thẻ con (hợp lý)
+            });
+
+            // --- D. EXAMS & CONTENT ---
             modelBuilder.Entity<Exams>(e => {
                 e.Property(x => x.Type).HasConversion<int>();
                 e.Property(x => x.TargetSkill).HasConversion<int>();
                 e.HasOne(x => x.Template).WithMany().HasForeignKey(x => x.TemplateID).OnDelete(DeleteBehavior.SetNull);
                 e.HasOne(x => x.Lesson).WithMany().HasForeignKey(x => x.LessonID).OnDelete(DeleteBehavior.SetNull);
-            });
-
-            modelBuilder.Entity<ExamTemplateDetail>(ed => {
-                ed.Property(x => x.SkillType).HasConversion<int>();
-                ed.HasOne(x => x.Template).WithMany(t => t.Details).HasForeignKey(x => x.TemplateID).OnDelete(DeleteBehavior.Cascade);
-            });
-
-            modelBuilder.Entity<Exam_Questions>(eq => {
-                eq.HasOne(x => x.Exam).WithMany(e => e.ExamQuestions).HasForeignKey(x => x.ExamID).OnDelete(DeleteBehavior.Cascade);
-                eq.HasOne(x => x.Question).WithMany().HasForeignKey(x => x.QuestionID).OnDelete(DeleteBehavior.Restrict);
-            });
-
-            // --- C. NỘI DUNG HỌC TẬP (VOCAB, GRAMMAR, KANJI) ---
-            modelBuilder.Entity<Examples>(e => {
-                e.HasOne(x => x.Vocabulary).WithMany(v => v.Examples).HasForeignKey(x => x.VocabID).OnDelete(DeleteBehavior.Cascade);
-                e.HasOne(x => x.Grammar).WithMany(g => g.Examples).HasForeignKey(x => x.GrammarID).OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<Kanjis>(e => {
@@ -102,23 +126,21 @@ namespace QuizzTiengNhat.Models
                 e.Property(x => x.Status).HasConversion<int>().HasDefaultValue(Status.Published);
             });
 
-            // --- D. QUESTIONS & ANSWERS ---
             modelBuilder.Entity<Questions>(e => {
                 e.HasOne(q => q.ParentQuestion).WithMany(q => q.SubQuestions).HasForeignKey(q => q.ParentID).OnDelete(DeleteBehavior.Restrict);
-                e.HasOne(q => q.Lesson).WithMany().HasForeignKey(q => q.LessonID).OnDelete(DeleteBehavior.Restrict);
                 e.Property(q => q.QuestionType).HasConversion<int>();
-                e.Property(q => q.SkillType).HasConversion<int>(); // Bổ sung cho lỗi NOT NULL SkillType bạn gặp lúc nãy
+                e.Property(q => q.SkillType).HasConversion<int>();
                 e.Property(q => q.Status).HasConversion<int>().HasDefaultValue(Status.Published);
             });
 
-            // --- E. ĐĂNG KÝ ENUMS CHO CÁC BẢNG KHÁC ---
-            modelBuilder.Entity<Lessons>().Property(l => l.SkillType).HasConversion<string>();
-
-            // --- F. GLOBAL RESTRICTIONS (CHỐNG XÓA VÒNG) ---
+            // --- E. GLOBAL RESTRICTIONS ---
+            // Chống xóa dây chuyền gây lỗi cho các bảng danh mục quan trọng
             foreach (var relationship in modelBuilder.Model.GetEntityTypes().SelectMany(e => e.GetForeignKeys()))
             {
                 if (!relationship.IsOwnership && relationship.DeleteBehavior == DeleteBehavior.Cascade &&
-                    (relationship.DeclaringEntityType.Name.Contains("Lessons") || relationship.DeclaringEntityType.Name.Contains("JLPT_Level")))
+                    (relationship.DeclaringEntityType.Name.Contains("Lessons") ||
+                     relationship.DeclaringEntityType.Name.Contains("JLPT_Level") ||
+                     relationship.DeclaringEntityType.Name.Contains("Topics")))
                 {
                     relationship.DeleteBehavior = DeleteBehavior.Restrict;
                 }

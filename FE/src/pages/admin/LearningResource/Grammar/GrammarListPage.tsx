@@ -127,7 +127,7 @@ const GrammarListPage: React.FC = () => {
             item.topics?.some(t => {
                 return selectedTopics.some((selected: any) => {
                     const selectedId = typeof selected === 'object' ? selected.id : selected;
-                    const topicId = typeof t === 'object' ? t.id : t;
+                    const topicId = typeof t === 'object' ? t.topicID : t;
                     return selectedId == topicId;
                 });
             });

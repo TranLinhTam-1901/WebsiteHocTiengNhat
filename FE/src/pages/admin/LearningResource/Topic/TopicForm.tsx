@@ -71,7 +71,7 @@ const handleSave = async () => {
       
       {/* Header section - Nằm ở top */}
       <AdminHeader>
-          <div className={isEditMode ? 'flex items-center w-full gap-258' : 'flex items-center w-full gap-267.5'}>
+          <div className={isEditMode ? 'flex items-center w-full gap-257' : 'flex items-center w-full gap-267.5'}>
             <div className="flex items-center gap-4 flex-1">
                 <button
                     onClick={() => navigate(-1)}
