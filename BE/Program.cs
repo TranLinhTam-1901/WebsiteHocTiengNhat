@@ -25,11 +25,10 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        // Thay .AllowAnyOrigin() bằng .WithOrigins(...)
-        policy.WithOrigins("http://localhost:5173") // URL chính xác của React/Vite
+        policy.WithOrigins("http://localhost:5173")
               .AllowAnyMethod()
               .AllowAnyHeader()
-              .AllowCredentials(); // Bắt buộc phải có cho SignalR
+              .AllowCredentials();
     });
 });
 
@@ -70,7 +69,8 @@ builder.Services.AddAuthentication(options =>
         {
             var accessToken = context.Request.Query["access_token"];
             var path = context.Request.Path;
-            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/presenceHub"))
+            if (!string.IsNullOrEmpty(accessToken) &&
+                (path.StartsWithSegments("/presenceHub") || path.StartsWithSegments("/chatHub")))
             {
                 context.Token = accessToken;
             }
@@ -87,11 +87,13 @@ builder.Services.AddControllers()
 
 builder.Services.AddAuthorization();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IChatService, ChatService>();
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
-builder.Services.AddSignalR(options => {
+builder.Services.AddSignalR(options =>
+{
     options.ClientTimeoutInterval = TimeSpan.FromSeconds(15);
     options.KeepAliveInterval = TimeSpan.FromSeconds(7);
 });
@@ -117,7 +119,7 @@ using (var scope = app.Services.CreateScope())
 
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
-    var context = services.GetRequiredService<ApplicationDbContext>(); 
+    var context = services.GetRequiredService<ApplicationDbContext>();
 
     await DbInitializer.SeedRoles(roleManager);
     await DbInitializer.SeedAdminUser(userManager);
@@ -131,7 +133,7 @@ if (app.Environment.IsDevelopment())
 
 if (!app.Environment.IsDevelopment())
 {
-    app.UseHttpsRedirection(); // Chỉ bắt buộc dùng HTTPS ở môi trường thật
+    app.UseHttpsRedirection();
 }
 
 app.UseStaticFiles();
@@ -152,5 +154,6 @@ app.UseMiddleware<SingleSessionMiddleware>();
 app.MapControllers();
 
 app.MapHub<PresenceHub>("/presenceHub");
+app.MapHub<ChatHub>("/chatHub");
 
 app.Run();

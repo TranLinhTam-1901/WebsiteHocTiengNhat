@@ -25,6 +25,7 @@ import VocabForm from '../pages/admin/LearningResource/Vocabulary/VocabForm';
 import ExamListPage from '../pages/admin/ExamManagement/ExamListPage'; 
 import ExamDetailPage from '../pages/admin/ExamManagement/ExamDetailPage';
 import ExamForgePage from '../pages/admin/ExamManagement/ExamForgePage';
+import SupportChatPage from '../pages/admin/Support/SupportChatPage';
 
 import TopicListPage from '../pages/admin/LearningResource/Topic/TopicListPage';
 import TopicForm from '../pages/admin/LearningResource/Topic/TopicForm';
@@ -41,6 +42,7 @@ export const adminRoutes: RouteObject[] = [
         children: [
           { index: true, element: <Navigate to="dashboard" replace /> },
           { path: 'dashboard', element: <Overview /> },
+          { path: 'support', element: <SupportChatPage /> },
           { path: 'learners', element: <LearnerList /> },
           
           // --- Quản lý Nội dung (Learning Resource) ---
