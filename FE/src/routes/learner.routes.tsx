@@ -35,6 +35,8 @@ import Success from '../pages/learner/PlacementTest/Success';
 import Exam from '../pages/learner/Quiz/Exam';
 import Practice from '../pages/learner/Quiz/Practice';
 import Result from '../pages/learner/Quiz/Result';
+// Chat Support
+import LearnerChatPage from '../pages/learner/Support/LearnerChatPage';
 
 export const learnerRoutes: RouteObject = {
   path: '/learner',
