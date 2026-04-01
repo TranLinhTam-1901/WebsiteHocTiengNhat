@@ -4437,30 +4437,30 @@ BEGIN
 END $$;
 
 -- -- Thay UserID tương ứng của ông vào
--- DELETE FROM "FlashcardDecks" WHERE "UserID" = '2aed63c2-ce50-4194-a9af-2fafa255df5a';
+DELETE FROM "FlashcardDecks" WHERE "UserID" = '2aed63c2-ce50-4194-a9af-2fafa255df5a';
 
--- TRUNCATE TABLE "Kanjis" RESTART IDENTITY CASCADE;
--- TRUNCATE TABLE "Radicals" RESTART IDENTITY CASCADE;
--- TRUNCATE TABLE "RadicalVariants" RESTART IDENTITY CASCADE;
+TRUNCATE TABLE "Kanjis" RESTART IDENTITY CASCADE;
+TRUNCATE TABLE "Radicals" RESTART IDENTITY CASCADE;
+TRUNCATE TABLE "RadicalVariants" RESTART IDENTITY CASCADE;
 
 -- <<<<<<< Updated upstream
 -- -------------------------------------------------------
 -- -- SELECT VD
 -- -------------------------------------------------------
--- SELECT * FROM "GrammarGroups"
--- WHERE "VocabID" = '014415d9-f006-4558-9a09-f4dcdee4a742';
+SELECT * FROM "GrammarGroups"
+WHERE "VocabID" = '014415d9-f006-4558-9a09-f4dcdee4a742';
 
 -- =======
--- TRUNCATE TABLE "Kanjis" RESTART IDENTITY CASCADE;
--- TRUNCATE TABLE "Radicals" RESTART IDENTITY CASCADE;
--- TRUNCATE TABLE "RadicalVariants" RESTART IDENTITY CASCADE;
+TRUNCATE TABLE "Kanjis" RESTART IDENTITY CASCADE;
+TRUNCATE TABLE "Radicals" RESTART IDENTITY CASCADE;
+TRUNCATE TABLE "RadicalVariants" RESTART IDENTITY CASCADE;
 
 -- -------------------------------------------------------
 -- -- SELECT VD
 -- -------------------------------------------------------
--- SELECT * FROM "Kanjis"
--- WHERE "VocabID" = '014415d9-f006-4558-9a09-f4dcdee4a742';
+SELECT * FROM "Kanjis"
+WHERE "VocabID" = '014415d9-f006-4558-9a09-f4dcdee4a742';
 
--- >>>>>>> Stashed changes
--- SELECT * FROM "Vocabularies"
--- WHERE "Word" = '置く';
+>>>>>>> Stashed changes
+SELECT * FROM "Vocabularies"
+WHERE "Word" = '置く';
