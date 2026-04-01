@@ -4436,7 +4436,7 @@ BEGIN
 
 END $$;
 
--- Thay UserID tương ứng của ông vào
+-- -- Thay UserID tương ứng của ông vào
 DELETE FROM "FlashcardDecks" WHERE "UserID" = '2aed63c2-ce50-4194-a9af-2fafa255df5a';
 
 TRUNCATE TABLE "Kanjis" RESTART IDENTITY CASCADE;
