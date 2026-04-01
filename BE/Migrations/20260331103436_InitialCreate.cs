@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace QuizzTiengNhat.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialDB : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -24,6 +24,19 @@ namespace QuizzTiengNhat.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetRoles", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ChatRoundRobinStates",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    LastAssignedIndex = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ChatRoundRobinStates", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -121,6 +134,7 @@ namespace QuizzTiengNhat.Migrations
                     Id = table.Column<string>(type: "text", nullable: false),
                     FullName = table.Column<string>(type: "text", nullable: false),
                     LevelID = table.Column<Guid>(type: "uuid", nullable: true),
+                    JLPT_LevelLevelID = table.Column<Guid>(type: "uuid", nullable: true),
                     UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
@@ -140,10 +154,16 @@ namespace QuizzTiengNhat.Migrations
                 {
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
                     table.ForeignKey(
+                        name: "FK_AspNetUsers_JLPT_Levels_JLPT_LevelLevelID",
+                        column: x => x.JLPT_LevelLevelID,
+                        principalTable: "JLPT_Levels",
+                        principalColumn: "LevelID");
+                    table.ForeignKey(
                         name: "FK_AspNetUsers_JLPT_Levels_LevelID",
                         column: x => x.LevelID,
                         principalTable: "JLPT_Levels",
-                        principalColumn: "LevelID");
+                        principalColumn: "LevelID",
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(
@@ -300,13 +320,94 @@ namespace QuizzTiengNhat.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ChatConversations",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    LearnerId = table.Column<string>(type: "text", nullable: false),
+                    AssignedAdminId = table.Column<string>(type: "text", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    LastMessageAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ChatConversations", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ChatConversations_AspNetUsers_AssignedAdminId",
+                        column: x => x.AssignedAdminId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ChatConversations_AspNetUsers_LearnerId",
+                        column: x => x.LearnerId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "FlashcardDecks",
+                columns: table => new
+                {
+                    DeckID = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: true),
+                    SkillType = table.Column<int>(type: "integer", nullable: false),
+                    LevelID = table.Column<Guid>(type: "uuid", nullable: true),
+                    UserID = table.Column<string>(type: "text", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_FlashcardDecks", x => x.DeckID);
+                    table.ForeignKey(
+                        name: "FK_FlashcardDecks_AspNetUsers_UserID",
+                        column: x => x.UserID,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_FlashcardDecks_JLPT_Levels_LevelID",
+                        column: x => x.LevelID,
+                        principalTable: "JLPT_Levels",
+                        principalColumn: "LevelID",
+                        onDelete: ReferentialAction.SetNull);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UserInterests",
+                columns: table => new
+                {
+                    UserID = table.Column<string>(type: "text", nullable: false),
+                    TopicID = table.Column<Guid>(type: "uuid", nullable: false),
+                    InteractionCount = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserInterests", x => new { x.UserID, x.TopicID });
+                    table.ForeignKey(
+                        name: "FK_UserInterests_AspNetUsers_UserID",
+                        column: x => x.UserID,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_UserInterests_Topics_TopicID",
+                        column: x => x.TopicID,
+                        principalTable: "Topics",
+                        principalColumn: "TopicID",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Lessons",
                 columns: table => new
                 {
                     LessonID = table.Column<Guid>(type: "uuid", nullable: false),
                     CourseID = table.Column<Guid>(type: "uuid", nullable: false),
                     Title = table.Column<string>(type: "text", nullable: false),
-                    SkillType = table.Column<string>(type: "text", nullable: false),
+                    SkillType = table.Column<int>(type: "integer", nullable: false),
                     Difficulty = table.Column<int>(type: "integer", nullable: false),
                     Priority = table.Column<int>(type: "integer", nullable: false),
                     JLPT_LevelLevelID = table.Column<Guid>(type: "uuid", nullable: true)
@@ -345,6 +446,59 @@ namespace QuizzTiengNhat.Migrations
                         column: x => x.TemplateID,
                         principalTable: "ExamTemplates",
                         principalColumn: "TemplateID",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ChatMessages",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    ConversationId = table.Column<Guid>(type: "uuid", nullable: false),
+                    SenderId = table.Column<string>(type: "text", nullable: false),
+                    Content = table.Column<string>(type: "character varying(8000)", maxLength: 8000, nullable: false),
+                    SentAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ChatMessages", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ChatMessages_AspNetUsers_SenderId",
+                        column: x => x.SenderId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ChatMessages_ChatConversations_ConversationId",
+                        column: x => x.ConversationId,
+                        principalTable: "ChatConversations",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "FlashcardItems",
+                columns: table => new
+                {
+                    ItemID = table.Column<Guid>(type: "uuid", nullable: false),
+                    DeckID = table.Column<Guid>(type: "uuid", nullable: false),
+                    EntityID = table.Column<Guid>(type: "uuid", nullable: false),
+                    ItemType = table.Column<int>(type: "integer", nullable: false),
+                    EF = table.Column<double>(type: "double precision", nullable: false),
+                    Interval = table.Column<int>(type: "integer", nullable: false),
+                    Repetitions = table.Column<int>(type: "integer", nullable: false),
+                    NextReview = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    LastReviewed = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    IsMastered = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_FlashcardItems", x => x.ItemID);
+                    table.ForeignKey(
+                        name: "FK_FlashcardItems_FlashcardDecks_DeckID",
+                        column: x => x.DeckID,
+                        principalTable: "FlashcardDecks",
+                        principalColumn: "DeckID",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -685,13 +839,13 @@ namespace QuizzTiengNhat.Migrations
                         column: x => x.GrammarID,
                         principalTable: "Grammars",
                         principalColumn: "GrammarID",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_GrammarTopics_Topics_TopicID",
                         column: x => x.TopicID,
                         principalTable: "Topics",
                         principalColumn: "TopicID",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -709,13 +863,13 @@ namespace QuizzTiengNhat.Migrations
                         column: x => x.ListeningID,
                         principalTable: "Listenings",
                         principalColumn: "ListeningID",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_ListeningTopics_Topics_TopicID",
                         column: x => x.TopicID,
                         principalTable: "Topics",
                         principalColumn: "TopicID",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -741,8 +895,7 @@ namespace QuizzTiengNhat.Migrations
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     SourceID = table.Column<Guid>(type: "uuid", nullable: true),
                     ParentID = table.Column<Guid>(type: "uuid", nullable: true),
-                    JLPT_LevelLevelID = table.Column<Guid>(type: "uuid", nullable: true),
-                    LessonsLessonID = table.Column<Guid>(type: "uuid", nullable: true)
+                    JLPT_LevelLevelID = table.Column<Guid>(type: "uuid", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -757,12 +910,7 @@ namespace QuizzTiengNhat.Migrations
                         column: x => x.LessonID,
                         principalTable: "Lessons",
                         principalColumn: "LessonID",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Questions_Lessons_LessonsLessonID",
-                        column: x => x.LessonsLessonID,
-                        principalTable: "Lessons",
-                        principalColumn: "LessonID");
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Questions_Listenings_ListeningID",
                         column: x => x.ListeningID,
@@ -796,13 +944,13 @@ namespace QuizzTiengNhat.Migrations
                         column: x => x.ReadingID,
                         principalTable: "Readings",
                         principalColumn: "ReadingID",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_ReadingTopics_Topics_TopicID",
                         column: x => x.TopicID,
                         principalTable: "Topics",
                         principalColumn: "TopicID",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -825,14 +973,12 @@ namespace QuizzTiengNhat.Migrations
                         name: "FK_Examples_Grammars_GrammarID",
                         column: x => x.GrammarID,
                         principalTable: "Grammars",
-                        principalColumn: "GrammarID",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "GrammarID");
                     table.ForeignKey(
                         name: "FK_Examples_Vocabularies_VocabID",
                         column: x => x.VocabID,
                         principalTable: "Vocabularies",
-                        principalColumn: "VocabID",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "VocabID");
                 });
 
             migrationBuilder.CreateTable(
@@ -850,13 +996,13 @@ namespace QuizzTiengNhat.Migrations
                         column: x => x.TopicID,
                         principalTable: "Topics",
                         principalColumn: "TopicID",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_VocabTopics_Vocabularies_VocabID",
                         column: x => x.VocabID,
                         principalTable: "Vocabularies",
                         principalColumn: "VocabID",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -935,8 +1081,7 @@ namespace QuizzTiengNhat.Migrations
                     ExamID = table.Column<Guid>(type: "uuid", nullable: false),
                     QuestionID = table.Column<Guid>(type: "uuid", nullable: false),
                     OrderIndex = table.Column<int>(type: "integer", nullable: false),
-                    Score = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
-                    QuestionsQuestionID = table.Column<Guid>(type: "uuid", nullable: true)
+                    Score = table.Column<decimal>(type: "numeric(18,2)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -952,12 +1097,7 @@ namespace QuizzTiengNhat.Migrations
                         column: x => x.QuestionID,
                         principalTable: "Questions",
                         principalColumn: "QuestionID",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Exam_Questions_Questions_QuestionsQuestionID",
-                        column: x => x.QuestionsQuestionID,
-                        principalTable: "Questions",
-                        principalColumn: "QuestionID");
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -981,6 +1121,36 @@ namespace QuizzTiengNhat.Migrations
                         column: x => x.TopicID,
                         principalTable: "Topics",
                         principalColumn: "TopicID",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UserAnswerHistories",
+                columns: table => new
+                {
+                    HistoryID = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserID = table.Column<string>(type: "text", nullable: false),
+                    QuestionID = table.Column<Guid>(type: "uuid", nullable: false),
+                    SelectedAnswerID = table.Column<Guid>(type: "uuid", nullable: true),
+                    TextAnswer = table.Column<string>(type: "text", nullable: true),
+                    IsCorrect = table.Column<bool>(type: "boolean", nullable: false),
+                    AnsweredAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    TimeTaken = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserAnswerHistories", x => x.HistoryID);
+                    table.ForeignKey(
+                        name: "FK_UserAnswerHistories_AspNetUsers_UserID",
+                        column: x => x.UserID,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_UserAnswerHistories_Questions_QuestionID",
+                        column: x => x.QuestionID,
+                        principalTable: "Questions",
+                        principalColumn: "QuestionID",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -1021,6 +1191,11 @@ namespace QuizzTiengNhat.Migrations
                 column: "NormalizedEmail");
 
             migrationBuilder.CreateIndex(
+                name: "IX_AspNetUsers_JLPT_LevelLevelID",
+                table: "AspNetUsers",
+                column: "JLPT_LevelLevelID");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_AspNetUsers_LevelID",
                 table: "AspNetUsers",
                 column: "LevelID");
@@ -1030,6 +1205,26 @@ namespace QuizzTiengNhat.Migrations
                 table: "AspNetUsers",
                 column: "NormalizedUserName",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ChatConversations_AssignedAdminId",
+                table: "ChatConversations",
+                column: "AssignedAdminId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ChatConversations_LearnerId",
+                table: "ChatConversations",
+                column: "LearnerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ChatMessages_ConversationId",
+                table: "ChatMessages",
+                column: "ConversationId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ChatMessages_SenderId",
+                table: "ChatMessages",
+                column: "SenderId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Courses_LevelID",
@@ -1045,11 +1240,6 @@ namespace QuizzTiengNhat.Migrations
                 name: "IX_Exam_Questions_QuestionID",
                 table: "Exam_Questions",
                 column: "QuestionID");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Exam_Questions_QuestionsQuestionID",
-                table: "Exam_Questions",
-                column: "QuestionsQuestionID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Exam_Results_ExamID",
@@ -1095,6 +1285,26 @@ namespace QuizzTiengNhat.Migrations
                 name: "IX_ExamTemplates_LevelID",
                 table: "ExamTemplates",
                 column: "LevelID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_FlashcardDecks_LevelID",
+                table: "FlashcardDecks",
+                column: "LevelID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_FlashcardDecks_UserID",
+                table: "FlashcardDecks",
+                column: "UserID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_FlashcardItems_DeckID",
+                table: "FlashcardItems",
+                column: "DeckID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_FlashcardItems_EntityID",
+                table: "FlashcardItems",
+                column: "EntityID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Grammars_GrammarGroupID",
@@ -1187,11 +1397,6 @@ namespace QuizzTiengNhat.Migrations
                 column: "LessonID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Questions_LessonsLessonID",
-                table: "Questions",
-                column: "LessonsLessonID");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Questions_ListeningID",
                 table: "Questions",
                 column: "ListeningID");
@@ -1229,6 +1434,21 @@ namespace QuizzTiengNhat.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_ReadingTopics_TopicID",
                 table: "ReadingTopics",
+                column: "TopicID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserAnswerHistories_QuestionID",
+                table: "UserAnswerHistories",
+                column: "QuestionID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserAnswerHistories_UserID",
+                table: "UserAnswerHistories",
+                column: "UserID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserInterests_TopicID",
+                table: "UserInterests",
                 column: "TopicID");
 
             migrationBuilder.CreateIndex(
@@ -1279,6 +1499,12 @@ namespace QuizzTiengNhat.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
+                name: "ChatMessages");
+
+            migrationBuilder.DropTable(
+                name: "ChatRoundRobinStates");
+
+            migrationBuilder.DropTable(
                 name: "Exam_Questions");
 
             migrationBuilder.DropTable(
@@ -1289,6 +1515,9 @@ namespace QuizzTiengNhat.Migrations
 
             migrationBuilder.DropTable(
                 name: "ExamTemplateDetails");
+
+            migrationBuilder.DropTable(
+                name: "FlashcardItems");
 
             migrationBuilder.DropTable(
                 name: "GrammarTopics");
@@ -1312,6 +1541,12 @@ namespace QuizzTiengNhat.Migrations
                 name: "ReadingTopics");
 
             migrationBuilder.DropTable(
+                name: "UserAnswerHistories");
+
+            migrationBuilder.DropTable(
+                name: "UserInterests");
+
+            migrationBuilder.DropTable(
                 name: "VocabTopics");
 
             migrationBuilder.DropTable(
@@ -1324,13 +1559,16 @@ namespace QuizzTiengNhat.Migrations
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
+                name: "ChatConversations");
+
+            migrationBuilder.DropTable(
                 name: "Exams");
 
             migrationBuilder.DropTable(
-                name: "Grammars");
+                name: "FlashcardDecks");
 
             migrationBuilder.DropTable(
-                name: "AspNetUsers");
+                name: "Grammars");
 
             migrationBuilder.DropTable(
                 name: "Questions");
@@ -1346,6 +1584,9 @@ namespace QuizzTiengNhat.Migrations
 
             migrationBuilder.DropTable(
                 name: "ExamTemplates");
+
+            migrationBuilder.DropTable(
+                name: "AspNetUsers");
 
             migrationBuilder.DropTable(
                 name: "GrammarGroups");
