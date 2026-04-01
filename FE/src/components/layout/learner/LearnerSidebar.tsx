@@ -167,6 +167,13 @@ const Sidebar: React.FC = () => {
             active={location.pathname === '/learner/leaderboard'} 
           />
 
+          <NavItem 
+            to="/admin/support" 
+            icon="chat" 
+            label="Chat hỗ trợ" 
+            active={location.pathname === '/learner/support'} 
+          />
+
           <div className="my-4 border-t border-[#f4f0f2]"></div>
         </nav>
 

@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import type { ChatConversationListItem, ChatMessage } from '../types/chat';
 
 function getChatHubUrl(): string {
-  const api = import.meta.env.VITE_API_URL ?? 'https://localhost:7055/api';
+  const api = import.meta.env.VITE_API_URL ?? 'http://localhost:5167/api';
   const root = api.replace(/\/api\/?$/, '');
   return `${root}/chatHub`;
 }
