@@ -1,4 +1,3 @@
-
 -------------------------------------------------------
 -- 0. DỌN DẸP VÀ CẤU HÌNH RÀNG BUỘC
 -------------------------------------------------------
@@ -3997,8 +3996,6 @@ BEGIN
     q_id := gen_random_uuid();
     INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
     VALUES (q_id, '家族は何人ですか？ (Gia đình có mấy người?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
-    INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
-    VALUES (q_id, '家族は何人ですか？ (Gia đình có mấy người?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
 	
 	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
     
@@ -4011,8 +4008,6 @@ BEGIN
 
     -- Câu hỏi 2 cho bài 1
     q_id := gen_random_uuid();
-	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
-    VALUES (q_id, 'お母さんの仕事は何ですか？ (Công việc của mẹ là gì?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
 	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
     VALUES (q_id, 'お母さんの仕事は何ですか？ (Công việc của mẹ là gì?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
 
@@ -4043,8 +4038,6 @@ BEGIN
     q_id := gen_random_uuid();
 	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
     VALUES (q_id, '何時に起きますか？ (Thức dậy lúc mấy giờ?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
-	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
-    VALUES (q_id, '何時に起きますか？ (Thức dậy lúc mấy giờ?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
 
 	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
 	
@@ -4056,8 +4049,6 @@ BEGIN
 
     -- Câu hỏi 2 cho bài 2
     q_id := gen_random_uuid();
-	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
-    VALUES (q_id, '学校へ行きますか？ (Có đi đến trường không?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
 	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
     VALUES (q_id, '学校へ行きますか？ (Có đi đến trường không?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
 
@@ -4088,8 +4079,6 @@ BEGIN
     q_id := gen_random_uuid();
 	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
     VALUES (q_id, '時計はどこにありますか？ (Cái đồng hồ ở đâu?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
-	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
-    VALUES (q_id, '時計はどこにありますか？ (Cái đồng hồ ở đâu?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
 
 	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
 	
@@ -4101,8 +4090,6 @@ BEGIN
 
     -- Câu hỏi 2 cho bài 3
     q_id := gen_random_uuid();
-	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
-    VALUES (q_id, '学生は何人いますか？ (Có bao nhiêu học sinh?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
 	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
     VALUES (q_id, '学生は何人いますか？ (Có bao nhiêu học sinh?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
 
@@ -4133,8 +4120,6 @@ BEGIN
     q_id := gen_random_uuid();
 	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
     VALUES (q_id, '趣味は何ですか？ (Sở thích là gì?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
-	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
-    VALUES (q_id, '趣味は何ですか？ (Sở thích là gì?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
 
 	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
 	
@@ -4146,8 +4131,6 @@ BEGIN
 
     -- Câu hỏi 2 cho bài 4
 	q_id := gen_random_uuid();
-	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
-    VALUES (q_id, '休みの日にどこへ行きますか？ (Ngày nghỉ đi đâu?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
 	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
     VALUES (q_id, '休みの日にどこへ行きますか？ (Ngày nghỉ đi đâu?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
 
@@ -4178,8 +4161,6 @@ BEGIN
     q_id := gen_random_uuid();
 	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
     VALUES (q_id, '何が大好きですか？ (Thích cái gì nhất?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
-	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
-    VALUES (q_id, '何が大好きですか？ (Thích cái gì nhất?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
 
 	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
 	
@@ -4191,8 +4172,6 @@ BEGIN
 
     -- Câu hỏi 2 cho bài 5
     q_id := gen_random_uuid();
-	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
-    VALUES (q_id, 'だれと食べましたか？ (Đã ăn cùng với ai?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
 	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
     VALUES (q_id, 'だれと食べましたか？ (Đã ăn cùng với ai?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
 
@@ -4223,8 +4202,6 @@ BEGIN
     q_id := gen_random_uuid();
 	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
     VALUES (q_id, '今日の天気はどうですか？ (Thời tiết hôm nay thế nào?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
-	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
-    VALUES (q_id, '今日の天気はどうですか？ (Thời tiết hôm nay thế nào?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
 
 	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
 	
@@ -4236,8 +4213,6 @@ BEGIN
 
     -- Câu hỏi 2 bài 6
     q_id := gen_random_uuid();
-        INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
-    VALUES (q_id, '明日の天気は何ですか？ (Thời tiết ngày mai là gì?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
         INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
     VALUES (q_id, '明日の天気は何ですか？ (Thời tiết ngày mai là gì?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
 
@@ -4268,8 +4243,6 @@ BEGIN
     q_id := gen_random_uuid();
 	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
     VALUES (q_id, '何を買いましたか？ (Đã mua cái gì?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
-	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
-    VALUES (q_id, '何を買いましたか？ (Đã mua cái gì?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
 
 	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
 	
@@ -4281,8 +4254,6 @@ BEGIN
 
     -- Câu hỏi 2 bài 7
     q_id := gen_random_uuid();
-	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
-    VALUES (q_id, '全部でいくらでしたか？ (Tổng cộng bao nhiêu tiền?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
 	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
     VALUES (q_id, '全部でいくらでしたか？ (Tổng cộng bao nhiêu tiền?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
 
@@ -4313,8 +4284,6 @@ BEGIN
     q_id := gen_random_uuid();
 	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
     VALUES (q_id, 'どんな家ですか？ (Ngôi nhà như thế nào?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
-	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
-    VALUES (q_id, 'どんな家ですか？ (Ngôi nhà như thế nào?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
 
 	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
 	
@@ -4326,8 +4295,6 @@ BEGIN
 
     -- Câu hỏi 2 bài 8
     q_id := gen_random_uuid();
-	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
-    VALUES (q_id, '庭に何がありますか？ (Ở sân có cái gì?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
 	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
     VALUES (q_id, '庭に何がありますか？ (Ở sân có cái gì?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
 
@@ -4358,8 +4325,6 @@ BEGIN
     q_id := gen_random_uuid();
 	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
     VALUES (q_id, '土曜日にどこへ行きますか？ (Thứ Bảy đi đâu?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
-	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
-    VALUES (q_id, '土曜日にどこへ行きますか？ (Thứ Bảy đi đâu?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
 
 	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
 	
@@ -4371,8 +4336,6 @@ BEGIN
 
     -- Câu hỏi 2 bài 9
     q_id := gen_random_uuid();
-	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
-    VALUES (q_id, '日曜日は何をしますか？ (Chủ Nhật làm gì?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
 	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
     VALUES (q_id, '日曜日は何をしますか？ (Chủ Nhật làm gì?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
 
@@ -4402,8 +4365,6 @@ BEGIN
     q_id := gen_random_uuid();
 	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
     VALUES (q_id, 'どのくらい勉強しましたか？ (Đã học được bao lâu rồi?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
-	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
-    VALUES (q_id, 'どのくらい勉強しましたか？ (Đã học được bao lâu rồi?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
 
 	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
 	
@@ -4415,8 +4376,6 @@ BEGIN
 
     -- Câu hỏi 2 bài 10
     q_id := gen_random_uuid();
-	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
-    VALUES (q_id, '漢字はどうですか？ (Chữ Hán thì thế nào?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
 	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
     VALUES (q_id, '漢字はどうですか？ (Chữ Hán thì thế nào?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
 

@@ -1,9 +1,19 @@
 import { SkillType } from "../Admin/QuestionBank";
 
+export interface FlashcardExampleDTO {
+    content: string;
+    translation: string;
+}
+
 export interface FlashcardContentDTO {
     kanji: string;
     furigana: string;
     meaning: string;
+    example?: string;
+    kunyomi?: string;
+    onyomi?: string;
+    explanation?: string;
+    examples?: FlashcardExampleDTO[];
 }
 
 export interface FlashcardReviewDTO {
@@ -25,6 +35,8 @@ export interface FlashcardItemDTO {
     meaning: string;
 }
 
+export type DeckSuggestedAction = 'learn' | 'continue' | 'review' | 'complete' | 'empty';
+
 export interface UserDeckDTO {
     deckID: string;
     skillType: SkillType;
@@ -32,8 +44,12 @@ export interface UserDeckDTO {
     topicName?: string | null;
     levelName?: string | null;
     totalCards: number;
+    masteredCount?: number;
+    progressPercent?: number;
     dueCount: number;
     newCards: number;
+    suggestedAction?: DeckSuggestedAction;
+    earliestNextReviewUtc?: string | null;
 }
 
 export interface ReviewUpdateDto {
@@ -50,6 +66,6 @@ export interface AddFlashcardDto {
 export interface CreateDeckDto {
     name: string;
     description?: string;
-    levelId?: string;
-    itemIds?: string[];
+    skillType: SkillType;
+    itemIds: string[];
 }
