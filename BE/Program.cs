@@ -101,8 +101,8 @@ builder.Services.AddSignalR(options =>
 // --- Đăng ký các Service cho Hệ thống Học tập ---
 builder.Services.AddScoped<IVocabService, VocabService>();
 builder.Services.AddScoped<IGrammarService, GrammarService>();
-builder.Services.AddScoped<IQuestionService, QuestionService>();
 builder.Services.AddScoped<IFlashcardService, FlashcardService>();
+builder.Services.AddScoped<IQuestionService, QuestionService>();
 builder.Services.AddScoped<IUserProgressService, UserProgressService>();
 
 // Đảm bảo tạo folder wwwroot nếu nó chưa tồn tại để WebRootPath không bị null
