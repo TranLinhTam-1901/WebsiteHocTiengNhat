@@ -1,15 +1,74 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import LearnerHeader from '../../../components/layout/learner/LearnerHeader';
 import { useTimer } from '../../../hooks/useTimer';
 import { FlashcardService } from '../../../services/Learner/flashcardService';
 import { SkillType } from '../../../interfaces/Admin/QuestionBank';
-import { FlashcardReviewDTO } from '../../../interfaces/Learner/Flashcard';
+import { FlashcardContentDTO, FlashcardReviewDTO } from '../../../interfaces/Learner/Flashcard';
+
+const MAX_SENTENCE_EXAMPLES = 2;
+const MAX_KANJI_RELATED_VOCAB = 3;
+
+type CardVariant = {
+    label: string;
+    colorBg: string;
+    badgeClass: string;
+    frontRing: string;
+    backTint: string;
+    accentLine: string;
+};
+
+const cardVariant = (type: SkillType): CardVariant => {
+    switch (Number(type)) {
+        case SkillType.Vocabulary:
+            return {
+                label: 'Từ vựng',
+                colorBg: 'bg-[#f287b6]',
+                badgeClass: 'bg-[#f287b6]/15 text-[#f287b6] border-[#f287b6]/25',
+                frontRing: 'border-[#f287b6]/22',
+                backTint: 'from-[#fff5f9] to-[#fdf8fa]',
+                accentLine: 'bg-[#f287b6]/25',
+            };
+        case SkillType.Kanji:
+            return {
+                label: 'Hán tự',
+                colorBg: 'bg-emerald-500',
+                badgeClass: 'bg-emerald-500/15 text-emerald-600 border-emerald-500/25',
+                frontRing: 'border-emerald-500/20',
+                backTint: 'from-emerald-50/50 to-[#f4faf8]',
+                accentLine: 'bg-emerald-500/25',
+            };
+        case SkillType.Grammar:
+            return {
+                label: 'Ngữ pháp',
+                colorBg: 'bg-amber-500',
+                badgeClass: 'bg-amber-500/15 text-amber-600 border-amber-500/25',
+                frontRing: 'border-amber-500/20',
+                backTint: 'from-amber-50/50 to-[#fffbf2]',
+                accentLine: 'bg-amber-500/25',
+            };
+        default:
+            return {
+                label: 'Thẻ',
+                colorBg: 'bg-gray-100',
+                badgeClass: 'bg-gray-100 text-gray-600 border-gray-200',
+                frontRing: 'border-gray-200',
+                backTint: 'from-gray-50 to-white',
+                accentLine: 'bg-gray-300/40',
+            };
+    }
+};
 
 const FlashcardReviewPage: React.FC = () => {
     const { deckID } = useParams<{ deckID: string }>();
     const navigate = useNavigate();
     const location = useLocation();
+    const [searchParams] = useSearchParams();
+
+    const studyMode =
+        searchParams.get('mode')
+        || (location.state as { studyMode?: string } | undefined)?.studyMode
+        || 'learn';
     
     // Retrieve the previous filter state to go back to the exact list view
     const filterState = location.state?.filterState;
@@ -20,13 +79,14 @@ const FlashcardReviewPage: React.FC = () => {
     const [items, setItems] = useState<FlashcardReviewDTO[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isFlipped, setIsFlipped] = useState(false);
+    const [showFurigana, setShowFurigana] = useState(false);
     const [sessionStats, setSessionStats] = useState({ done: 0, wrong: 0 });
 
     const fetchItems = useCallback(async () => {
         if (!deckID) return;
         setLoading(true);
         try {
-            const data = await FlashcardService.getReviewsByDeck(deckID);
+            const data = await FlashcardService.getReviewsByDeck(deckID, studyMode);
             setItems(data);
             resetTimer();
         } catch (error) {
@@ -34,7 +94,7 @@ const FlashcardReviewPage: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    }, [deckID, resetTimer]);
+    }, [deckID, studyMode, resetTimer]);
 
     useEffect(() => {
         fetchItems();
@@ -63,6 +123,7 @@ const FlashcardReviewPage: React.FC = () => {
             if (currentIndex < items.length - 1) {
                 setCurrentIndex(prev => prev + 1);
                 setIsFlipped(false);
+                setShowFurigana(false);
                 resetTimer();
             } else {
                 alert(`Hoàn thành phiên ôn tập! Bạn đã ôn ${items.length} thẻ.`);
@@ -96,6 +157,10 @@ const FlashcardReviewPage: React.FC = () => {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [isFlipped, loading, items.length, currentIndex]);
 
+    useEffect(() => {
+        setShowFurigana(false);
+    }, [currentIndex, items]);
+
     const playAudio = (text: string) => {
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'ja-JP';
@@ -103,11 +168,31 @@ const FlashcardReviewPage: React.FC = () => {
     };
 
     const handleBack = () => {
-        navigate('/learner/flashcards', { 
+        // filterState ở đây chính là activeFilter bạn đã truyền sang
+        const typeQuery = filterState !== undefined ? `?type=${filterState}` : '';
+        
+        navigate(`/learner/flashcards${typeQuery}`, { 
+            // Vẫn giữ state để hỗ trợ logic Sidebar hoặc các logic cũ nếu cần
             state: { skillType: filterState }, 
             replace: true
         });
     };
+
+    const activeItem = items.length > 0 ? items[Math.min(currentIndex, items.length - 1)] : undefined;
+    const activeEntity: FlashcardContentDTO = activeItem?.entity ?? ({} as FlashcardContentDTO);
+    const variant = cardVariant(activeItem?.itemType ?? SkillType.Vocabulary);
+    const sentenceExamples = (activeEntity.examples ?? []).slice(0, MAX_SENTENCE_EXAMPLES);
+    const kanjiRelatedVocab = (activeEntity.examples ?? []).slice(0, MAX_KANJI_RELATED_VOCAB);
+    const grammarStructure = activeEntity.furigana?.trim() || '—';
+
+    const skillTypeLabel = activeItem?.itemType === SkillType.Vocabulary ? 'Từ vựng'
+        : activeItem?.itemType === SkillType.Kanji ? 'Hán tự'
+        : activeItem?.itemType === SkillType.Grammar ? 'Ngữ pháp' : 'Thẻ';
+
+    const sessionCrumb =
+        studyMode === 'review' ? 'Ôn tập SRS'
+            : studyMode === 'continue' ? 'Học các thẻ còn lại'
+            : 'Học các thẻ mới';
 
     if (loading && items.length === 0) return (
         <div className="flex h-screen items-center justify-center bg-background-light">
@@ -133,19 +218,22 @@ const FlashcardReviewPage: React.FC = () => {
         );
     }
 
-    const currentItem = items[currentIndex];
-    const entity = currentItem.entity || {};
-
-    const skillTypeLabel = currentItem.itemType === SkillType.Vocabulary ? 'Từ vựng' 
-                         : currentItem.itemType === SkillType.Kanji ? 'Hán tự' 
-                         : currentItem.itemType === SkillType.Grammar ? 'Ngữ pháp' : 'Thẻ';
+    const currentItem = activeItem!;
+    const entity = activeEntity;
 
     const progressPercent = ((currentIndex) / items.length) * 100;
+
+    const frontAudioText =
+        currentItem.itemType === SkillType.Grammar
+            ? grammarStructure.replace(/—/g, '').trim() || activeEntity.kanji || ''
+            : currentItem.itemType === SkillType.Vocabulary && showFurigana && entity.furigana
+                ? entity.furigana
+                : entity.kanji || '';
 
     return (
         <div className="flex flex-col h-full bg-background-light text-[#211118] font-['Lexend']">
             <LearnerHeader>
-                <div className= "flex items-center w-full gap-265">
+                <div className="flex items-center w-full gap-4">
                     <div className="flex items-center gap-4 flex-1">
                         <button 
                             onClick={handleBack}
@@ -160,20 +248,19 @@ const FlashcardReviewPage: React.FC = () => {
                             <nav className="flex text-[10px] text-[#886373] font-medium gap-1 uppercase tracking-wider">
                             <span>{skillTypeLabel}</span>
                             <span>/</span>
-                            <span className="text-primary font-bold">Ôn tập</span>
+                            <span className="text-primary font-bold">{sessionCrumb}</span>
                             </nav>
                         </div>
                     </div>
                 </div>
             </LearnerHeader>
 
-            <main className="flex-1 flex flex-col p-6 md:p-10 max-w-5xl mx-auto w-full">
+            <main className="flex-1 flex flex-col p-6 md:p-10 max-w-5xl mx-auto w-full overflow-hidden">
                 {/* Contextual Header & Progress */}
                 <div className="mb-10 text-center">
-                    <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-bold mb-4 tracking-wider uppercase">
+                    <div className={`inline-flex items-center px-4 py-1.5 rounded-full border text-xs font-bold mb-4 tracking-wider uppercase ${variant.badgeClass}`}>
                         Thẻ ghi nhớ • {skillTypeLabel}
                     </div>
-                    <h2 className="text-3xl font-black text-slate-900 mb-6">Ôn tập hệ thống SRS</h2>
                     <div className="max-w-md mx-auto">
                         <div className="flex justify-between items-end mb-2">
                             <span className="text-xs font-bold text-slate-500 uppercase tracking-tighter">Tiến độ hôm nay</span>
@@ -189,60 +276,234 @@ const FlashcardReviewPage: React.FC = () => {
                 </div>
 
                 {/* Central Flashcard Area */}
-                <div className="relative flex-1 flex flex-col items-center justify-center perspective-1000">
+                <div className="relative flex-1 flex flex-col items-center justify-center">
                     {/* Decorative Sakura Pedals */}
                     <div className="absolute top-10 left-10 w-40 h-40 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
                     <div className="absolute bottom-10 right-10 w-48 h-48 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
 
-                    {/* Main Card */}
-                    <div 
-                        className={`w-full max-w-2xl min-h-[360px] bg-white/80 backdrop-blur-md rounded-2xl shadow-xl shadow-primary/5 flex flex-col items-center justify-center p-12 text-center relative border border-[rgba(242,135,182,0.1)] cursor-pointer transition-all duration-700 transform-style-3d ${isFlipped ? 'rotate-y-180' : 'hover:scale-[1.01]'}`}
+                    {/* Card Container with Perspective */}
+                    <div
+                        className="w-full max-w-2xl min-h-[440px] md:min-h-[480px] h-[min(520px,58vh)] perspective-1000 cursor-pointer z-10"
                         onClick={() => !isFlipped && setIsFlipped(true)}
-                        style={{ background: 'linear-gradient(135deg, rgba(242, 135, 182, 0.05) 0%, transparent 100%), rgba(255, 255, 255, 0.9)' }}
                     >
-                        {/* Front Side */}
-                        <div className={`absolute inset-0 flex flex-col items-center justify-center p-12 backface-hidden ${isFlipped ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
-                            <div className="absolute top-0 right-0 w-24 h-24 overflow-hidden pointer-events-none opacity-20">
-                                <div className="absolute top-4 right-4 text-primary">
-                                    <span className="material-symbols-outlined text-4xl">filter_vintage</span>
-                                </div>
-                            </div>
-                            <div className="space-y-4 w-full flex flex-col items-center">
-                                <span className="text-sm font-medium text-primary bg-primary/10 px-3 py-1 rounded-full uppercase tracking-widest">{skillTypeLabel}</span>
-                                <div className="py-4">
-                                    <h3 className="text-6xl md:text-8xl font-black text-slate-900 tracking-tighter leading-tight wrap-break-word">{entity.kanji || '---'}</h3>
-                                </div>
-                                <button 
-                                    onClick={(e) => { e.stopPropagation(); playAudio(entity.kanji || ''); }}
-                                    className="inline-flex items-center justify-center gap-2 text-slate-400 hover:text-primary transition-colors"
-                                >
-                                    <span className="material-symbols-outlined text-sm">volume_up</span>
-                                    <span className="text-xs font-medium italic">Nhấn để nghe phát âm</span>
-                                </button>
-                            </div>
-                            <div className="absolute bottom-8 left-0 right-0 flex justify-center">
-                                <div className="px-4 py-2 bg-slate-100/50 rounded-full flex items-center gap-2 animate-bounce">
-                                    <span className="material-symbols-outlined text-sm">touch_app</span>
-                                    <span className="text-xs font-bold text-slate-600">Chạm hoặc nhấn Space để lật thẻ</span>
-                                </div>
-                            </div>
-                        </div>
+                        <div
+                            key={currentItem.itemID}
+                            className={`relative w-full h-full min-h-[inherit] transition-transform duration-700 transform-style-3d ${isFlipped ? 'rotate-y-180' : 'hover:scale-[1.01]'}`}
+                        >
+                            {/* Front */}
+                            <div
+                                className={`absolute inset-0 flex flex-col items-center justify-center p-8 md:p-10 backface-hidden rounded-[1.75rem] border-2 shadow-[0_12px_40px_rgba(0,0,0,0.06)] ${variant.frontRing} bg-white/95 backdrop-blur-md`}
+                            >
+                                <p className="absolute top-5 left-5 text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">Mặt trước</p>
+                                <span className={`text-sm font-extrabold px-4 py-2 rounded-full border uppercase tracking-widest ${variant.badgeClass}`}>
+                                    {variant.label}
+                                </span>
 
-                        {/* Back Side */}
-                        <div className={`absolute inset-0 bg-[#fdf8fa] flex flex-col items-center justify-center p-12 backface-hidden rotate-y-180 overflow-y-auto rounded-2xl ${isFlipped ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-                            <div className="space-y-6 w-full py-4 text-center">
-                                {entity.furigana && (
-                                    <>
-                                        <div>
-                                            <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-2">Cách đọc / Cấu trúc</p>
-                                            <p className="text-3xl font-medium text-slate-700">{entity.furigana}</p>
-                                        </div>
-                                        <div className="w-12 h-1 bg-primary/20 mx-auto rounded-full"></div>
-                                    </>
-                                )}
-                                <div>
-                                    <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-2">Ý nghĩa</p>
-                                    <h3 className="text-4xl font-black text-slate-900 leading-tight">{entity.meaning || 'Chưa có nghĩa'}</h3>
+                                <div className="flex-1 flex flex-col items-center justify-center w-full max-w-lg gap-5 py-6">
+                                    {currentItem.itemType === SkillType.Vocabulary && (
+                                        <>
+                                            <p className="sr-only">Từ vựng (chữ viết)</p>
+                                            <h3
+                                                lang="ja"
+                                                className="text-6xl md:text-[5rem] font-black text-slate-900 tracking-tight text-center leading-none wrap-break-word"
+                                            >
+                                                {entity.kanji || '—'}
+                                            </h3>
+                                            <div className="flex flex-col items-center gap-3 min-h-14">
+                                                {entity.furigana ? (
+                                                    <>
+                                                        {showFurigana && (
+                                                            <p
+                                                                lang="ja"
+                                                                className="text-3xl md:text-4xl font-bold text-slate-600 text-center leading-snug"
+                                                            >
+                                                                {entity.furigana}
+                                                            </p>
+                                                        )}
+                                                        <button
+                                                            type="button"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setShowFurigana((v) => !v);
+                                                            }}
+                                                            className={`px-6 py-2.5 rounded-2xl text-base font-bold transition-all border-2 shadow-sm ${
+                                                                showFurigana
+                                                                    ? 'bg-slate-200 border-slate-300 text-slate-800'
+                                                                    : 'bg-white border-slate-200 text-slate-700 hover:border-primary/40 hover:bg-primary/5'
+                                                            }`}
+                                                        >
+                                                            {showFurigana ? 'Ẩn Hiragana / đọc' : 'Hiện Hiragana / đọc'}
+                                                        </button>
+                                                    </>
+                                                ) : (
+                                                    <p className="text-sm text-slate-400 font-medium">Chưa có Hiragana</p>
+                                                )}
+                                            </div>
+                                        </>
+                                    )}
+
+                                    {currentItem.itemType === SkillType.Kanji && (
+                                        <>
+                                            <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Chữ Hán</p>
+                                            <h3
+                                                lang="ja"
+                                                className="text-8xl md:text-9xl font-black text-slate-900 tracking-tight text-center leading-none"
+                                            >
+                                                {entity.kanji || '—'}
+                                            </h3>
+                                        </>
+                                    )}
+
+                                    {currentItem.itemType === SkillType.Grammar && (
+                                        <>
+                                            <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Cấu trúc ngữ pháp</p>
+                                            <p
+                                                lang="ja"
+                                                className="text-2xl md:text-4xl font-bold text-slate-900 text-center leading-relaxed whitespace-pre-wrap px-2"
+                                            >
+                                                {grammarStructure}
+                                            </p>
+                                        </>
+                                    )}
+                                </div>
+
+                                {frontAudioText ? (
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            playAudio(frontAudioText);
+                                        }}
+                                        className="inline-flex items-center gap-2 text-slate-500 hover:text-primary transition-colors py-2 px-4 rounded-full hover:bg-black/5 text-base font-semibold"
+                                    >
+                                        <span className="material-symbols-outlined text-2xl">volume_up</span>
+                                        Nghe phát âm
+                                    </button>
+                                ) : null}
+                            </div>
+
+                            {/* Back */}
+                            <div
+                                className={`absolute inset-0 flex flex-col p-6 md:p-9 backface-hidden rotate-y-180 overflow-y-auto rounded-[1.75rem] border-2 shadow-[0_12px_40px_rgba(0,0,0,0.08)] scrollbar-hide bg-linear-to-b ${variant.backTint} ${variant.frontRing}`}
+                            >
+                                <p className="absolute top-5 left-5 text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">Mặt sau</p>
+
+                                <div className="w-full flex flex-col gap-6 mt-7">
+                                    {currentItem.itemType === SkillType.Vocabulary && (
+                                        <>
+                                            <div className="text-center space-y-3">
+                                                <p className="text-xs font-black uppercase tracking-[0.25em] text-slate-500">Ý nghĩa</p>
+                                                <h3 className="text-2xl md:text-[1.75rem] font-black text-slate-900 leading-snug px-2">
+                                                    {entity.meaning || 'Chưa có nghĩa'}
+                                                </h3>
+                                                <div className={`w-16 h-1.5 ${variant.accentLine} mx-auto rounded-full`} />
+                                            </div>
+                                            {sentenceExamples.length > 0 && (
+                                                <div className="space-y-3">
+                                                    <p className="text-xs font-black uppercase tracking-[0.25em] text-slate-500 text-center">
+                                                        Câu ví dụ (tối đa 2)
+                                                    </p>
+                                                    <ul className="space-y-3">
+                                                        {sentenceExamples.map((ex, idx) => (
+                                                            <li
+                                                                key={idx}
+                                                                className="bg-white/90 p-4 md:p-5 rounded-2xl border border-slate-100 shadow-sm text-left"
+                                                            >
+                                                                <p lang="ja" className="text-lg md:text-xl font-bold text-slate-900 leading-relaxed">
+                                                                    {ex.content}
+                                                                </p>
+                                                                <p className="text-base text-slate-600 mt-2 leading-snug border-t border-slate-100 pt-3">
+                                                                    {ex.translation}
+                                                                </p>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                            )}
+                                        </>
+                                    )}
+
+                                    {currentItem.itemType === SkillType.Kanji && (
+                                        <>
+                                            <div className="text-center space-y-3">
+                                                <p className="text-xs font-black uppercase tracking-[0.25em] text-slate-500">Ý nghĩa</p>
+                                                <h3 className="text-2xl md:text-[1.75rem] font-black text-slate-900 leading-snug px-2">
+                                                    {entity.meaning || 'Chưa có nghĩa'}
+                                                </h3>
+                                                <div className={`w-16 h-1.5 ${variant.accentLine} mx-auto rounded-full`} />
+                                            </div>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                <div className="bg-white/90 rounded-2xl border border-slate-100 p-4 md:p-5 shadow-sm">
+                                                    <p className="text-xs font-black uppercase tracking-[0.2em] text-indigo-700 mb-2">Âm On</p>
+                                                    <p lang="ja" className="text-xl md:text-2xl font-bold text-slate-800 leading-relaxed">
+                                                        {entity.onyomi?.trim() || '—'}
+                                                    </p>
+                                                </div>
+                                                <div className="bg-white/90 rounded-2xl border border-slate-100 p-4 md:p-5 shadow-sm">
+                                                    <p className="text-xs font-black uppercase tracking-[0.2em] text-indigo-700 mb-2">Âm Kun</p>
+                                                    <p lang="ja" className="text-xl md:text-2xl font-bold text-slate-800 leading-relaxed">
+                                                        {entity.kunyomi?.trim() || '—'}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            {kanjiRelatedVocab.length > 0 && (
+                                                <div className="space-y-3">
+                                                    <p className="text-xs font-black uppercase tracking-[0.25em] text-slate-500 text-center">
+                                                        Từ vựng có chứa chữ này
+                                                    </p>
+                                                    <ul className="space-y-3">
+                                                        {kanjiRelatedVocab.map((ex, idx) => (
+                                                            <li
+                                                                key={idx}
+                                                                className="bg-white/90 p-4 md:p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-2 text-left"
+                                                            >
+                                                                <span lang="ja" className="text-xl md:text-2xl font-bold text-slate-900">
+                                                                    {ex.content}
+                                                                </span>
+                                                                <span className="text-base text-slate-600 sm:text-right sm:max-w-[55%] leading-snug">
+                                                                    {ex.translation}
+                                                                </span>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                            )}
+                                        </>
+                                    )}
+
+                                    {currentItem.itemType === SkillType.Grammar && (
+                                        <>
+                                            <div className="text-center space-y-3">
+                                                <p className="text-xs font-black uppercase tracking-[0.25em] text-slate-500">Ý nghĩa</p>
+                                                <h3 className="text-2xl md:text-[1.75rem] font-black text-slate-900 leading-snug px-2">
+                                                    {entity.meaning || 'Chưa có nghĩa'}
+                                                </h3>
+                                                <div className={`w-16 h-1.5 ${variant.accentLine} mx-auto rounded-full`} />
+                                            </div>
+                                            {sentenceExamples.length > 0 && (
+                                                <div className="space-y-3">
+                                                    <p className="text-xs font-black uppercase tracking-[0.25em] text-slate-500 text-center">
+                                                        Câu ví dụ (tối đa 2)
+                                                    </p>
+                                                    <ul className="space-y-3">
+                                                        {sentenceExamples.map((ex, idx) => (
+                                                            <li
+                                                                key={idx}
+                                                                className="bg-white/90 p-4 md:p-5 rounded-2xl border border-slate-100 shadow-sm text-left"
+                                                            >
+                                                                <p lang="ja" className="text-lg md:text-xl font-bold text-slate-900 leading-relaxed">
+                                                                    {ex.content}
+                                                                </p>
+                                                                <p className="text-base text-slate-600 mt-2 leading-snug border-t border-slate-100 pt-3">
+                                                                    {ex.translation}
+                                                                </p>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                            )}
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -268,10 +529,19 @@ const FlashcardReviewPage: React.FC = () => {
                             onClick={() => setIsFlipped(prev => !prev)}
                             className="flex flex-col items-center gap-3 group"
                         >
-                            <div className="w-20 h-20 rounded-full bg-primary shadow-lg shadow-primary/30 flex items-center justify-center text-white transition-all duration-300 group-hover:shadow-primary/50 group-hover:scale-105 group-active:scale-95">
-                                <span className="material-symbols-outlined text-4xl">{isFlipped ? 'visibility_off' : 'refresh'}</span>
+                            <div className={`w-20 h-20 rounded-full flex items-center justify-center text-white transition-all duration-300 
+                                ${variant.colorBg} ${variant.frontRing} 
+                                group-hover:scale-105 group-active:scale-95`}
+                            >
+                                <span className="material-symbols-outlined text-4xl">
+                                    {isFlipped ? 'visibility_off' : 'refresh'}
+                                </span>
                             </div>
-                            <span className="text-lg font-black text-slate-800">{isFlipped ? 'Úp lại' : 'Lật thẻ'}</span>
+                            
+                            <span className="text-lg font-black text-slate-800">
+                                {isFlipped ? 'Úp lại' : 'Lật thẻ'}
+                            </span>
+                            
                             <span className="text-[10px] text-slate-400 font-bold uppercase">(Space)</span>
                         </button>
                         

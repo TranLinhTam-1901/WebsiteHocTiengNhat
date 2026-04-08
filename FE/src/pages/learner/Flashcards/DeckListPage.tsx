@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import LearnerHeader from '../../../components/layout/learner/LearnerHeader';
 import { FlashcardService } from '../../../services/Learner/flashcardService';
-import { UserDeckDTO } from '../../../interfaces/Learner/Flashcard';
+import { DeckSuggestedAction, UserDeckDTO } from '../../../interfaces/Learner/Flashcard';
 import { SkillType } from '../../../interfaces/Admin/QuestionBank';
 import { useSearchParams } from 'react-router-dom';
 
@@ -76,6 +76,7 @@ const DeckListPage: React.FC = () => {
             case SkillType.Vocabulary: 
                 return {
                     iconBg: 'bg-[#f287b6]/10',
+                    hoverColor: 'hover:text-[#f287b6]',
                     iconColor: 'text-[#f287b6]',
                     levelBg: 'bg-[#f287b6]/20',
                     levelColor: 'text-[#7b2652]',
@@ -88,6 +89,7 @@ const DeckListPage: React.FC = () => {
             case SkillType.Kanji: 
                 return {
                     iconBg: 'bg-emerald-500/10',
+                    hoverColor: 'hover:text-emerald-500',
                     iconColor: 'text-emerald-500',
                     levelBg: 'bg-emerald-100',
                     levelColor: 'text-emerald-900',
@@ -100,6 +102,7 @@ const DeckListPage: React.FC = () => {
             case SkillType.Grammar: 
                 return {
                     iconBg: 'bg-amber-500/10',
+                    hoverColor: 'hover:text-amber-500',
                     iconColor: 'text-amber-500',
                     levelBg: 'bg-amber-100',
                     levelColor: 'text-amber-900',
@@ -112,6 +115,7 @@ const DeckListPage: React.FC = () => {
             case SkillType.Reading: 
                 return {
                     iconBg: 'bg-blue-500/10',
+                    hoverColor: 'hover:text-blue-500',
                     iconColor: 'text-blue-500',
                     levelBg: 'bg-blue-100',
                     levelColor: 'text-blue-900',
@@ -124,6 +128,7 @@ const DeckListPage: React.FC = () => {
             case SkillType.Listening: 
                 return {
                     iconBg: 'bg-violet-500/10',
+                    hoverColor: 'hover:text-violet-500',
                     iconColor: 'text-violet-500',
                     levelBg: 'bg-violet-100',
                     levelColor: 'text-violet-900',
@@ -136,6 +141,7 @@ const DeckListPage: React.FC = () => {
             default: 
                 return {
                     iconBg: 'bg-gray-100',
+                    hoverColor: 'hover:text-gray-500',
                     iconColor: 'text-gray-500',
                     levelBg: 'bg-gray-200',
                     levelColor: 'text-gray-900',
@@ -152,6 +158,38 @@ const DeckListPage: React.FC = () => {
         [SkillType.Vocabulary]: 'vocabulary',
         [SkillType.Grammar]: 'grammar',
         [SkillType.Kanji]: 'kanji',
+    };
+
+    const inferDeckAction = (deck: UserDeckDTO): DeckSuggestedAction => {
+        if (deck.totalCards === 0) return 'empty';
+        const mastered = deck.masteredCount ?? 0;
+        if (mastered === 0) return 'learn';
+        if (mastered < deck.totalCards) return 'continue';
+        if (deck.dueCount > 0) return 'review';
+        return 'complete';
+    };
+
+    const resolveDeckAction = (deck: UserDeckDTO): DeckSuggestedAction => {
+        const raw = deck.suggestedAction as string | undefined;
+        if (raw && ['learn', 'continue', 'review', 'complete', 'empty'].includes(raw)) {
+            return raw as DeckSuggestedAction;
+        }
+        return inferDeckAction(deck);
+    };
+
+    const studyModeForAction = (action: DeckSuggestedAction): string | null => {
+        if (action === 'learn' || action === 'continue' || action === 'review') return action;
+        return null;
+    };
+
+    const primaryButtonLabel = (action: DeckSuggestedAction): string => {
+        switch (action) {
+            case 'learn': return 'Học ngay';
+            case 'continue': return 'Học tiếp';
+            case 'review': return 'Ôn tập';
+            case 'complete': return 'Hoàn thành';
+            default: return '—';
+        }
     };
 
     const handleBackToHub = () => {
@@ -192,7 +230,7 @@ const DeckListPage: React.FC = () => {
                     {/* Add Button */}
                     <div className="flex items-center gap-3">
                         <Link 
-                            to="/learner/flashcards/create"
+                            to={`/learner/flashcards/create?type=${activeFilter}`}
                             className="bg-primary hover:bg-primary-dark text-white px-5 py-2 rounded-full text-sm font-bold flex items-center gap-2 transition-all shadow-lg shadow-primary/20 active:scale-95 no-underline"
                         >
                             <span className="material-symbols-outlined text-sm">style</span>
@@ -277,8 +315,15 @@ const DeckListPage: React.FC = () => {
                         {filteredDecks.length > 0 ? (
                             filteredDecks.map((deck) => {
                                 const style = getSkillStyle(deck.skillType);
-                                const mastered = Math.max(0, deck.totalCards - deck.dueCount - deck.newCards);
-                                const progress = deck.totalCards > 0 ? (mastered / deck.totalCards) * 100 : 0;
+                                const action = resolveDeckAction(deck);
+                                const mode = studyModeForAction(action);
+                                const progress =
+                                    deck.progressPercent != null && !Number.isNaN(deck.progressPercent)
+                                        ? deck.progressPercent
+                                        : deck.totalCards > 0
+                                            ? ((deck.masteredCount ?? 0) / deck.totalCards) * 100
+                                            : 0;
+                                const masteredDisplay = deck.masteredCount ?? 0;
 
                                 return (
                                     <div 
@@ -300,7 +345,7 @@ const DeckListPage: React.FC = () => {
                                         <div className="space-y-4 mb-8">
                                             <div className="flex justify-between items-center text-sm font-medium">
                                                 <span className="text-[#534248]">Tiến độ: {Math.round(progress)}%</span>
-                                                <span className={style.progressColor}>{mastered}/{deck.totalCards} thẻ</span>
+                                                <span className={style.progressColor}>{masteredDisplay}/{deck.totalCards} thẻ</span>
                                             </div>
                                             <div className={`w-full h-2 ${style.progressBarBg} rounded-full overflow-hidden`}>
                                                 <div className={`h-full ${style.progressBar} rounded-full transition-all duration-500`} style={{ width: `${progress}%` }}></div>
@@ -308,23 +353,34 @@ const DeckListPage: React.FC = () => {
                                         </div>
                                         <div className="flex gap-3">
                                             <button 
-                                                onClick={() => navigate(
-                                                    `/learner/flashcards/review/${deck.deckID}?type=${activeFilter}`,
-                                                    { state: { filterState: activeFilter } }
-                                                )}
-                                                disabled={deck.totalCards === 0}
+                                                onClick={() => {
+                                                    if (!mode) return;
+                                                    const q = new URLSearchParams({ type: String(activeFilter), mode });
+                                                    navigate(
+                                                        `/learner/flashcards/review/${deck.deckID}?${q.toString()}`,
+                                                        { state: { filterState: activeFilter, studyMode: mode } }
+                                                    );
+                                                }}
+                                                disabled={deck.totalCards === 0 || !mode}
                                                 className={`flex-1 py-4 rounded-full font-bold transition-all flex items-center justify-center gap-2 ${
-                                                    deck.totalCards > 0 
+                                                    deck.totalCards > 0 && mode
                                                     ? `${style.buttonBg} ${style.buttonShadow} active:scale-95` 
                                                     : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                                                 }`}
                                                 >
-                                                Học ngay
-                                                <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                                                {primaryButtonLabel(action)}
+                                                {mode ? (
+                                                    <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                                                ) : (
+                                                    <span className="material-symbols-outlined text-sm">check_circle</span>
+                                                )}
                                             </button>
                                             <button 
-                                                onClick={() => navigate(`/learner/flashcards/deck/${deck.deckID}`)}
-                                                className="w-14 h-14 rounded-full border border-[rgba(242,135,182,0.1)] flex items-center justify-center text-[#534248] hover:bg-background-light transition-all hover:text-primary active:scale-95"
+                                                onClick={() => navigate(
+                                                    `/learner/flashcards/deck/${deck.deckID}?type=${activeFilter}`,
+                                                    { state: { filterState: activeFilter } }
+                                                )}
+                                                className={`w-14 h-14 rounded-full border border-[rgba(242,135,182,0.1)] flex items-center justify-center text-[#534248] hover:bg-background-light transition-all ${style.hoverColor} active:scale-95`}
                                             >
                                                 <span className="material-symbols-outlined">visibility</span>
                                             </button>

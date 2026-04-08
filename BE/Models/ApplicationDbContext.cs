@@ -88,6 +88,9 @@ namespace QuizzTiengNhat.Models
             modelBuilder.Entity<FlashcardDeck>(entity => {
                 entity.HasIndex(d => d.UserID);
                 entity.HasIndex(d => d.LevelID);
+                entity.HasIndex(d => new { d.UserID, d.DeckSyncKey })
+                    .IsUnique()
+                    .HasFilter("\"DeckSyncKey\" IS NOT NULL");
                 entity.Property(d => d.SkillType).HasConversion<int>();
                 entity.HasOne(d => d.Level)
                       .WithMany()

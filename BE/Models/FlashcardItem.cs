@@ -33,6 +33,13 @@ namespace QuizzTiengNhat.Models
         public DateTime NextReview { get; set; } = DateTime.UtcNow;
 
         public DateTime LastReviewed { get; set; }
+
+        /// <summary>Chất lượng lần ôn SRS gần nhất (0–5), map với SM-2 / nút Đã thuộc–Chưa thuộc</summary>
+        public int? LastReviewQuality { get; set; }
+
+        /// <summary>Thời gian trả lời (giây) lần ôn gần nhất trên flashcard</summary>
+        public int? LastTimeTakenSeconds { get; set; }
+
         public bool IsMastered { get; set; } = false; // Đánh dấu nếu đã thuộc hoàn toàn
     }
 }
