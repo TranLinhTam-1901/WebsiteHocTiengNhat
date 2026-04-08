@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { logout } from '../../../store/auth.slice';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector} from 'react-redux';
@@ -43,18 +43,26 @@ const Sidebar: React.FC = () => {
     return false;
   };
   
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const profile = await LearnerProfileService.getCurrentProfile();
-        console.log("Dữ liệu Profile nhận được:", profile);
-        setCurrentUser(profile);
-      } catch (error) {
-        console.error("Failed to fetch profile", error);
-      }
-    };
-    fetchProfile();
+  const fetchProfile = useCallback(async () => {
+    try {
+      const profile = await LearnerProfileService.getCurrentProfile();
+      setCurrentUser(profile);
+    } catch (error) {
+      console.error('Failed to fetch profile', error);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
+
+  useEffect(() => {
+    const onRefresh = () => {
+      fetchProfile();
+    };
+    window.addEventListener('learner-profile-refresh', onRefresh);
+    return () => window.removeEventListener('learner-profile-refresh', onRefresh);
+  }, [fetchProfile]);
 
   useEffect(() => {
     if (isSkillActive) setIsSkillOpen(true);
@@ -87,6 +95,16 @@ const Sidebar: React.FC = () => {
             icon="dashboard" 
             label="Tổng quan" 
             active={location.pathname === '/learner/dashboard'} 
+          />
+
+          <NavItem
+            to="/learner/courses"
+            icon="menu_book"
+            label="Khóa học"
+            active={
+              location.pathname.startsWith('/learner/courses') ||
+              /\/learner\/lessons\/[^/]+\/learn/.test(location.pathname)
+            }
           />
 
           {/* --- PHẦN 2: LỘ TRÌNH HỌC CHÍNH --- */}
@@ -180,6 +198,11 @@ const Sidebar: React.FC = () => {
               style={{ width: `${currentUser?.progressPercent || 0}%` }}
             ></div>
           </div>
+          {currentUser?.totalLessons != null && currentUser?.completedLessons != null && (
+            <p className="text-[10px] text-[#886373] mt-2 font-medium" title="Theo bài trong khóa thuộc trình độ của bạn">
+              {currentUser.completedLessons} / {currentUser.totalLessons} bài hoàn thành
+            </p>
+          )}
         </div>
 
         {/* Thông tin User & Đăng xuất */}

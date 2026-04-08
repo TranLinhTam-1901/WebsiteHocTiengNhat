@@ -12,6 +12,8 @@ const adminService = {
   // Khóa/Mở khóa tài khoản
   toggleLock: (userId: string, isLocked: boolean) => 
     axiosInstance.post("admin/lock-user", { userId, isLocked }),
+
+  
 };
 
 export default adminService;

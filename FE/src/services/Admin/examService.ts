@@ -4,7 +4,7 @@ import {
     ExamSummaryResponse, 
     ExamPartConfig,
     ExamDetailResponse,
-    ExamListResponse,
+    ExamListResponse,UpdateExamRequest
 } from '../../interfaces/Admin/Exam';
 
 const ExamService = {
@@ -76,7 +76,12 @@ const ExamService = {
     async togglePublish(id: string): Promise<{ success: boolean; isPublished: boolean; message: string }> {
         const response = await axiosInstance.patch(`/admin/exams/${id}/publish`);
         return response.data;
-    }
+    },
+
+    updateExam: async (id: string, data: UpdateExamRequest): Promise<{ success: boolean; message: string }> => {
+        const response = await axiosInstance.put(`/admin/exams/${id}`, data);
+        return response.data;
+    },
     
 };
 

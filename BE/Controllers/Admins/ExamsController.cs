@@ -17,7 +17,7 @@ public class ExamsController : ControllerBase
         _context = context;
     }
 
-    // 1. GET: api/Exams/templates/standards/{level}
+   
     [HttpGet("templates/standards/{level}")]
     public async Task<IActionResult> GetStandardTemplate(Guid level)
     {
@@ -60,7 +60,8 @@ public class ExamsController : ControllerBase
         });
         return Ok(skills);
     }
-    // 2. GET: api/Exams/lessons
+    
+
     [HttpGet("lessons")]
     public async Task<IActionResult> GetLessons()
     {
@@ -85,7 +86,7 @@ public class ExamsController : ControllerBase
         return Ok(levels);
     }
     
-    // 3. POST: api/Exams/generate
+    
     [HttpPost("generate")]
     public async Task<IActionResult> GenerateExam([FromBody] GenerateExamRequestDTO request)
     {
@@ -191,7 +192,27 @@ public class ExamsController : ControllerBase
         }
     }
 
-    // 4. POST: api/Exams/summary
+    
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateExamInfo(Guid id, [FromBody] UpdateExamRequestDTO request)
+    {
+        var exam = await _context.Exams.FindAsync(id);
+        if (exam == null) return NotFound("Không tìm thấy đề thi.");
+
+        // Cập nhật các trường cơ bản
+        exam.Title = request.Title;
+        exam.Duration = request.Duration;
+        exam.PassingScore = request.PassingScore;
+        exam.MinLanguageKnowledgeScore = request.MinLanguageKnowledgeScore;
+        exam.MinReadingScore = request.MinReadingScore;
+        exam.MinListeningScore = request.MinListeningScore;
+        exam.ShowResultImmediately = request.ShowResultImmediately;
+        
+        await _context.SaveChangesAsync();
+        return Ok(new { success = true, message = "Cập nhật thông tin đề thi thành công." });
+
+    }
+
     [HttpPost("summary")]
     public IActionResult GetSummary([FromBody] List<ExamPartConfigDTO> parts)
     {
@@ -247,8 +268,8 @@ public class ExamsController : ControllerBase
 
         return Ok(stats);
     }
-    // LIST DANH SÁCH ĐỀ THI //
 
+        // LIST DANH SÁCH ĐỀ THI //
         [HttpGet]
         public async Task<IActionResult> GetExams(
             [FromQuery] string? search, 

@@ -1,6 +1,7 @@
 import { RouteObject, Navigate } from 'react-router-dom';
 import AdminLayout from '../components/layout/admin/AdminLayout';
 import PrivateRoute from './PrivateRoute';
+import React from 'react';
 
 // Import Pages hiện có
 import Overview from '../pages/admin/Dashboard/Overview';
@@ -32,6 +33,7 @@ import TopicForm from '../pages/admin/LearningResource/Topic/TopicForm';
 
 import GrammarGroupListPage from '../pages/admin/LearningResource/GrammarGroup/GrammarGroupListPage';
 import GrammarGroupForm from '../pages/admin/LearningResource/GrammarGroup/GrammarGroupForm';
+import EditExamPage from '../pages/admin/ExamManagement/EditExamPage';
 
 export const adminRoutes: RouteObject[] = [
   {
@@ -103,10 +105,12 @@ export const adminRoutes: RouteObject[] = [
               {  index : true, element: <ExamListPage /> },
 
               // Khi vào /admin/exams, trang này sẽ hiện đầu tiên
-              { path :"edit", element: <ExamForgePage /> }, 
+              { path :"add", element: <ExamForgePage /> }, 
               
               // Trang chi tiết đề thi (Ví dụ: /admin/exams/123/details)
               { path: ':id/details', element: <ExamDetailPage /> },
+
+              { path: 'edit/:id', element: <EditExamPage /> },
             ]
           },
         ],
