@@ -43,14 +43,28 @@ namespace QuizzTiengNhat.Controllers.Learners
             // 2. Lấy danh sách Role
             var roles = await _userManager.GetRolesAsync(user);
 
-            // 3. Tính toán tiến độ thực tế dựa trên logic của GetUsers
-            // Đếm số bài học có trạng thái "Completed" của user này
-            var completedLessons = await _context.Progresses
-                .CountAsync(p => p.UserID == user.Id && p.Status == "Completed");
+            // 3. Tính toán progress theo đúng level của user (không hardcode)
+            if (user.LevelID == null)
+            {
+                return BadRequest(new { message = "User level not found." });
+            }
 
-            // Giả sử 50 bài học/level (Bạn nên query từ bảng Lessons nếu có total cụ thể)
-            int totalLessons = 50;
-            int percent = totalLessons > 0 ? (int)((double)completedLessons / totalLessons * 100) : 0;
+            var levelId = user.LevelID.Value;
+            var completedLessons = await _context.Progresses
+                .Where(p => p.UserID == user.Id
+                            && p.LevelID == levelId
+                            && p.Status == "Completed")
+                .Select(p => p.LessonsID)
+                .Distinct()
+                .CountAsync();
+
+            var totalLessons = await _context.Lessons
+                .Where(l => l.Course.LevelID == levelId)
+                .CountAsync();
+
+            int percent = totalLessons > 0
+                ? (int)((double)completedLessons / totalLessons * 100)
+                : 0;
 
             // Giới hạn không quá 100%
             if (percent > 100) percent = 100;
@@ -65,7 +79,9 @@ namespace QuizzTiengNhat.Controllers.Learners
                 isLocked = user.LockoutEnd.HasValue && user.LockoutEnd > DateTimeOffset.UtcNow,
                 levelId = user.LevelID,
                 levelName = user.Level?.LevelName ?? "N5",
-                progressPercent = percent
+                progressPercent = percent,
+                completedLessons = completedLessons,
+                totalLessons = totalLessons
             });
         }
     }

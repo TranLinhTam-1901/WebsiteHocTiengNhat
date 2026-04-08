@@ -47,7 +47,9 @@ export interface ExamDetailResponse {
     examID: string;
     title: string;
     passingScore: number;
+    duration: number;
     examType: ExamType;
+    showResultImmediately: boolean;
     minScores: {
         language: number;
         reading: number;
@@ -60,4 +62,16 @@ export interface ExamDetailResponse {
         skillType: string;
         score: number;
     }[];
+
+    
+}
+
+export interface UpdateExamRequest {
+    title: string;
+    duration: number;
+    passingScore: number;
+    minLanguageKnowledgeScore: number;
+    minReadingScore: number;
+    minListeningScore: number;
+    showResultImmediately: boolean;
 }
