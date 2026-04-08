@@ -1,4 +1,4 @@
-﻿using QuizzTiengNhat.Models.Enums;
+using QuizzTiengNhat.Models.Enums;
 
 namespace QuizzTiengNhat.DTOs.Learner
 {
@@ -16,5 +16,15 @@ namespace QuizzTiengNhat.DTOs.Learner
         public string Furigana { get; set; }
         public string Meaning { get; set; }
         public string Example { get; set; }
+        public string Kunyomi { get; set; }
+        public string Onyomi { get; set; }
+        public string Explanation { get; set; }
+        public List<FlashcardExampleDTO> Examples { get; set; } = new List<FlashcardExampleDTO>();
+    }
+
+    public class FlashcardExampleDTO
+    {
+        public string Content { get; set; }
+        public string Translation { get; set; }
     }
 }

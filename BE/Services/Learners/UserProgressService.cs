@@ -34,36 +34,68 @@ namespace QuizzTiengNhat.Services.Learners
 
         public async Task<object> GetPersonalizedSuggestionsAsync(string userId)
         {
-            // 1. Lấy danh sách các thẻ Flashcard đã đến hạn hoặc quá hạn ôn tập (SRS)
+            var now = DateTime.UtcNow;
+
             var reviewCount = await _context.FlashcardItems
                 .Where(f => _context.FlashcardDecks.Any(d => d.DeckID == f.DeckID && d.UserID == userId)
-                       && f.NextReview <= DateTime.UtcNow)
+                       && f.NextReview <= now)
                 .CountAsync();
 
-            // 2. Tìm "Điểm mù": Những Topic mà User làm sai nhiều nhất trong 50 câu gần đây
             var weakTopics = await _context.UserAnswerHistories
                 .Where(h => h.UserID == userId && !h.IsCorrect)
                 .GroupBy(h => h.Question.QuestionTopics.Select(qt => qt.Topic.TopicName).FirstOrDefault())
                 .OrderByDescending(g => g.Count())
-                .Take(2) // Lấy 2 topic yếu nhất
+                .Take(2)
                 .Select(g => g.Key)
                 .ToListAsync();
 
-            // 3. Phân tích tốc độ: Nếu TimeTaken trung bình > 10s cho các câu đúng -> Cần luyện phản xạ
             var avgTime = await _context.UserAnswerHistories
                 .Where(h => h.UserID == userId && h.IsCorrect)
                 .OrderByDescending(h => h.AnsweredAt)
                 .Take(20)
                 .AverageAsync(h => (double?)h.TimeTaken) ?? 0;
 
-            // 4. Tổng hợp lộ trình cá nhân hóa
+            var decks = await _context.FlashcardDecks
+                .Include(d => d.Items)
+                .Where(d => d.UserID == userId)
+                .ToListAsync();
+
+            var decksReadyForSrsReview = decks.Count(d =>
+            {
+                var n = d.Items.Count;
+                if (n == 0) return false;
+                var mastered = d.Items.Count(i => i.IsMastered);
+                var due = d.Items.Count(i => i.NextReview <= now);
+                return mastered == n && due > 0;
+            });
+
+            DateTime? nextScheduledReview = null;
+            foreach (var d in decks)
+            {
+                foreach (var i in d.Items)
+                {
+                    if (i.NextReview <= now) continue;
+                    if (nextScheduledReview == null || i.NextReview < nextScheduledReview)
+                        nextScheduledReview = i.NextReview;
+                }
+            }
+
+            var lowEaseCount = await _context.FlashcardItems
+                .CountAsync(f => _context.FlashcardDecks.Any(d => d.DeckID == f.DeckID && d.UserID == userId)
+                                  && f.EF < 2.0);
+
             return new
             {
                 ReviewCount = reviewCount,
+                DecksDueForFullReview = decksReadyForSrsReview,
+                NextScheduledReviewUtc = nextScheduledReview,
+                LowEaseCardCount = lowEaseCount,
                 WeakPoints = weakTopics,
                 SystemMessage = reviewCount > 10
                     ? "Kho thẻ của bạn đang quá tải, hãy dành 5 phút ôn tập nhé!"
-                    : "Tiến độ rất tốt! Hãy thử thách với các bài học mới.",
+                    : decksReadyForSrsReview > 0
+                        ? $"Có {decksReadyForSrsReview} bộ thẻ đã học xong và đến lịch SRS — mở Flashcards để ôn lại toàn bộ."
+                        : "Tiến độ rất tốt! Hãy thử thách với các bài học mới.",
                 FocusSuggestion = avgTime > 10
                     ? "Bạn hiểu bài nhưng phản xạ hơi chậm, hãy thử luyện tập với áp lực thời gian."
                     : "Phản xạ của bạn rất tuyệt vời!"

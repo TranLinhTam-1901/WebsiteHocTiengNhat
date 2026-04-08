@@ -27,7 +27,6 @@ const Sidebar: React.FC = () => {
     const typeParam = searchParams.get('type');
     
     // 3. Lấy type từ Navigate State (Dùng cho các trang con như Review/Detail)
-    // Lưu ý: filterState hoặc skillType tùy vào cách bạn đặt tên khi navigate
     const stateType = location.state?.filterState ?? location.state?.skillType;
   
     // Kiểm tra nếu đang ở các trang Flashcard

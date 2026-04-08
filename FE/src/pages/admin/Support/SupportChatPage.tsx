@@ -1,7 +1,8 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import axiosInstance from '../../../utils/axiosInstance';
 import { useChatHub } from '../../../hooks/useChatHub';
 import type { ChatConversationListItem, ChatMessage } from '../../../types/chat';
+import AdminHeader from '../../../components/layout/admin/AdminHeader';
 
 function formatTime(iso: string) {
   try {
@@ -20,6 +21,7 @@ const SupportChatPage: React.FC = () => {
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const bottomRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
   const prevJoined = useRef<string | null>(null);
 
   const selected = useMemo(
@@ -114,6 +116,16 @@ const SupportChatPage: React.FC = () => {
     run();
   }, [connected, selectedId, joinConversation, leaveConversation]);
 
+  const scrollToBottom = useCallback(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'auto' });
+  }, []);
+
+  useLayoutEffect(() => {
+    if (messages.length > 0) {
+      scrollToBottom();
+    }
+  }, [messages, scrollToBottom]);
+
   const handleSend = async () => {
     const text = input.trim();
     if (!text || !selectedId || sending) return;
@@ -121,7 +133,7 @@ const SupportChatPage: React.FC = () => {
     try {
       await sendMessage(selectedId, text);
       setInput('');
-      bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+      setTimeout(() => inputRef.current?.focus(), 0);
     } catch (e) {
       console.error(e);
     } finally {
@@ -142,125 +154,159 @@ const SupportChatPage: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-0px)] min-h-[520px] -m-8 bg-[#f0f2f5]">
-      <header className="shrink-0 px-8 py-4 border-b border-[#e4e6eb] bg-white">
-        <h1 className="text-xl font-bold text-[#181114]">Hỗ trợ trực tuyến</h1>
-        <p className="text-sm text-[#886373]">Tất cả hội thoại từ học viên — giống giao diện Messenger</p>
-      </header>
-
-      <div className="flex flex-1 min-h-0 border-t border-[#e4e6eb]">
-        {/* Sidebar */}
-        <aside className="w-[320px] shrink-0 bg-white border-r border-[#e4e6eb] flex flex-col">
-          <div className="p-3 border-b border-[#e4e6eb] font-semibold text-sm text-[#65676b]">Hội thoại</div>
-          <div className="flex-1 overflow-y-auto">
-            {loadingList ? (
-              <p className="p-4 text-sm text-[#886373]">Đang tải…</p>
-            ) : conversations.length === 0 ? (
-              <p className="p-4 text-sm text-[#886373]">Chưa có hội thoại nào.</p>
-            ) : (
-              conversations.map((c) => (
-                <button
-                  key={c.id}
-                  type="button"
-                  onClick={() => setSelectedId(c.id)}
-                  className={`w-full text-left px-3 py-3 border-b border-[#f0f2f5] hover:bg-[#f5f6f7] transition-colors ${
-                    selectedId === c.id ? 'bg-[#e7f3ff]' : ''
-                  }`}
-                >
-                  <div className="flex items-start gap-2">
-                    <div className="size-12 rounded-full bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center text-white font-bold shrink-0">
-                      {(c.learnerName || '?').charAt(0).toUpperCase()}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-[#181114] truncate">{c.learnerName || c.learnerEmail}</div>
-                      <div className="text-xs text-[#65676b] truncate">{c.lastMessagePreview || '—'}</div>
-                      <div className="text-[10px] text-[#b0b3b8] mt-0.5">{formatTime(c.lastMessageAt)}</div>
-                    </div>
-                  </div>
-                </button>
-              ))
-            )}
+    <div className="flex flex-col h-full bg-background-light">
+      <AdminHeader>
+        <div className="flex items-center gap-4 flex-1">
+          <div className="flex flex-col">
+            <h2 className="text-xl font-bold text-[#181114]">HỖ TRỢ TRỰC TUYẾN</h2>
           </div>
-        </aside>
+        </div>
+      </AdminHeader>
 
-        {/* Thread */}
-        <section className="flex-1 flex flex-col min-w-0 bg-[#f0f2f5]">
-          {!selected ? (
-            <div className="flex-1 flex items-center justify-center text-[#65676b]">Chọn một hội thoại</div>
-          ) : (
-            <>
-              <div className="shrink-0 h-14 px-4 flex items-center gap-3 bg-white border-b border-[#e4e6eb] shadow-sm">
-                <div className="size-10 rounded-full bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center text-white font-bold">
-                  {(selected.learnerName || '?').charAt(0).toUpperCase()}
-                </div>
-                <div>
-                  <div className="font-bold text-[#181114]">{selected.learnerName}</div>
-                  <div className="text-xs text-[#65676b]">{selected.learnerEmail}</div>
-                </div>
-                <span className="ml-auto text-xs text-[#65676b]">
-                  Admin phụ trách (RR): {selected.assignedAdminName}
-                </span>
-              </div>
-
-              <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2">
-                {messages.length > 0 && (
+      <div className="flex-1 overflow-hidden p-8">
+        <div className="bg-white rounded-2xl border border-[#f4f0f2] shadow-sm overflow-hidden flex h-full">
+          {/* Sidebar */}
+          <aside className="w-[320px] shrink-0 bg-white border-r border-[#f4f0f2] flex flex-col">
+            <div className="p-4 border-b border-[#f4f0f2] font-bold text-sm text-[#181114] uppercase tracking-wider">
+              Danh sách hội thoại
+            </div>
+            <div className="flex-1 overflow-y-auto custom-scrollbar">
+              {loadingList ? (
+                <p className="p-4 text-sm text-[#886373] text-center mt-4">Đang tải…</p>
+              ) : conversations.length === 0 ? (
+                <p className="p-4 text-sm text-[#886373] text-center mt-4">Chưa có hội thoại nào.</p>
+              ) : (
+                conversations.map((c) => (
                   <button
+                    key={c.id}
                     type="button"
-                    onClick={loadOlder}
-                    disabled={loadingOlder}
-                    className="text-xs text-primary mx-auto block py-1"
+                    onClick={() => setSelectedId(c.id)}
+                    className={`w-full text-left px-4 py-4 border-b border-[#f4f0f2] hover:bg-primary/5 transition-all ${
+                      selectedId === c.id ? 'bg-primary/5 relative' : ''
+                    }`}
                   >
-                    {loadingOlder ? 'Đang tải…' : 'Tải tin nhắn cũ hơn'}
-                  </button>
-                )}
-                {messages.map((m) => (
-                  <div
-                    key={m.id}
-                    className={`flex ${m.isFromAdmin ? 'justify-end' : 'justify-start'}`}
-                  >
-                    <div
-                      className={`max-w-[72%] rounded-2xl px-3 py-2 shadow-sm ${
-                        m.isFromAdmin
-                          ? 'bg-primary text-white rounded-br-sm'
-                          : 'bg-white text-[#181114] border border-[#e4e6eb] rounded-bl-sm'
-                      }`}
-                    >
-                      {!m.isFromAdmin && (
-                        <div className="text-[10px] font-semibold text-primary mb-0.5">{m.senderName}</div>
-                      )}
-                      <p className="text-sm whitespace-pre-wrap break-words">{m.content}</p>
-                      <div
-                        className={`text-[10px] mt-1 ${m.isFromAdmin ? 'text-white/80' : 'text-[#65676b]'}`}
-                      >
-                        {formatTime(m.sentAt)}
+                    {selectedId === c.id && (
+                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-r-full" />
+                    )}
+                    <div className="flex items-center gap-3">
+                      <div className="size-11 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shrink-0 text-lg border border-primary/20">
+                        {(c.learnerName || '?').charAt(0).toUpperCase()}
+                      </div>
+                      <div className="flex-1 min-w-0 flex flex-col gap-0.5">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-sm text-[#181114] truncate">{c.learnerName || c.learnerEmail}</span>
+                          <span className="text-[10px] text-[#886373] font-medium whitespace-nowrap ml-2">
+                            {formatTime(c.lastMessageAt).split(',')[1]?.trim() || formatTime(c.lastMessageAt)}
+                          </span>
+                        </div>
+                        <div className="text-[12px] text-[#886373] truncate">
+                          {c.lastMessagePreview || '—'}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-                <div ref={bottomRef} />
-              </div>
+                  </button>
+                ))
+              )}
+            </div>
+          </aside>
 
-              <div className="shrink-0 p-3 bg-white border-t border-[#e4e6eb] flex gap-2">
-                <input
-                  className="flex-1 rounded-full border border-[#e4e6eb] px-4 py-2 text-sm outline-none focus:border-primary"
-                  placeholder="Nhập tin nhắn…"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSend())}
-                  disabled={!connected || sending}
-                />
-                <button
-                  type="button"
-                  onClick={handleSend}
-                  disabled={!connected || sending || !input.trim()}
-                  className="rounded-full bg-primary text-white px-5 py-2 text-sm font-semibold disabled:opacity-50"
-                >
-                  Gửi
-                </button>
+          {/* Thread */}
+          <section className="flex-1 flex flex-col min-w-0 bg-[#fafafa]">
+            {!selected ? (
+              <div className="flex-1 flex flex-col items-center justify-center text-[#886373] gap-4">
+                <div className="size-20 rounded-full bg-white border border-[#f4f0f2] shadow-sm flex items-center justify-center">
+                  <span className="material-symbols-outlined text-[32px] text-primary/40">forum</span>
+                </div>
+                <p className="font-medium">Chọn một hội thoại để xem tin nhắn</p>
               </div>
-            </>
-          )}
-        </section>
+            ) : (
+              <>
+                <div className="shrink-0 h-[68px] px-6 flex items-center gap-3 bg-white border-b border-[#f4f0f2]">
+                  <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold border border-primary/20">
+                    {(selected.learnerName || '?').charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex flex-col">
+                    <div className="font-bold text-sm text-[#181114]">{selected.learnerName}</div>
+                    <div className="text-[11px] text-[#886373] font-medium">{selected.learnerEmail}</div>
+                  </div>
+                  <div className="ml-auto flex items-center gap-2 px-3 py-1.5 bg-emerald-50 rounded-lg border border-emerald-100">
+                    <span className="material-symbols-outlined text-[16px] text-emerald-600">support_agent</span>
+                    <span className="text-xs font-bold text-emerald-600">
+                      Phụ trách: {selected.assignedAdminName}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4 custom-scrollbar">
+                  {messages.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={loadOlder}
+                      disabled={loadingOlder}
+                      className="text-xs font-bold text-primary hover:text-primary-dark transition-colors mx-auto block py-2 bg-primary/5 px-4 rounded-full"
+                    >
+                      {loadingOlder ? 'Đang tải…' : ''}
+                    </button>
+                  )}
+                  {messages.map((m) => (
+                    <div
+                      key={m.id}
+                      className={`flex ${m.isFromAdmin ? 'justify-end' : 'justify-start'}`}
+                    >
+                      <div
+                        className={`max-w-[70%] rounded-2xl px-4 py-3 shadow-sm ${
+                          m.isFromAdmin
+                            ? 'bg-primary text-white rounded-br-sm'
+                            : 'bg-white text-[#181114] border border-[#f4f0f2] rounded-bl-sm'
+                        }`}
+                      >
+                        {!m.isFromAdmin && (
+                          <div className="text-[11px] font-bold text-primary mb-1">{m.senderName}</div>
+                        )}
+                        <p className="text-sm whitespace-pre-wrap wrap-break-word leading-relaxed">{m.content}</p>
+                        <div
+                          className={`text-[10px] mt-2 font-medium flex items-center gap-1 ${m.isFromAdmin ? 'text-white/80' : 'text-[#886373]'}`}
+                        >
+                          {formatTime(m.sentAt)}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  <div ref={bottomRef} />
+                </div>
+
+                <div className="shrink-0 p-4 bg-white border-t border-[#f4f0f2] flex gap-3 items-center">
+                  <div className="flex-1 relative">
+                    <input
+                      ref={inputRef}
+                      className="w-full rounded-full bg-[#f4f0f2] border-none pl-5 pr-12 py-3 text-sm outline-none focus:ring-2 focus:ring-primary/20 transition-all text-[#181114]"
+                      placeholder="Nhập tin nhắn hỗ trợ..."
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSend();
+                        }
+                      }}
+                      disabled={!connected || sending}
+                      autoFocus
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleSend}
+                    disabled={!connected || sending || !input.trim()}
+                    className="rounded-full size-[44px] bg-primary text-white flex items-center justify-center disabled:opacity-50 hover:bg-primary-dark transition-colors shadow-lg shadow-primary/20 shrink-0"
+                    title="Gửi tin nhắn"
+                  >
+                    <span className="material-symbols-outlined text-[20px] ml-1">send</span>
+                  </button>
+                </div>
+              </>
+            )}
+          </section>
+        </div>
       </div>
     </div>
   );

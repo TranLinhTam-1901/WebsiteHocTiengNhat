@@ -40,12 +40,6 @@ const Sidebar: React.FC = () => {
             label="Tổng quan" 
             active={location.pathname === '/admin/dashboard'} 
           />
-          <NavItem 
-            to="/admin/support" 
-            icon="chat" 
-            label="Chat hỗ trợ" 
-            active={location.pathname === '/admin/support'} 
-          />
 
           {/* Menu đa cấp: Nội dung */}
           <div className="flex flex-col gap-1">
@@ -82,6 +76,13 @@ const Sidebar: React.FC = () => {
           <NavItem to="/admin/question-bank" icon="add_box" label="Ngân hàng câu hỏi" active={location.pathname.includes('/admin/question-bank')} />
           <NavItem to="/admin/learners" icon="group" label="Người dùng" active={location.pathname === '/admin/learners'} />
           <NavItem to="/admin/exams" icon="assignment" label="Kho đề thi và kiểm tra" active={location.pathname === '/admin/exams'} />
+
+          <NavItem 
+            to="/admin/support" 
+            icon="chat" 
+            label="Chat hỗ trợ" 
+            active={location.pathname === '/admin/support'} 
+          />
 
           <div className="my-4 border-t border-[#f4f0f2]"></div>
           

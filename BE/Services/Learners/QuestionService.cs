@@ -107,17 +107,27 @@ namespace QuizzTiengNhat.Services.Learners
             _context.UserAnswerHistories.Add(history);
             // -------------------------
 
-            // --- THÊM FLASHCARD NẾU SAI ---
+            if (question.EquivalentID.HasValue)
+            {
+                await _flashcardService.ApplyPracticeOutcomeAsync(
+                    userId,
+                    question.EquivalentID.Value,
+                    question.SkillType,
+                    isCorrect,
+                    timeTaken,
+                    persist: false);
+            }
+
             if (!isCorrect && question.EquivalentID.HasValue)
             {
                 await _flashcardService.AddToDeckAsync(userId, new AddFlashcardDto
                 {
                     EntityId = question.EquivalentID.Value,
                     ItemType = question.SkillType
-                });
+                }, persist: false);
             }
 
-            await _context.SaveChangesAsync(); // Lưu cả History và Flashcard (nếu có) cùng lúc
+            await _context.SaveChangesAsync();
 
             return new
             {

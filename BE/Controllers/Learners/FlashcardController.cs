@@ -1,9 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using QuizzTiengNhat.Models;
 using QuizzTiengNhat.Models.Enums;
-using QuizzTiengNhat.Services.Learners; // Giả sử bạn để Service ở đây
+using QuizzTiengNhat.Services.Learners;
 using System.Security.Claims;
 
 namespace QuizzTiengNhat.Controllers.Learners
@@ -14,12 +12,10 @@ namespace QuizzTiengNhat.Controllers.Learners
     public class FlashcardController : ControllerBase
     {
         private readonly IFlashcardService _flashcardService;
-        private readonly ApplicationDbContext _context;
 
-        public FlashcardController(IFlashcardService flashcardService, ApplicationDbContext context)
+        public FlashcardController(IFlashcardService flashcardService)
         {
             _flashcardService = flashcardService;
-            _context = context;
         }
 
         [HttpGet("decks")]
@@ -39,21 +35,26 @@ namespace QuizzTiengNhat.Controllers.Learners
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
-            var result = await _flashcardService.CreateDeckAsync(userId, model.Name, model.Description);
+            if (string.IsNullOrWhiteSpace(model.Name))
+                return BadRequest(new { message = "Vui lòng nhập tên bộ thẻ." });
+            if (model.ItemIds == null || model.ItemIds.Count == 0)
+                return BadRequest(new { message = "Vui lòng chọn ít nhất một thẻ." });
 
-            // Sau khi tạo xong, thay vì chỉ trả về ID, hãy trả về danh sách deck mới nhất 
-            // để Frontend cập nhật lại toàn bộ UI
+            var deck = await _flashcardService.CreateDeckAsync(userId, model.Name, model.Description, model.SkillType, model.ItemIds);
+            if (deck == null)
+                return BadRequest(new { message = "Không tạo được bộ thẻ. Kiểm tra trình độ JLPT trên hồ sơ và các mục đã chọn có đúng cấp độ của bạn." });
+
             var updatedDecks = await _flashcardService.GetUserDecksAsync(userId);
             return Ok(updatedDecks);
         }
 
         [HttpGet("review/{deckId}")]
-        public async Task<IActionResult> GetReviewByDeck(Guid deckId)
+        public async Task<IActionResult> GetReviewByDeck(Guid deckId, [FromQuery] string? mode = null)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
-            var reviews = await _flashcardService.GetReviewsByDeckAsync(userId, deckId);
+            var reviews = await _flashcardService.GetReviewsByDeckAsync(userId, deckId, mode);
 
             // Trả về danh sách thẻ, nếu rỗng thì Frontend sẽ báo "Đã hoàn thành mục tiêu hôm nay"
             return Ok(reviews);
@@ -72,13 +73,18 @@ namespace QuizzTiengNhat.Controllers.Learners
         [HttpPost("update-progress")]
         public async Task<IActionResult> UpdateProgress([FromBody] ReviewUpdateDto model)
         {
-            var result = await _flashcardService.UpdateReviewProgress(model.ItemId, model.Quality);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            var result = await _flashcardService.UpdateReviewProgress(
+                model.ItemId, userId, model.Quality, model.TimeTaken);
             if (result == null) return NotFound("Không tìm thấy thẻ học này.");
 
             return Ok(new
             {
                 nextReview = result.NextReview,
                 interval = result.Interval,
+                isMastered = result.IsMastered,
                 message = "Đã cập nhật tiến độ học tập!"
             });
         }
@@ -105,8 +111,10 @@ namespace QuizzTiengNhat.Controllers.Learners
         [HttpGet("deck-details/{deckId}")]
         public async Task<IActionResult> GetDeckItems(Guid deckId)
         {
-            // Trả về danh sách các FlashcardItem thuộc Deck này kèm thông tin từ vựng/kanji
-            var items = await _flashcardService.GetItemsInDeckAsync(deckId);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            var items = await _flashcardService.GetItemsInDeckAsync(deckId, userId);
             return Ok(items);
         }
 
@@ -119,12 +127,12 @@ namespace QuizzTiengNhat.Controllers.Learners
         }
 
         [HttpGet("available-entities")]
-        public async Task<IActionResult> GetAvailableEntities([FromQuery] Guid levelId, [FromQuery] SkillType type)
+        public async Task<IActionResult> GetAvailableEntities([FromQuery] Guid levelId, [FromQuery] SkillType type, [FromQuery] bool includeOwned = false)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
-            var data = await _flashcardService.GetAvailableEntitiesAsync(userId, levelId, type);
+            var data = await _flashcardService.GetAvailableEntitiesAsync(userId, levelId, type, includeOwned);
             return Ok(data);
         }
     }
@@ -144,7 +152,9 @@ namespace QuizzTiengNhat.Controllers.Learners
 
     public class CreateDeckDto
     {
-        public string Name { get; set; }
+        public string Name { get; set; } = "";
         public string? Description { get; set; }
+        public SkillType SkillType { get; set; }
+        public List<Guid>? ItemIds { get; set; }
     }
 }
