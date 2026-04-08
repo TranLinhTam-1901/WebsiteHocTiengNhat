@@ -38,7 +38,7 @@ const SkillHubPage: React.FC = () => {
                   </div>
                 </div>
             </div>
-        </LearnerHeader>
+      </LearnerHeader>
 
       <div className="flex-1 overflow-y-auto p-8">
         <div className="max-w-6xl mx-auto px-6 py-8 no-scrollbar">
