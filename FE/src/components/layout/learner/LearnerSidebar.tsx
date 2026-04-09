@@ -180,6 +180,12 @@ const Sidebar: React.FC = () => {
           />
 
           <NavItem 
+            to="/learner/ai-tutor" 
+            icon="smart_toy" 
+            label="Trợ lý AI (Ollama)" 
+            active={location.pathname === '/learner/ai-tutor'} 
+          />
+          <NavItem 
             to="/learner/support" 
             icon="chat" 
             label="Chat hỗ trợ" 

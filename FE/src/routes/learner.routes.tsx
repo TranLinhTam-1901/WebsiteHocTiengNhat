@@ -37,6 +37,7 @@ import Practice from '../pages/learner/Quiz/Practice';
 import Result from '../pages/learner/Quiz/Result';
 // Chat Support
 import LearnerChatPage from '../pages/learner/Support/LearnerChatPage';
+import AiTutorPage from '../pages/learner/Support/AiTutorPage';
 // Study resources (vocabulary & kanji)
 import StudyVocabularyListPage from '../pages/learner/StudyResource/VocabularyListPage';
 import StudyVocabularyDetailPage from '../pages/learner/StudyResource/VocabularyDetailPage';
@@ -81,6 +82,7 @@ export const learnerRoutes: RouteObject = {
     { path: 'flashcards/review/:deckID', element: <FlashcardReviewPage /> },
     { path: 'flashcards/deck/:deckID', element: <DeckDetailPage /> },
     { path: 'flashcards/create', element: <DeckCreatePage /> },
+    { path: 'ai-tutor', element: <AiTutorPage /> },
     { path: 'support', element: <LearnerChatPage /> },
     { path: 'studyresource/vocabulary', element: <StudyVocabularyListPage /> },
     { path: 'studyresource/vocabulary/:id', element: <StudyVocabularyDetailPage /> },
