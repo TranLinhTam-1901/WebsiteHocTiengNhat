@@ -57,10 +57,10 @@ const DeckCreatePage: React.FC = () => {
     const [profileLoading, setProfileLoading] = useState(true);
     const [availableCards, setAvailableCards] = useState<AvailableCardRow[]>([]);
     const [selectedEntries, setSelectedEntries] = useState<SelectedEntry[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [editLoading, setEditLoading] = useState(false);
-    const [fetchingCards, setFetchingCards] = useState(false);
-    const [cardSearch, setCardSearch] = useState('');
+    // const [loading, setLoading] = useState(false);
+    // const [editLoading, setEditLoading] = useState(false);
+    // const [fetchingCards, setFetchingCards] = useState(false);
+    // const [cardSearch, setCardSearch] = useState('');
 
     const setContentFilter = useCallback(
         (type: SkillType) => {
@@ -82,9 +82,9 @@ const DeckCreatePage: React.FC = () => {
     const [fetchingCards, setFetchingCards] = useState(false);
     const [cardSearch, setCardSearch] = useState('');
 
-    useEffect(() => {
-        setSelectedType(parseSkillFromUrl());
-    }, [urlType]);
+    // useEffect(() => {
+    //     setSelectedType(parseSkillFromUrl());
+    // }, [urlType]);
 
     useEffect(() => {
         const loadProfile = async () => {
@@ -102,37 +102,37 @@ const DeckCreatePage: React.FC = () => {
         loadProfile();
     }, []);
 
-    useEffect(() => {
-        if (!editDeckId) return;
-        let cancelled = false;
-        (async () => {
-            setEditLoading(true);
-            try {
-                const [decks, items] = await Promise.all([
-                    FlashcardService.getDecks(),
-                    FlashcardService.getDeckItems(editDeckId),
-                ]);
-                if (cancelled) return;
-                const d = decks.find((x) => x.deckID === editDeckId);
-                if (d) {
-                    setName(d.skillName);
-                    setDescription(d.description ?? '');
-                }
-                setSelectedEntries(
-                    items.map((i) => ({ entityId: i.entityID, itemType: Number(i.itemType) as SkillType }))
-                );
-            } catch (e) {
-                console.error(e);
-                window.alert('Không tải được bộ thẻ để sửa.');
-                navigate(deckListReturnPath(new URLSearchParams(window.location.search)));
-            } finally {
-                if (!cancelled) setEditLoading(false);
-            }
-        })();
-        return () => {
-            cancelled = true;
-        };
-    }, [editDeckId, navigate]);
+    // useEffect(() => {
+    //     if (!editDeckId) return;
+    //     let cancelled = false;
+    //     (async () => {
+    //         setEditLoading(true);
+    //         try {
+    //             const [decks, items] = await Promise.all([
+    //                 FlashcardService.getDecks(),
+    //                 FlashcardService.getDeckItems(editDeckId),
+    //             ]);
+    //             if (cancelled) return;
+    //             const d = decks.find((x) => x.deckID === editDeckId);
+    //             if (d) {
+    //                 setName(d.skillName);
+    //                 setDescription(d.description ?? '');
+    //             }
+    //             setSelectedEntries(
+    //                 items.map((i) => ({ entityId: i.entityID, itemType: Number(i.itemType) as SkillType }))
+    //             );
+    //         } catch (e) {
+    //             console.error(e);
+    //             window.alert('Không tải được bộ thẻ để sửa.');
+    //             navigate(deckListReturnPath(new URLSearchParams(window.location.search)));
+    //         } finally {
+    //             if (!cancelled) setEditLoading(false);
+    //         }
+    //     })();
+    //     return () => {
+    //         cancelled = true;
+    //     };
+    // }, [editDeckId, navigate]);
 
     useEffect(() => {
         const fetchAvailableCards = async () => {
@@ -271,13 +271,13 @@ const DeckCreatePage: React.FC = () => {
     const style = getSkillStyle(selectedType);
     const isEdit = Boolean(editDeckId);
 
-    if (profileLoading || (isEdit && editLoading)) {
-        return (
-            <div className="flex h-screen items-center justify-center bg-[#fbf9fa]">
-                <div className="size-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-            </div>
-        );
-    }
+    // if (profileLoading || (isEdit && editLoading)) {
+    //     return (
+    //         <div className="flex h-screen items-center justify-center bg-[#fbf9fa]">
+    //             <div className="size-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+    //         </div>
+    //     );
+    // }
 
     return (
         <div className="flex flex-col h-full bg-background-light font-['Lexend'] text-[#211118]">
