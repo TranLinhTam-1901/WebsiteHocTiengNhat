@@ -77,6 +77,14 @@ const DeckCreatePage: React.FC = () => {
         if (editDeckId) return;
         setSelectedType(parseFilterSkillType(searchParams.get('filter')));
     }, [searchParams, editDeckId]);
+    const [selectedCardIds, setSelectedCardIds] = useState<string[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [fetchingCards, setFetchingCards] = useState(false);
+    const [cardSearch, setCardSearch] = useState('');
+
+    useEffect(() => {
+        setSelectedType(parseSkillFromUrl());
+    }, [urlType]);
 
     useEffect(() => {
         const loadProfile = async () => {

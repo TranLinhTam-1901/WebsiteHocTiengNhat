@@ -135,6 +135,32 @@ const DeckListPage: React.FC = () => {
                     buttonBg: 'bg-amber-500 text-white',
                     buttonShadow: 'shadow-lg shadow-amber-500/30 hover:shadow-amber-500/50'
                 };
+            case SkillType.Reading: 
+                return {
+                    iconBg: 'bg-blue-500/10',
+                    hoverColor: 'hover:text-blue-500',
+                    iconColor: 'text-blue-500',
+                    levelBg: 'bg-blue-100',
+                    levelColor: 'text-blue-900',
+                    progressColor: 'text-blue-600',
+                    progressBarBg: 'bg-blue-500/10',
+                    progressBar: 'bg-blue-500',
+                    buttonBg: 'bg-blue-500 text-white',
+                    buttonShadow: 'shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50'
+                };
+            case SkillType.Listening: 
+                return {
+                    iconBg: 'bg-violet-500/10',
+                    hoverColor: 'hover:text-violet-500',
+                    iconColor: 'text-violet-500',
+                    levelBg: 'bg-violet-100',
+                    levelColor: 'text-violet-900',
+                    progressColor: 'text-violet-600',
+                    progressBarBg: 'bg-violet-500/10',
+                    progressBar: 'bg-violet-500',
+                    buttonBg: 'bg-violet-500 text-white',
+                    buttonShadow: 'shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50'
+                };
             default: 
                 return {
                     iconBg: 'bg-gray-100',
