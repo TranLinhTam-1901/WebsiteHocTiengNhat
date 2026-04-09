@@ -1,9 +1,9 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using QuizzTiengNhat.Models;
 
 namespace QuizzTiengNhat.Data
 {
-    public  static class DbInitializer
+    public static class DbInitializer
     {
         public static async Task SeedRoles(RoleManager<IdentityRole> roleManager)
         {
@@ -39,6 +39,5 @@ namespace QuizzTiengNhat.Data
                 }
             }
         }
-    
-}
+    }
 }

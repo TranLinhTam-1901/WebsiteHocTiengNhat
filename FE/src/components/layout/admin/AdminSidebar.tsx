@@ -22,7 +22,7 @@ const Sidebar: React.FC = () => {
       <div className="p-6 flex flex-col gap-8 h-full">
         
         {/* Logo */}
-        <div className="flex gap-3 items-center">
+        <div className="flex gap-3 items-center cursor-pointer" onClick={() => navigate('/admin/dashboard')}>
           <div className="bg-primary rounded-full size-10 flex items-center justify-center text-white shadow-lg shadow-primary/20">
             <span className="material-symbols-outlined">school</span>
           </div>
@@ -76,6 +76,13 @@ const Sidebar: React.FC = () => {
           <NavItem to="/admin/question-bank" icon="add_box" label="Ngân hàng câu hỏi" active={location.pathname.includes('/admin/question-bank')} />
           <NavItem to="/admin/learners" icon="group" label="Người dùng" active={location.pathname === '/admin/learners'} />
           <NavItem to="/admin/exams" icon="assignment" label="Kho đề thi và kiểm tra" active={location.pathname === '/admin/exams'} />
+
+          <NavItem 
+            to="/admin/support" 
+            icon="chat" 
+            label="Chat hỗ trợ" 
+            active={location.pathname === '/admin/support'} 
+          />
 
           <div className="my-4 border-t border-[#f4f0f2]"></div>
           

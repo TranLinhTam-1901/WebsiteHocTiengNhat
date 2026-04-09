@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using QuizzTiengNhat.Models;
 using QuizzTiengNhat.Models.Enums;
 using QuizzTiengNhat.DTOs.Admin;
+using QuizzTiengNhat.DTOs.Admin.Question;
 
 namespace QuizzTiengNhat.Controllers.Admins
 {

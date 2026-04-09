@@ -1,202 +1,214 @@
-import React, { useState } from 'react';
+<!DOCTYPE html>
 
-const ListeningEditorPage: React.FC = () => {
-  const [formData, setFormData] = useState({
-    title: '',
-    level: 'N5',
-    duration: 0,
-    transcript: '田中さんは[公園]{こうえん}で[走]{はし}っています。',
-    questions: [
-      {
-        id: '1',
-        content: 'What is Tanaka doing?',
-        answers: [
-          { answerText: 'Running in the park', isCorrect: true },
-          { answerText: 'Eating at home', isCorrect: false },
-          { answerText: 'Sleeping in a library', isCorrect: false },
-          { answerText: 'Working in an office', isCorrect: false },
-        ]
+<html class="light" lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>JQuiz - Flashcard Sakura Bloom</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-secondary": "#ffffff",
+              "on-surface-variant": "#534248",
+              "surface-container-low": "#fdf8fa",
+              "secondary-fixed-dim": "#efb7cc",
+              "secondary-fixed": "#ffd8e5",
+              "tertiary-fixed-dim": "#8ed883",
+              "surface-tint": "#f287b6",
+              "on-tertiary": "#ffffff",
+              "on-primary-container": "#701c48",
+              "background": "#f8f6f7",
+              "secondary": "#7e5163",
+              "on-surface": "#211118",
+              "tertiary": "#266c24",
+              "surface-variant": "#f1ecf0",
+              "primary-fixed": "#ffd8e5",
+              "inverse-surface": "#372e31",
+              "on-tertiary-container": "#004908",
+              "on-error-container": "#93000a",
+              "on-secondary-container": "#7b4e60",
+              "primary-fixed-dim": "#ffb0cf",
+              "on-error": "#ffffff",
+              "on-tertiary-fixed": "#002202",
+              "outline": "#867278",
+              "inverse-primary": "#ffb0cf",
+              "surface-container": "#f8f6f7",
+              "surface-dim": "#f8f6f7",
+              "on-secondary-fixed": "#311020",
+              "on-background": "#211118",
+              "tertiary-container": "#72ba68",
+              "surface-container-lowest": "#ffffff",
+              "surface-bright": "#ffffff",
+              "secondary-container": "#fec5da",
+              "on-secondary-fixed-variant": "#633a4c",
+              "primary": "#f287b6",
+              "tertiary-fixed": "#aaf59c",
+              "inverse-on-surface": "#fdedf1",
+              "primary-container": "rgba(242, 135, 182, 0.1)",
+              "outline-variant": "rgba(242, 135, 182, 0.1)",
+              "on-primary-fixed": "#3d0023",
+              "on-primary": "#ffffff",
+              "surface-container-high": "#f1ecf0",
+              "on-tertiary-fixed-variant": "#05530d",
+              "surface-container-highest": "#ebe5e9",
+              "on-primary-fixed-variant": "#7b2652",
+              "surface": "#ffffff",
+              "error-container": "#ffdad6",
+              "error": "#ba1a1a"
+            },
+            fontFamily: {
+              "headline": ["Lexend"],
+              "body": ["Lexend"],
+              "label": ["Lexend"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
       }
-    ]
-  });
-
-  // Hàm render Furigana cho bản xem trước transcript
-  const renderFurigana = (text: string) => {
-    const regex = /\[(.*?)\]\{(.*?)\}/g; // Dùng {} theo template của bạn
-    const parts = [];
-    let lastIndex = 0;
-    let match;
-
-    while ((match = regex.exec(text)) !== null) {
-      if (match.index > lastIndex) {
-        parts.push(text.substring(lastIndex, match.index));
-      }
-      parts.push(
-        <ruby key={match.index} className="mx-0.5">
-          {match[1]}
-          <rt className="text-[0.6em] text-primary">{match[2]}</rt>
-        </ruby>
-      );
-      lastIndex = regex.lastIndex;
-    }
-    if (lastIndex < text.length) {
-      parts.push(text.substring(lastIndex));
-    }
-    return parts.length > 0 ? parts : text;
-  };
-
-  return (
-    <div className="flex flex-col min-h-screen bg-background-light font-['Lexend'] text-slate-900">
-      {/* Top Navigation */}
-      <header className="flex items-center justify-between border-b border-[#f287b6]/20 bg-white/80 backdrop-blur-md px-6 md:px-10 py-3 sticky top-0 z-50">
-        <div className="flex items-center gap-4">
-          <div className="size-8 bg-[#f287b6] rounded-lg flex items-center justify-center text-white">
-            <span className="material-symbols-outlined">headset</span>
-          </div>
-          <h2 className="text-lg font-bold">KotoAdmin</h2>
-        </div>
-        
-        <div className="flex items-center gap-4">
-          <div className="hidden md:flex bg-[#f287b6]/10 rounded-full px-4 py-2 items-center gap-2">
-            <span className="material-symbols-outlined text-slate-500 text-xl">search</span>
-            <input className="bg-transparent border-none focus:ring-0 text-sm w-40 lg:w-64" placeholder="Search lessons..." />
-          </div>
-          <div className="size-10 rounded-full bg-[#f287b6]/30 border-2 border-[#f287b6]"></div>
-        </div>
-      </header>
-
-      <div className="flex flex-1">
-
-        {/* Main Content */}
-        <main className="flex-1 p-6 md:p-10 max-w-6xl mx-auto w-full">
-          <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-black tracking-tight">Create Listening Exercise</h1>
-              <p className="text-slate-500">Configure audio, transcripts, and quiz questions.</p>
-            </div>
-            <div className="flex gap-3">
-              <button className="px-6 py-2.5 rounded-full border border-slate-200 font-semibold text-slate-600 hover:bg-slate-50">Discard</button>
-              <button className="px-6 py-2.5 rounded-full bg-[#f287b6] text-white font-semibold hover:bg-[#f287b6]/90 shadow-lg shadow-[#f287b6]/20">Save Exercise</button>
-            </div>
-          </div>
-
-          <div className="space-y-8">
-            {/* General Info */}
-            <section className="bg-white rounded-xl p-6 border border-[#f287b6]/10 shadow-sm">
-              <h2 className="text-lg font-bold mb-6 flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#f287b6]">info</span> General Information
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="md:col-span-2 space-y-2">
-                  <label className="text-sm font-semibold">Exercise Title</label>
-                  <input 
-                    className="w-full rounded-xl border-slate-200 focus:border-[#f287b6] focus:ring-[#f287b6]/20" 
-                    type="text" 
-                    placeholder="Morning Routine"
-                  />
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Lexend', sans-serif; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(242, 135, 182, 0.1);
+        }
+        .sakura-glow {
+            background: linear-gradient(135deg, rgba(242, 135, 182, 0.15) 0%, transparent 100%);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen">
+<!-- Main Content Canvas -->
+<main class="pt-16 md:pl-64 min-h-screen flex flex-col">
+<div class="flex-1 p-6 md:p-10 flex flex-col max-w-5xl mx-auto w-full">
+<!-- Contextual Header & Progress -->
+<div class="mb-10 text-center">
+<div class="inline-flex items-center px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-bold mb-4 tracking-wider uppercase">
+                    Thẻ ghi nhớ • JLPT N3
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold">JLPT Level</label>
-                  <select className="w-full rounded-xl border-slate-200 focus:border-[#f287b6] focus:ring-[#f287b6]/20">
-                    <option>N5</option><option>N4</option><option>N3</option>
-                  </select>
-                </div>
-              </div>
-            </section>
-
-            {/* Audio Upload */}
-            <section className="bg-white rounded-xl p-6 border border-[#f287b6]/10 shadow-sm">
-              <h2 className="text-lg font-bold mb-6 flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#f287b6]">audiotrack</span> Audio Configuration
-              </h2>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div className="border-2 border-dashed border-[#f287b6]/30 rounded-xl p-10 flex flex-col items-center justify-center bg-[#f287b6]/5 hover:bg-[#f287b6]/10 cursor-pointer group transition-all">
-                  <div className="size-16 rounded-full bg-white flex items-center justify-center text-[#f287b6] shadow-sm group-hover:scale-110 transition-transform">
-                    <span className="material-symbols-outlined text-3xl">upload_file</span>
-                  </div>
-                  <p className="mt-4 font-bold">Upload audio file</p>
-                  <p className="text-slate-500 text-sm">MP3, WAV (Max 20MB)</p>
-                </div>
-                <div className="space-y-6">
-                  <div className="p-4 bg-background-light rounded-xl border border-[#f287b6]/10">
-                    <div className="flex items-center gap-3">
-                      <button className="size-8 rounded-full bg-[#f287b6] text-white flex items-center justify-center shadow-sm">
-                        <span className="material-symbols-outlined text-sm">play_arrow</span>
-                      </button>
-                      <div className="flex-1 h-1 bg-slate-200 rounded-full relative overflow-hidden">
-                        <div className="absolute inset-y-0 left-0 w-1/3 bg-[#f287b6]"></div>
-                      </div>
-                      <span className="text-xs font-mono text-slate-500">0:45 / 2:30</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* Transcript & Preview */}
-            <section className="bg-white rounded-xl p-6 border border-[#f287b6]/10 shadow-sm">
-              <h2 className="text-lg font-bold mb-6 flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#f287b6]">description</span> Transcript
-              </h2>
-              <textarea 
-                className="w-full rounded-xl border-slate-200 focus:border-[#f287b6] focus:ring-[#f287b6]/20 p-4 min-h-37.5"
-                value={formData.transcript}
-                onChange={(e) => setFormData({...formData, transcript: e.target.value})}
-              />
-              <div className="mt-4 p-4 bg-[#f287b6]/5 rounded-xl border border-dashed border-[#f287b6]/30">
-                <p className="text-xs font-bold text-[#f287b6] uppercase mb-2">Live Preview</p>
-                <div className="text-lg leading-[2.5] text-slate-800">
-                  {renderFurigana(formData.transcript)}
-                </div>
-              </div>
-            </section>
-
-            {/* Questions */}
-            <section className="bg-white rounded-xl p-6 border border-[#f287b6]/10 shadow-sm">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-bold flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[#f287b6]">quiz</span> Questions
-                </h2>
-                <button className="flex items-center gap-1 px-4 py-2 bg-[#f287b6]/10 text-[#f287b6] rounded-full text-sm font-bold hover:bg-[#f287b6]/20">
-                  <span className="material-symbols-outlined text-sm">add</span> Add Question
-                </button>
-              </div>
-              
-              {formData.questions.map((q, idx) => (
-                <div key={q.id} className="border border-slate-100 rounded-xl p-5 bg-background-light/30 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <span className="size-6 bg-slate-900 text-white text-xs font-bold flex items-center justify-center rounded-full">{idx + 1}</span>
-                      <h3 className="font-bold">{q.content}</h3>
-                    </div>
-                    <div className="flex gap-2">
-                      <button className="text-slate-400 hover:text-[#f287b6]"><span className="material-symbols-outlined">edit</span></button>
-                      <button className="text-slate-400 hover:text-red-500"><span className="material-symbols-outlined">delete</span></button>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {q.answers.map((ans, aIdx) => (
-                      <div 
-                        key={aIdx} 
-                        className={`flex items-center gap-3 p-3 bg-white border-2 rounded-xl text-sm ${
-                          ans.isCorrect ? 'border-[#f287b6]' : 'border-slate-200 text-slate-500'
-                        }`}
-                      >
-                        <span className={`material-symbols-outlined ${ans.isCorrect ? 'text-[#f287b6]' : 'text-slate-200'}`}>
-                          {ans.isCorrect ? 'check_circle' : 'circle'}
-                        </span>
-                        {ans.answerText}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </section>
-          </div>
-        </main>
-      </div>
-    </div>
-  );
-};
-
-export default ListeningEditorPage;
+<h2 class="text-3xl font-black text-slate-900 mb-6">Chủ đề: Nhà hàng &amp; Ẩm thực</h2>
+<div class="max-w-md mx-auto">
+<div class="flex justify-between items-end mb-2">
+<span class="text-xs font-bold text-slate-500 uppercase tracking-tighter">Tiến độ hôm nay</span>
+<span class="text-sm font-black text-primary">12 / 20</span>
+</div>
+<div class="h-3 w-full bg-primary-container rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[60%] rounded-full shadow-[0_0_12px_rgba(242,135,182,0.4)]"></div>
+</div>
+</div>
+</div>
+<!-- Central Flashcard Area -->
+<div class="relative group perspective-1000 flex-1 flex flex-col items-center justify-center">
+<!-- Decorative Sakura Pedals (Faded backgrounds) -->
+<div class="absolute -top-10 -left-10 w-40 h-40 bg-primary/5 rounded-full blur-3xl"></div>
+<div class="absolute -bottom-10 -right-10 w-48 h-48 bg-primary/5 rounded-full blur-3xl"></div>
+<!-- Main Card -->
+<div class="w-full max-w-2xl aspect-[1.6/1] glass-card rounded-lg shadow-xl shadow-primary/5 flex flex-col items-center justify-center p-12 text-center relative overflow-hidden sakura-glow cursor-pointer transition-transform duration-500 hover:scale-[1.01] active:scale-95">
+<!-- Card Corner Ornament -->
+<div class="absolute top-0 right-0 w-24 h-24 overflow-hidden pointer-events-none opacity-20">
+<div class="absolute top-4 right-4 text-primary">
+<span class="material-symbols-outlined text-4xl" data-icon="filter_vintage">filter_vintage</span>
+</div>
+</div>
+<div class="space-y-4">
+<span class="text-sm font-medium text-primary bg-primary/10 px-3 py-1 rounded-full uppercase tracking-widest">Từ vựng N3</span>
+<div class="py-4">
+<!-- Main Content (Japanese Kanji) -->
+<h3 class="text-7xl md:text-8xl font-black text-slate-900 tracking-tighter">雰囲 気</h3>
+<p class="text-2xl font-medium text-slate-500 mt-2">ふんいき</p>
+</div>
+<div class="flex items-center justify-center gap-2 text-slate-400">
+<span class="material-symbols-outlined text-sm" data-icon="volume_up">volume_up</span>
+<span class="text-xs font-medium italic">Nhấn để nghe phát âm</span>
+</div>
+</div>
+<!-- Card Hint (Bottom) -->
+<div class="absolute bottom-8 left-0 right-0 flex justify-center">
+<div class="px-4 py-2 bg-slate-100/50 rounded-full flex items-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="help_outline">help_outline</span>
+<span class="text-xs font-bold text-slate-600">Gợi ý: "Cảm giác của một nơi nào đó"</span>
+</div>
+</div>
+</div>
+<!-- Controls Cluster -->
+<div class="mt-12 w-full max-w-2xl grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Mark Unlearned -->
+<button class="order-2 md:order-1 flex flex-col items-center gap-2 group">
+<div class="w-16 h-16 rounded-full bg-surface shadow-md flex items-center justify-center text-error border border-error/10 transition-all duration-300 group-hover:scale-110 group-active:scale-90">
+<span class="material-symbols-outlined text-3xl" data-icon="close">close</span>
+</div>
+<span class="text-sm font-bold text-slate-500 group-hover:text-error transition-colors">Chưa thuộc</span>
+</button>
+<!-- Main Action (Flip) -->
+<button class="order-1 md:order-2 flex flex-col items-center gap-3">
+<div class="w-20 h-20 rounded-full bg-primary shadow-lg shadow-primary/30 flex items-center justify-center text-white transition-all duration-300 hover:shadow-primary/50 hover:scale-105 active:scale-95">
+<span class="material-symbols-outlined text-4xl" data-icon="refresh">refresh</span>
+</div>
+<span class="text-lg font-black text-slate-800">Lật thẻ</span>
+</button>
+<!-- Mark Learned -->
+<button class="order-3 flex flex-col items-center gap-2 group">
+<div class="w-16 h-16 rounded-full bg-surface shadow-md flex items-center justify-center text-tertiary border border-tertiary/10 transition-all duration-300 group-hover:scale-110 group-active:scale-90">
+<span class="material-symbols-outlined text-3xl" data-icon="check" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+<span class="text-sm font-bold text-slate-500 group-hover:text-tertiary transition-colors">Đã thuộc</span>
+</button>
+</div>
+</div>
+<!-- Contextual Stats / History -->
+<div class="mt-16 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+<div class="p-8 rounded-lg bg-white shadow-sm border border-primary/5">
+<h4 class="text-lg font-black text-slate-800 mb-4">Mẹo ghi nhớ</h4>
+<p class="text-slate-600 text-sm leading-relaxed">
+                        Từ <strong>雰囲気 (Fun-iki)</strong> thường bị phát âm sai thành "Fun-yi-ki". Hãy nhớ âm tiết thứ 2 là 'i' chứ không phải 'yi'. Từ này dùng để tả không khí của quán cà phê, buổi tiệc...
+                    </p>
+<div class="mt-4 flex flex-wrap gap-2">
+<span class="px-3 py-1 bg-secondary-fixed text-on-secondary-fixed text-[10px] font-black rounded-full uppercase">Ví dụ</span>
+<span class="px-3 py-1 bg-secondary-fixed text-on-secondary-fixed text-[10px] font-black rounded-full uppercase">Kanji N3</span>
+</div>
+</div>
+<div class="relative h-48 overflow-hidden rounded-lg">
+<img alt="Cozy Japanese Cafe Atmosphere" class="w-full h-full object-cover" data-alt="Interior of a warm cozy Japanese cafe with soft lantern lighting, wooden furniture, and a tranquil atmosphere" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDQMmrz6bYbjCjGSky78d36Hz6EaOPfghxBaev_smvtl9rEkJl38DAUb39uiS1AISuSOz8X_LxTIijaQYfqvIzc1XJL_Ppz4Mz1gxnQCdQxvnzCNNXt1sQ1nFYoYuo9LLC2J8kWR9zthESKkOFlqJnwTnuKmRFTfNyeEuDj8xaU944YGxub9LcCVyk4sx3EK4B03ITgvrabjXsYgOnMn7hteurdroqsEuyhWodoKK1Lv3yqhIzGKKS5sN9e3FXPWRHa34yz983Pesr9"/>
+<div class="absolute inset-0 bg-linear-to-t from-slate-900/60 to-transparent flex flex-col justify-end p-6">
+<p class="text-white text-sm font-bold italic">"Kono resutoran wa fun-iki ga ii desu ne!"</p>
+<p class="text-white/80 text-xs">Nhà hàng này không khí tốt nhỉ!</p>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Nav for Mobile Only -->
+<nav class="fixed bottom-0 left-0 right-0 bg-white shadow-[0_-4px_10px_rgba(0,0,0,0.05)] h-16 md:hidden flex justify-around items-center px-4 z-50">
+<button class="flex flex-col items-center gap-1 text-slate-400">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="text-[10px] font-bold">Trang chủ</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined" data-icon="auto_stories" style="font-variation-settings: 'FILL' 1;">auto_stories</span>
+<span class="text-[10px] font-bold">Học tập</span>
+</button>
+<div class="-mt-8">
+<button class="w-14 h-14 bg-primary text-white rounded-full shadow-lg shadow-primary/40 flex items-center justify-center">
+<span class="material-symbols-outlined text-3xl" data-icon="add">add</span>
+</button>
+</div>
+<button class="flex flex-col items-center gap-1 text-slate-400">
+<span class="material-symbols-outlined" data-icon="psychology">psychology</span>
+<span class="text-[10px] font-bold">Kỹ năng</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-slate-400">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+<span class="text-[10px] font-bold">Cá nhân</span>
+</button>
+</nav>
+</body></html>

@@ -203,39 +203,39 @@ const KanjiListPage: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full bg-background-light font-display text-[#181114]">
-    <AdminHeader>
-      <div className="flex items-center gap-210">
-        <div className="flex items-center gap-4 flex-1">
-          <div className="flex flex-col">
-              <h2 className="text-xl font-bold text-[#181114]">QUẢN LÝ KANJI</h2>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          {/* Search Bar */}
-          <div className="relative hidden md:block">
-              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#886373]">search</span>
-              <input
-                type="text"
-                placeholder="Tìm kiếm kanji, nghĩa..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="bg-[#f4f0f2] border-none rounded-full pl-10 pr-4 py-2 text-sm w-64 focus:ring-2 focus:ring-primary/50 outline-none"
-              />
+      <AdminHeader>
+        <div className="flex items-center gap-210">
+          <div className="flex items-center gap-4 flex-1">
+            <div className="flex flex-col">
+                <h2 className="text-xl font-bold text-[#181114]">QUẢN LÝ KANJI</h2>
             </div>
+          </div>
 
-          {/* Add Button */}
-          <Link 
-            to="/admin/resource/kanji/create" // Thay đường dẫn này bằng route thực tế của bạn
-            className="bg-primary hover:bg-primary-dark text-white px-5 py-2 rounded-full text-sm font-bold flex items-center gap-2 transition-all shadow-lg shadow-primary/20 active:scale-95 no-underline"
-          >
-            <span className="material-symbols-outlined text-sm">add</span>
-            Thêm Kanji
-          </Link>
+          <div className="flex items-center gap-3">
+            {/* Search Bar */}
+            <div className="relative hidden md:block">
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#886373]">search</span>
+                <input
+                  type="text"
+                  placeholder="Tìm kiếm kanji, nghĩa..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="bg-[#f4f0f2] border-none rounded-full pl-10 pr-4 py-2 text-sm w-64 focus:ring-2 focus:ring-primary/50 outline-none"
+                />
+              </div>
+
+            {/* Add Button */}
+            <Link 
+              to="/admin/resource/kanji/create" // Thay đường dẫn này bằng route thực tế của bạn
+              className="bg-primary hover:bg-primary-dark text-white px-5 py-2 rounded-full text-sm font-bold flex items-center gap-2 transition-all shadow-lg shadow-primary/20 active:scale-95 no-underline"
+            >
+              <span className="material-symbols-outlined text-sm">add</span>
+              Thêm Kanji
+            </Link>
+          </div>
+
         </div>
-
-      </div>
-    </AdminHeader>
+      </AdminHeader>
 
       <div className="flex-1 overflow-y-auto p-8">
         {/* FILTER SYSTEM */}
@@ -536,7 +536,7 @@ const KanjiListPage: React.FC = () => {
         {/* Grid hiển thị dữ liệu thật */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
           {filteredList.map((kanji) => (
-            <div key={kanji.id} className="group relative bg-white rounded-4xl border border-[#f4f0f2] shadow-sm hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-2 transition-all duration-300 flex flex-col aspect-[3/4.5] overflow-hidden">
+            <div key={kanji.id} className="group relative bg-white rounded-4xl border border-[#f4f0f2] shadow-sm hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-2 transition-all duration-300 flex flex-col aspect-3/4.5 overflow-hidden">
               
               {/* Actions Overlay */}
               <div className="absolute right-3 top-1/2 -translate-y-1/2 flex flex-col gap-3 translate-x-14 group-hover:translate-x-0 opacity-0 group-hover:opacity-100 transition-all duration-300 z-30">

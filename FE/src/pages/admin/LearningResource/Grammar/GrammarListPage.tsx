@@ -127,7 +127,7 @@ const GrammarListPage: React.FC = () => {
             item.topics?.some(t => {
                 return selectedTopics.some((selected: any) => {
                     const selectedId = typeof selected === 'object' ? selected.id : selected;
-                    const topicId = typeof t === 'object' ? t.id : t;
+                    const topicId = typeof t === 'object' ? t.topicID : t;
                     return selectedId == topicId;
                 });
             });
@@ -344,7 +344,7 @@ const GrammarListPage: React.FC = () => {
                                                         {/* Loại ngữ pháp */}
                                                         <div>
                                                             <h4 className="text-sm font-black text-[#886373] uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
-                                                                <span className="size-1.5 rounded-full bg-purple-500"></span> Loại ngữ pháp
+                                                                <span className="size-1.5 rounded-full bg-violet-500"></span> Loại ngữ pháp
                                                             </h4>
                                                             <div className="flex flex-wrap gap-2 h-auto max-h overflow-y-auto pr-2 custom-scrollbar">
                                                                 {[
@@ -365,7 +365,7 @@ const GrammarListPage: React.FC = () => {
                                                                     { id: 14, name: 'Tôn kính ngữ/Khiêm nhường ngữ' }
                                                                 ].map(cat => (
                                                                     <button key={cat.id} onClick={() => setSelectedCategories(prev => prev.includes(cat.id) ? prev.filter(x => x !== cat.id) : [...prev, cat.id])}
-                                                                        className={`px-4 py-2 rounded-xl text-[14px] font-medium border ${selectedCategories.includes(cat.id) ? 'bg-purple-50 text-purple-700 border-purple-200' : 'bg-[#fbf9fa] border-transparent hover:border-[#886373]/20'}`}>
+                                                                        className={`px-4 py-2 rounded-xl text-[14px] font-medium border ${selectedCategories.includes(cat.id) ? 'bg-violet-50 text-violet-700 border-violet-200' : 'bg-[#fbf9fa] border-transparent hover:border-[#886373]/20'}`}>
                                                                         {cat.name}
                                                                     </button>
                                                                 ))}
@@ -447,14 +447,14 @@ const GrammarListPage: React.FC = () => {
                                     // Tìm object tương ứng với ID
                                     const category = GRAMMAR_CATEGORIES.find(c => c.id === catId);
                                     return (
-                                        <div key={catId} className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 border border-purple-100 rounded-full animate-in zoom-in-90">
+                                        <div key={catId} className="flex items-center gap-1.5 px-3 py-1.5 bg-violet-50 border border-violet-100 rounded-full animate-in zoom-in-90">
                                             {/* Hiển thị category.name thay vì catId */}
-                                            <span className="text-[14px] font-bold text-purple-700">
+                                            <span className="text-[14px] font-bold text-violet-700">
                                                 {category ? category.name : catId}
                                             </span>
                                             <button 
                                                 onClick={() => setSelectedCategories(prev => prev.filter(x => x !== catId))} 
-                                                className="flex items-center text-purple-700 hover:text-purple-900"
+                                                className="flex items-center text-violet-700 hover:text-violet-900"
                                             >
                                                 <span className="material-symbols-outlined text-[16px]">close</span>
                                             </button>
