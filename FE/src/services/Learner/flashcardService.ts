@@ -6,17 +6,38 @@ import {
     UserDeckDTO, 
     FlashcardItemDTO,
     FlashcardReviewDTO,
-    CreateDeckDto
+    CreateDeckDto,
+    UpdateDeckDto
 } from "../../interfaces/Learner/Flashcard";
 
 const BASE_PATH = "learner/flashcards";
+
+function mapUserDeckListPayload(data: unknown): UserDeckDTO[] {
+    const arr = Array.isArray(data) ? data : [];
+    return arr.map((row: Record<string, unknown>) => ({
+        deckID: String(row.deckID ?? row.DeckID ?? ''),
+        skillType: Number(row.skillType ?? row.SkillType ?? 0) as SkillType,
+        skillName: String(row.skillName ?? row.SkillName ?? ''),
+        topicName: (row.topicName ?? row.TopicName) as string | null | undefined,
+        description: (row.description ?? row.Description) as string | null | undefined,
+        isUserCustomDeck: Boolean(row.isUserCustomDeck ?? row.IsUserCustomDeck),
+        levelName: (row.levelName ?? row.LevelName) as string | null | undefined,
+        totalCards: Number(row.totalCards ?? row.TotalCards ?? 0),
+        masteredCount: Number(row.masteredCount ?? row.MasteredCount ?? 0),
+        progressPercent: Number(row.progressPercent ?? row.ProgressPercent ?? 0),
+        dueCount: Number(row.dueCount ?? row.DueCount ?? 0),
+        newCards: Number(row.newCards ?? row.NewCards ?? 0),
+        suggestedAction: (row.suggestedAction ?? row.SuggestedAction) as UserDeckDTO['suggestedAction'],
+        earliestNextReviewUtc: (row.earliestNextReviewUtc ?? row.EarliestNextReviewUtc) as string | null | undefined,
+    }));
+}
 
 export const FlashcardService = {
     // 1. Lấy danh sách bộ thẻ kèm thống kê (Trang DeckListPage)
     getDecks: async (): Promise<UserDeckDTO[]> => {
         const response = await axiosInstance.get(`${BASE_PATH}/decks`);
         const data = response.data?.$values ?? response.data;
-        return Array.isArray(data) ? data : []; 
+        return mapUserDeckListPayload(data);
     },
 
     // 2. Lấy danh sách thẻ cần ôn tập hôm nay (SRS)
@@ -66,10 +87,20 @@ export const FlashcardService = {
         return response.data;
     },
 
-    // 7. Tạo bộ thẻ thủ công
+    // 7. Tạo bộ thẻ thủ công (SkillType deck = General trên server)
     createDeck: async (model: CreateDeckDto): Promise<UserDeckDTO[]> => {
         const response = await axiosInstance.post(`${BASE_PATH}/decks`, model);
-        return response.data?.$values ?? response.data;
+        return mapUserDeckListPayload(response.data?.$values ?? response.data);
+    },
+
+    updateDeck: async (deckId: string, model: UpdateDeckDto): Promise<UserDeckDTO[]> => {
+        const response = await axiosInstance.put(`${BASE_PATH}/decks/${deckId}`, model);
+        return mapUserDeckListPayload(response.data?.$values ?? response.data);
+    },
+
+    deleteDeck: async (deckId: string): Promise<UserDeckDTO[]> => {
+        const response = await axiosInstance.delete(`${BASE_PATH}/decks/${deckId}`);
+        return mapUserDeckListPayload(response.data?.$values ?? response.data);
     },
 
     // 8. Lấy danh sách thực thể có sẵn để thêm vào deck (includeOwned: hiện cả mục đã có ở deck khác — dùng khi tạo bộ tùy chỉnh)
