@@ -1,13 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import QuestionService from '../../../services/Admin/questionService';
-import { LessonLookupDTO, QuestionListItem, QuestionStatus, QuestionType} from '../../../interfaces/Admin/QuestionBank';
+import { QuestionListItem, QuestionType} from '../../../interfaces/Admin/QuestionBank';
 import AdminHeader from '../../../components/layout/admin/AdminHeader';
 import { Link } from 'react-router-dom';
-import { Dropdown, Table, Tag, Switch, Modal, Button, Select, Input } from 'antd'; 
-import { PlusOutlined, LinkOutlined, EditOutlined, DeleteOutlined, SoundOutlined } from '@ant-design/icons';
-import { QUESTION_TYPE_OPTIONS, DIFFICULTY_OPTIONS, QUESTION_TYPE_LABELS } from '../../../constants/admin/questionOptions';
+import { DIFFICULTY_OPTIONS } from '../../../constants/admin/questionOptions';
 import { useNavigate } from 'react-router-dom';
-import { ConfigProvider } from "antd";
 
 const QuestionListView = () => {
     const [questions, setQuestions] = useState<QuestionListItem[]>([]);
@@ -506,7 +503,7 @@ const QuestionListView = () => {
                                 {(() => {
                                     const { label, style } = getLevelInfo(item.difficulty);
                                     return (
-                                        <span className={`${style} px-3 py-1 rounded-lg text-[11px] font-bold uppercase border`}>
+                                        <span className={`${style} px-3 py-1 rounded-lg text-sm font-bold uppercase`}>
                                             {label}
                                         </span>
                                     );

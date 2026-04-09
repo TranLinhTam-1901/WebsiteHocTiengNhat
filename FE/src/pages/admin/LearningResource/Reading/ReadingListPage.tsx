@@ -478,7 +478,7 @@ const ReadingManagement: React.FC = () => {
                       </span></td>
                     <td className="px-8 py-5 text-center"><span className="text-sm font-medium text-black">{item.estimatedTime}:00</span></td>
                     <td className="px-8 py-5 text-center">
-                      <span className={`${getLevelStyles(item.levelName)} px-3 py-1 rounded-lg text-xs font-bold uppercase`}>{item.levelName}</span>
+                      <span className={`${getLevelStyles(item.levelName)} px-3 py-1 rounded-lg text-sm font-bold uppercase`}>{item.levelName}</span>
                     </td>
                     <td className="px-8 py-5">
                       <div className="flex flex-wrap gap-1.5 justify-center max-w-75"> {/* Khống chế chiều rộng tối đa */}

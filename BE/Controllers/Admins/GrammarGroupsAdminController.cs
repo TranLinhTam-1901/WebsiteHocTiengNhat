@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QuizzTiengNhat.Data;
-using QuizzTiengNhat.DTOs.Admin;
+using QuizzTiengNhat.DTOs.Admin.Grammar;
 using QuizzTiengNhat.Models;
 
 namespace QuizzTiengNhat.Controllers.Admins

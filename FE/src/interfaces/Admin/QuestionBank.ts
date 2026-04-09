@@ -8,8 +8,9 @@ export enum QuestionType {
 }
 
 export enum QuestionStatus {
+    Draft = 0,
     Active = 1,
-    Draft = 0
+    Archived = 2
 }
 
 export enum SkillType {
@@ -64,10 +65,6 @@ export interface SourceMaterial {
     structure?: string; // Cho Grammar
     onyomi?: string;    // Cho Kanji
     kunyomi?: string;   // Cho Kanji
-}
-export interface Topics {
-    topicID: string;
-    topicName: string;
 }
 
 export interface LessonLookupDTO {
