@@ -211,5 +211,7 @@ namespace QuizzTiengNhat.Controllers.Learners
         public string Name { get; set; } = "";
         public string? Description { get; set; }
         public List<DeckItemRefDto>? Items { get; set; }
+        public SkillType SkillType { get; set; }
+        public List<Guid>? ItemIds { get; set; }
     }
 }

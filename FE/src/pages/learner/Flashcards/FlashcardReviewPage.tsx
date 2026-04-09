@@ -248,6 +248,12 @@ const FlashcardReviewPage: React.FC = () => {
         setShowFurigana(false);
     }, [currentIndex, items]);
 
+    const playAudio = (text: string) => {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'ja-JP';
+        window.speechSynthesis.speak(utterance);
+    };
+
     const handleBack = () => {
         // filterState ở đây chính là activeFilter bạn đã truyền sang
         const typeQuery = filterState !== undefined ? `?type=${filterState}` : '';
@@ -316,6 +322,13 @@ const FlashcardReviewPage: React.FC = () => {
     const entity = activeEntity;
 
     const progressPercent = ((currentIndex) / items.length) * 100;
+
+    const frontAudioText =
+        currentItem.itemType === SkillType.Grammar
+            ? grammarStructure.replace(/—/g, '').trim() || activeEntity.kanji || ''
+            : currentItem.itemType === SkillType.Vocabulary && showFurigana && entity.furigana
+                ? entity.furigana
+                : entity.kanji || '';
 
     return (
         <div className="flex flex-col h-full bg-background-light text-[#211118] font-['Lexend']">
