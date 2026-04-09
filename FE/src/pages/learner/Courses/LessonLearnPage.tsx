@@ -7,6 +7,37 @@ import type { LessonLearnDTO } from '../../../interfaces/Learner/Course';
 
 type LocationState = { courseId?: string };
 
+// Sub-component cho nút phát âm
+const TTSButton: React.FC<{ 
+  text: string; 
+  className?: string; 
+  iconSize?: string;
+}> = ({ text, className, iconSize = "text-xl" }) => {
+  const handlePlay = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    // Dừng âm thanh đang phát trước đó
+    window.speechSynthesis.cancel();
+    
+    if (text && text.trim().length > 0) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'ja-JP';
+      utterance.rate = 0.9;
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handlePlay}
+      className={`inline-flex items-center justify-center rounded-full hover:bg-primary/10 text-[#886373] hover:text-primary transition-all active:scale-90 ${className}`}
+      title="Nghe phát âm"
+    >
+      <span className={`material-symbols-outlined ${iconSize}`}>volume_up</span>
+    </button>
+  );
+};
+
 const LessonLearnPage: React.FC = () => {
   const { lessonId } = useParams<{ lessonId: string }>();
   const navigate = useNavigate();
@@ -44,7 +75,7 @@ const LessonLearnPage: React.FC = () => {
     setCompleting(true);
     try {
       await LearnerCourseService.completeLesson(lessonId);
-      toast.success('Đã đánh dấu hoàn thành bài.');
+      toast.success('Đã hoàn thành bài.');
       window.dispatchEvent(new Event('learner-profile-refresh'));
       if (courseId) navigate(`/learner/courses/${courseId}`, { replace: true });
       else navigate('/learner/courses', { replace: true });
@@ -68,7 +99,7 @@ const LessonLearnPage: React.FC = () => {
       </div>
     );
   }
-
+  
   return (
     <div className="flex flex-col h-full bg-[#fbf9fa] font-display">
       <LearnerHeader>
@@ -103,7 +134,11 @@ const LessonLearnPage: React.FC = () => {
               <div className="space-y-6">
                 {data.kanjiBlock.items.map((k) => (
                   <div key={k.kanjiID} className="border-b border-[#f4f0f2] last:border-0 pb-6 last:pb-0">
-                    <p className="text-4xl font-japanese font-black text-[#181114]">{k.character}</p>
+                    <div className='flex items-center'> 
+                      <p className="text-4xl font-japanese font-black text-[#181114]">{k.character}</p>
+                      <TTSButton text={k.character} iconSize="text-xs" />
+                    </div>
+                    
                     <p className="text-sm text-[#886373] mt-1">
                       On: {k.onyomi} · Kun: {k.kunyomi}
                     </p>
@@ -130,7 +165,9 @@ const LessonLearnPage: React.FC = () => {
                   <div key={v.vocabID} className="space-y-3">
                     <div className="flex flex-wrap items-baseline gap-2">
                       <span className="text-2xl font-japanese font-black">{v.word}</span>
+
                       <span className="text-sm text-[#886373]">{v.reading}</span>
+                      <TTSButton text={v.word} iconSize="text-lg" />
                     </div>
                     <p className="font-bold text-[#181114]">{v.meaning}</p>
                     {v.wordTypes.length > 0 && (
@@ -150,6 +187,7 @@ const LessonLearnPage: React.FC = () => {
                         {v.examples.map((ex, i) => (
                           <li key={i} className="pl-4 border-l-2 border-primary/30">
                             <p className="font-japanese">{ex.content}</p>
+                            <TTSButton text={ex.content} iconSize="text-xs" />
                             <p className="text-[#886373] text-xs">{ex.translation}</p>
                             {ex.audioURL && (
                               <audio controls className="w-full max-w-sm mt-1 h-8" src={ex.audioURL} />
@@ -184,7 +222,10 @@ const LessonLearnPage: React.FC = () => {
                       <ul className="text-sm space-y-2 mt-2">
                         {g.examples.map((ex, i) => (
                           <li key={i} className="pl-4 border-l-2 border-amber-200">
+                            <div className="flex items-center ">
                             <p className="font-japanese">{ex.content}</p>
+                            <TTSButton text={ex.content} iconSize="text-xs" />
+                            </div>
                             <p className="text-[#886373] text-xs">{ex.translation}</p>
                           </li>
                         ))}
@@ -204,12 +245,16 @@ const LessonLearnPage: React.FC = () => {
               {data.readingBlock.items.map((r) => (
                 <div key={r.readingID} className="space-y-4">
                   <h4 className="font-black text-[#181114]">{r.title}</h4>
-                  <p className="text-xs text-[#886373]">
+                  {/* <p className="text-xs text-[#886373]">
                     ~{r.wordCount} từ · {r.estimatedTime} phút
-                  </p>
-                  <div className="text-base leading-relaxed font-japanese whitespace-pre-wrap text-[#181114]">
+                  </p> */}
+                  <div className="flex items-center ">
+                    <div className="text-base leading-relaxed font-japanese whitespace-pre-wrap text-[#181114]">
                     {r.content}
+                    </div>
+                    <TTSButton text={r.content} iconSize="text-xs" />
                   </div>
+                  
                   <p className="text-sm text-[#886373] border-t border-[#f4f0f2] pt-4">{r.translation}</p>
                 </div>
               ))}
