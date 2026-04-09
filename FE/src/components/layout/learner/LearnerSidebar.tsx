@@ -6,6 +6,7 @@ import { AppDispatch, RootState} from '../../../store';
 import { User } from '../../../interfaces/User';
 import { LearnerProfileService } from '../../../services/Learner/learnerProfileService';
 import { SkillType } from '../../../interfaces/Admin/QuestionBank';
+import dashboardService from '../../../services/Learner/progressService';
 
 const Sidebar: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -71,6 +72,24 @@ const Sidebar: React.FC = () => {
     dispatch(logout());
     navigate('/login', { replace: true });
   };
+
+  //sidebar
+  const [progressData, setProgressData] = useState<any>(null);
+  const fetchProgress = useCallback(async () => {
+  try {
+    const res = await dashboardService.getOverallProgress();
+    setProgressData(res.data);
+  } catch (error) {
+    console.error("Sidebar progress fetch failed", error);
+  }
+}, []);
+
+useEffect(() => {
+  fetchProgress();
+  // Lắng nghe sự kiện để cập nhật lại khi người dùng vừa học xong ở trang khác
+  window.addEventListener('learner-profile-refresh', fetchProgress);
+  return () => window.removeEventListener('learner-profile-refresh', fetchProgress);
+}, [fetchProgress]);
 
   return (
     <aside className="w-64 flex flex-col bg-white border-r border-[#f4f0f2] shrink-0 h-screen">
@@ -177,12 +196,12 @@ const Sidebar: React.FC = () => {
             label="Lịch sử & Tiến độ" 
             active={location.pathname === '/learner/history'} 
           />
-          <NavItem 
+          {/* <NavItem 
             to="/learner/leaderboard" 
             icon="emoji_events" 
             label="Bảng xếp hạng" 
             active={location.pathname === '/learner/leaderboard'} 
-          />
+          /> */}
 
           <NavItem 
             to="/learner/support" 
@@ -194,21 +213,33 @@ const Sidebar: React.FC = () => {
           <div className="my-4 border-t border-[#f4f0f2]"></div>
         </nav>
 
-        {/* Tiến độ */}
-        <div className="bg-primary/5 p-4 rounded-xl border border-primary/20">
-          <p className="text-[10px] font-bold text-primary mb-1 uppercase tracking-widest">Tiến độ học tập</p>
-          <p className="text-sm font-semibold text-[#181114] mb-2">{currentUser?.levelName || 'N5'}</p>
+       {/* Widget Tiến độ cải tiến - Lấy dữ liệu trực tiếp từ API Tiến trình */}
+        <div className="bg-primary/5 p-4 rounded-xl border border-primary/10 mb-2">
+          <p className="text-[10px] font-bold text-primary mb-1 uppercase tracking-widest">
+            Tiến độ tổng thể
+          </p>
+          
+          <div className="flex items-end justify-between mb-2">
+            <h4 className="text-lg font-black text-[#181114] leading-none">
+              {/* Sử dụng totalPercent từ API mới */}
+              {progressData?.totalPercent ?? 0}%
+            </h4>
+            <span className="text-[10px] text-[#886373] font-bold">
+              Cấp độ: {progressData?.currentLevelName || currentUser?.levelName || 'N5'}
+            </span>
+          </div>
+
           <div className="w-full bg-zinc-200 h-1.5 rounded-full overflow-hidden">
             <div 
-              className="bg-primary h-full transition-all" 
-              style={{ width: `${currentUser?.progressPercent || 0}%` }}
+              className="bg-primary h-full transition-all duration-1000 ease-out shadow-[0_0_8px_rgba(242,133,173,0.4)]" 
+              style={{ width: `${progressData?.totalPercent ?? 0}%` }}
             ></div>
           </div>
-          {currentUser?.totalLessons != null && currentUser?.completedLessons != null && (
-            <p className="text-[10px] text-[#886373] mt-2 font-medium" title="Theo bài trong khóa thuộc trình độ của bạn">
-              {currentUser.completedLessons} / {currentUser.totalLessons} bài hoàn thành
-            </p>
-          )}
+
+          {/* Chỗ này Tâm chú ý: progressData có cấu trúc courseProgress.completed */}
+          <p className="text-[9px] text-[#886373] mt-2 font-medium italic leading-tight">
+            Bao gồm {progressData?.courseProgress?.completed ?? 0} bài học và tiến độ Flashcard.
+          </p>
         </div>
 
         {/* Thông tin User & Đăng xuất */}
