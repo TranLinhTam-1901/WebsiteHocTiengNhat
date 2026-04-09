@@ -4,6 +4,7 @@ import { SkillType } from '../../../interfaces/Admin/QuestionBank';
 import { SkillPracticeService } from '../../../services/Learner/skillPracticeService';
 import { QuestionService } from '../../../services/Learner/questionService';
 import { FlashcardService } from '../../../services/Learner/flashcardService';
+import { TutorAiService } from '../../../services/Learner/tutorAiService';
 import { useTimer } from '../../../hooks/useTimer';
 import PracticeResultPage from './PracticeResultPage';
 
@@ -22,6 +23,9 @@ const SkillPracticeView: React.FC = () => {
     const [showHint, setShowHint] = useState(false);
     const [showResults, setShowResults] = useState(false);
     const [sessionData, setSessionData] = useState<any[]>([]);
+    const [aiExtraExplanation, setAiExtraExplanation] = useState<string | null>(null);
+    const [aiExplainLoading, setAiExplainLoading] = useState(false);
+    const [aiExplainError, setAiExplainError] = useState<string | null>(null);
 
     const currentSkillType = useMemo(() => {
         const skillEnumMap: Record<string, SkillType> = {
@@ -74,6 +78,8 @@ const SkillPracticeView: React.FC = () => {
 
             setResult(checkResult);
             setIsAnswered(true);
+            setAiExtraExplanation(null);
+            setAiExplainError(null);
             
             // Lưu dữ liệu phiên học
             setSessionData(prev => [...prev, {
@@ -105,6 +111,8 @@ const SkillPracticeView: React.FC = () => {
             setTextAnswer('');
             setIsAnswered(false);
             setResult(null);
+            setAiExtraExplanation(null);
+            setAiExplainError(null);
             setShowHint(false);
             resetTimer();
             startTimer();
@@ -149,6 +157,32 @@ const SkillPracticeView: React.FC = () => {
 
     const currentQuestion = questions[currentIndex];
     const progress = ((currentIndex + 1) / questions.length) * 100;
+
+    const handleAiExplain = async () => {
+        const cq = questions[currentIndex];
+        if (!cq || !result || result.isCorrect) return;
+        const wrongOptionText = cq.answers?.find((a: any) => a.id === selectedAnswer)?.answerText;
+        const userAnswer = textAnswer.trim() || wrongOptionText || undefined;
+        setAiExplainLoading(true);
+        setAiExplainError(null);
+        try {
+            const explanation = await TutorAiService.explainMistake({
+                questionContent: String(cq.content ?? ''),
+                skillType: skillType,
+                userAnswer,
+                correctAnswer: result.correctAnswer ?? undefined,
+                explanationFromSystem: result.explanation ?? undefined,
+            });
+            setAiExtraExplanation(explanation);
+        } catch (e: unknown) {
+            const msg =
+                (e as { response?: { data?: { message?: string } } })?.response?.data?.message ??
+                'Không lấy được giải thích AI. Kiểm tra Ollama đang chạy.';
+            setAiExplainError(msg);
+        } finally {
+            setAiExplainLoading(false);
+        }
+    };
 
     return (
         <div className="bg-[#fbf9fa] text-[#181114] min-h-screen flex flex-col font-display">
@@ -281,6 +315,27 @@ const SkillPracticeView: React.FC = () => {
                                     <p className={`text-lg font-bold leading-relaxed ${result?.isCorrect ? 'text-emerald-900' : 'text-rose-900'}`}>
                                         {result?.explanation || "Hãy xem lại kiến thức về cấu trúc này."}
                                     </p>
+                                    {!result?.isCorrect && (
+                                        <div className="pt-4 space-y-3 border-t border-rose-200/60 mt-4">
+                                            <button
+                                                type="button"
+                                                onClick={handleAiExplain}
+                                                disabled={aiExplainLoading}
+                                                className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-violet-600 text-white text-[10px] font-black uppercase tracking-widest hover:bg-violet-700 disabled:opacity-50 transition-all shadow-lg shadow-violet-600/20"
+                                            >
+                                                <span className="material-symbols-outlined text-[18px]">smart_toy</span>
+                                                {aiExplainLoading ? 'Đang hỏi AI…' : 'Giải thích thêm (AI)'}
+                                            </button>
+                                            {aiExplainError && (
+                                                <p className="text-sm text-rose-800 font-medium">{aiExplainError}</p>
+                                            )}
+                                            {aiExtraExplanation && (
+                                                <div className="rounded-2xl bg-white/80 border border-violet-100 p-6 text-[#3d3550] text-sm font-medium leading-relaxed whitespace-pre-wrap">
+                                                    {aiExtraExplanation}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         )}

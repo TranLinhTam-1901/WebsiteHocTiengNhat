@@ -13,11 +13,14 @@ const DeckListPage: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [decks, setDecks] = useState<UserDeckDTO[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
+    const [deckPendingDelete, setDeckPendingDelete] = useState<UserDeckDTO | null>(null);
+    const [deleting, setDeleting] = useState(false);
 
-    // 1. Lấy activeFilter từ URL thay vì từ State
-    const activeFilter = searchParams.get('type') 
-        ? Number(searchParams.get('type')) as SkillType 
-        : SkillType.Vocabulary;
+    const typeParam = searchParams.get('type');
+    const activeFilter: SkillType =
+        typeParam !== null && typeParam !== ''
+            ? (Number(typeParam) as SkillType)
+            : SkillType.Vocabulary;
 
     // Hàm thay đổi filter sẽ cập nhật URL
     const handleFilterChange = (type: SkillType | undefined) => {
@@ -49,9 +52,15 @@ const DeckListPage: React.FC = () => {
     // Logic lọc chuẩn theo SkillType (Enum)
     const filteredDecks = useMemo(() => {
         let result = decks;
-        
-        if (activeFilter !== undefined && activeFilter !== null) {
-            result = result.filter(deck => Number(deck.skillType) === Number(activeFilter));
+
+        if (Number(activeFilter) === SkillType.General) {
+            result = result.filter(
+                (deck) =>
+                    deck.isUserCustomDeck === true ||
+                    Number(deck.skillType) === SkillType.General
+            );
+        } else if (activeFilter !== undefined && activeFilter !== null) {
+            result = result.filter((deck) => Number(deck.skillType) === Number(activeFilter));
         }
         
         if (searchTerm.trim() !== '') {
@@ -64,6 +73,7 @@ const DeckListPage: React.FC = () => {
 
     const getSkillIcon = (type: SkillType) => {
         switch (Number(type)) {
+            case SkillType.General: return 'bookmark_added';
             case SkillType.Vocabulary: return 'translate';
             case SkillType.Grammar: return 'format_list_bulleted';
             case SkillType.Kanji: return 'edit_note';
@@ -73,6 +83,19 @@ const DeckListPage: React.FC = () => {
     
     const getSkillStyle = (type: SkillType) => {
         switch (Number(type)) {
+            case SkillType.General:
+                return {
+                    iconBg: 'bg-sky-400/15',
+                    hoverColor: 'hover:text-sky-600',
+                    iconColor: 'text-sky-500',
+                    levelBg: 'bg-sky-100',
+                    levelColor: 'text-sky-900',
+                    progressColor: 'text-sky-500',
+                    progressBarBg: 'bg-sky-400/10',
+                    progressBar: 'bg-sky-500',
+                    buttonBg: 'bg-sky-500 text-white',
+                    buttonShadow: 'shadow-lg shadow-sky-500/25 hover:shadow-sky-500/40'
+                };
             case SkillType.Vocabulary: 
                 return {
                     iconBg: 'bg-[#f287b6]/10',
@@ -155,9 +178,25 @@ const DeckListPage: React.FC = () => {
     };
 
     const SKILL_LABELS: Record<number, string> = {
+        [SkillType.General]: 'của tôi',
         [SkillType.Vocabulary]: 'vocabulary',
         [SkillType.Grammar]: 'grammar',
         [SkillType.Kanji]: 'kanji',
+    };
+
+    const confirmDeleteDeck = async () => {
+        if (!deckPendingDelete) return;
+        setDeleting(true);
+        try {
+            const next = await FlashcardService.deleteDeck(deckPendingDelete.deckID);
+            setDecks(next);
+            setDeckPendingDelete(null);
+        } catch (e) {
+            console.error(e);
+            window.alert('Không xóa được bộ thẻ. Chỉ có thể xóa bộ do bạn tạo.');
+        } finally {
+            setDeleting(false);
+        }
     };
 
     const inferDeckAction = (deck: UserDeckDTO): DeckSuggestedAction => {
@@ -193,6 +232,10 @@ const DeckListPage: React.FC = () => {
     };
 
     const handleBackToHub = () => {
+        if (Number(activeFilter) === SkillType.General) {
+            navigate('/learner');
+            return;
+        }
         const skillSlug = SKILL_LABELS[Number(activeFilter)] || 'vocabulary';
         navigate(`/learner/skill-learning/${skillSlug}`);
     };
@@ -230,7 +273,11 @@ const DeckListPage: React.FC = () => {
                     {/* Add Button */}
                     <div className="flex items-center gap-3">
                         <Link 
-                            to={`/learner/flashcards/create?type=${activeFilter}`}
+                            to={
+                                Number(activeFilter) === SkillType.General
+                                    ? '/learner/flashcards/create'
+                                    : `/learner/flashcards/create?filter=${activeFilter}`
+                            }
                             className="bg-primary hover:bg-primary-dark text-white px-5 py-2 rounded-full text-sm font-bold flex items-center gap-2 transition-all shadow-lg shadow-primary/20 active:scale-95 no-underline"
                         >
                             <span className="material-symbols-outlined text-sm">style</span>
@@ -272,6 +319,18 @@ const DeckListPage: React.FC = () => {
                         </div>
                         <div className="h-8 w-px bg-[rgba(242,135,182,0.1)] mx-2"></div>
                         <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 custom-scrollbar">
+                            <button
+                                type="button"
+                                onClick={() => handleFilterChange(SkillType.General)}
+                                className={`px-6 py-4 rounded-full font-medium transition-all shadow-sm whitespace-nowrap ${
+                                    activeFilter === SkillType.General
+                                        ? 'bg-sky-500 text-white shadow-md font-bold shadow-sky-500/30'
+                                        : 'bg-white text-[#211118] hover:bg-sky-500/10 border border-[rgba(14,165,233,0.15)]'
+                                }`}
+                            >
+                                Của tôi
+                            </button>
+
                             {/* Nút Từ vựng - Màu Hồng (Primary) */}
                             <button 
                                 onClick={() => handleFilterChange(SkillType.Vocabulary)}
@@ -340,7 +399,9 @@ const DeckListPage: React.FC = () => {
                                         </div>
                                         <h3 className="text-xl font-bold text-[#211118] mb-2">{deck.skillName}</h3>
                                         <p className="text-[#534248] text-sm mb-6 grow">
-                                            {deck.topicName ? `Chủ đề: ${deck.topicName}` : 'Ôn tập kiến thức với hệ thống SRS để ghi nhớ dài hạn.'}
+                                            {deck.topicName
+                                                ? `Chủ đề: ${deck.topicName}`
+                                                : 'Ôn tập kiến thức với hệ thống SRS để ghi nhớ dài hạn.'}
                                         </p>
                                         <div className="space-y-4 mb-8">
                                             <div className="flex justify-between items-center text-sm font-medium">
@@ -351,18 +412,19 @@ const DeckListPage: React.FC = () => {
                                                 <div className={`h-full ${style.progressBar} rounded-full transition-all duration-500`} style={{ width: `${progress}%` }}></div>
                                             </div>
                                         </div>
-                                        <div className="flex gap-3">
+                                        <div className="flex flex-wrap gap-2 items-center">
                                             <button 
                                                 onClick={() => {
                                                     if (!mode) return;
-                                                    const q = new URLSearchParams({ type: String(activeFilter), mode });
+                                                    const deckType = Number(deck.skillType);
+                                                    const q = new URLSearchParams({ type: String(deckType), mode });
                                                     navigate(
                                                         `/learner/flashcards/review/${deck.deckID}?${q.toString()}`,
-                                                        { state: { filterState: activeFilter, studyMode: mode } }
+                                                        { state: { filterState: deckType, studyMode: mode } }
                                                     );
                                                 }}
                                                 disabled={deck.totalCards === 0 || !mode}
-                                                className={`flex-1 py-4 rounded-full font-bold transition-all flex items-center justify-center gap-2 ${
+                                                className={`flex-1 min-w-32 py-4 rounded-full font-bold transition-all flex items-center justify-center gap-2 ${
                                                     deck.totalCards > 0 && mode
                                                     ? `${style.buttonBg} ${style.buttonShadow} active:scale-95` 
                                                     : 'bg-gray-100 text-gray-400 cursor-not-allowed'
@@ -375,12 +437,41 @@ const DeckListPage: React.FC = () => {
                                                     <span className="material-symbols-outlined text-sm">check_circle</span>
                                                 )}
                                             </button>
+                                            {deck.isUserCustomDeck ? (
+                                                <>
+                                                    <button
+                                                        type="button"
+                                                        title="Sửa bộ thẻ"
+                                                        onClick={() =>
+                                                            navigate(
+                                                                `/learner/flashcards/create?edit=${deck.deckID}&filter=${SkillType.Vocabulary}`
+                                                            )
+                                                        }
+                                                        className="w-14 h-14 shrink-0 rounded-full border border-[rgba(242,135,182,0.2)] flex items-center justify-center text-[#534248] hover:bg-primary/5 hover:text-primary transition-all active:scale-95"
+                                                    >
+                                                        <span className="material-symbols-outlined">edit</span>
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        title="Xóa bộ thẻ"
+                                                        onClick={() => setDeckPendingDelete(deck)}
+                                                        className="w-14 h-14 shrink-0 rounded-full border border-red-100 flex items-center justify-center text-red-500 hover:bg-red-50 transition-all active:scale-95"
+                                                    >
+                                                        <span className="material-symbols-outlined">delete</span>
+                                                    </button>
+                                                </>
+                                            ) : null}
                                             <button 
-                                                onClick={() => navigate(
-                                                    `/learner/flashcards/deck/${deck.deckID}?type=${activeFilter}`,
-                                                    { state: { filterState: activeFilter } }
-                                                )}
-                                                className={`w-14 h-14 rounded-full border border-[rgba(242,135,182,0.1)] flex items-center justify-center text-[#534248] hover:bg-background-light transition-all ${style.hoverColor} active:scale-95`}
+                                                type="button"
+                                                title="Xem chi tiết"
+                                                onClick={() => {
+                                                    const deckType = Number(deck.skillType);
+                                                    navigate(
+                                                        `/learner/flashcards/deck/${deck.deckID}?type=${deckType}`,
+                                                        { state: { filterState: deckType } }
+                                                    );
+                                                }}
+                                                className={`w-14 h-14 shrink-0 rounded-full border border-[rgba(242,135,182,0.1)] flex items-center justify-center text-[#534248] hover:bg-background-light transition-all ${style.hoverColor} active:scale-95`}
                                             >
                                                 <span className="material-symbols-outlined">visibility</span>
                                             </button>
@@ -398,6 +489,42 @@ const DeckListPage: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            {deckPendingDelete ? (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="delete-deck-title"
+                >
+                    <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-8 border border-[#f4f0f2]">
+                        <h3 id="delete-deck-title" className="text-lg font-black text-[#211118]">
+                            Xóa bộ thẻ?
+                        </h3>
+                        <p className="text-[#534248] mt-3 text-sm leading-relaxed">
+                            Bộ &ldquo;{deckPendingDelete.skillName}&rdquo; sẽ bị xóa vĩnh viễn cùng tiến độ SRS. Thao tác này không thể hoàn tác.
+                        </p>
+                        <div className="flex gap-3 mt-8 justify-end">
+                            <button
+                                type="button"
+                                disabled={deleting}
+                                onClick={() => setDeckPendingDelete(null)}
+                                className="px-6 py-3 rounded-full font-bold text-[#534248] hover:bg-[#f4f0f2] transition-colors"
+                            >
+                                Hủy
+                            </button>
+                            <button
+                                type="button"
+                                disabled={deleting}
+                                onClick={confirmDeleteDeck}
+                                className="px-6 py-3 rounded-full font-bold bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
+                            >
+                                {deleting ? 'Đang xóa...' : 'Xóa'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            ) : null}
         </div>
     );
 };
