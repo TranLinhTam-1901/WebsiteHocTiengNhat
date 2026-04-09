@@ -37,12 +37,55 @@ namespace QuizzTiengNhat.Controllers.Learners
 
             if (string.IsNullOrWhiteSpace(model.Name))
                 return BadRequest(new { message = "Vui lòng nhập tên bộ thẻ." });
-            if (model.ItemIds == null || model.ItemIds.Count == 0)
+            if (model.Items == null || model.Items.Count == 0)
                 return BadRequest(new { message = "Vui lòng chọn ít nhất một thẻ." });
 
-            var deck = await _flashcardService.CreateDeckAsync(userId, model.Name, model.Description, model.SkillType, model.ItemIds);
+            var entries = model.Items
+                .Where(x => x.EntityId != Guid.Empty)
+                .Select(x => (x.EntityId, x.ItemType))
+                .ToList();
+
+            var deck = await _flashcardService.CreateDeckAsync(userId, model.Name, model.Description, entries);
             if (deck == null)
                 return BadRequest(new { message = "Không tạo được bộ thẻ. Kiểm tra trình độ JLPT trên hồ sơ và các mục đã chọn có đúng cấp độ của bạn." });
+
+            var updatedDecks = await _flashcardService.GetUserDecksAsync(userId);
+            return Ok(updatedDecks);
+        }
+
+        [HttpPut("decks/{deckId:guid}")]
+        public async Task<IActionResult> UpdateDeck(Guid deckId, [FromBody] UpdateDeckDto model)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            if (string.IsNullOrWhiteSpace(model.Name))
+                return BadRequest(new { message = "Vui lòng nhập tên bộ thẻ." });
+            if (model.Items == null || model.Items.Count == 0)
+                return BadRequest(new { message = "Vui lòng chọn ít nhất một thẻ." });
+
+            var entries = model.Items
+                .Where(x => x.EntityId != Guid.Empty)
+                .Select(x => (x.EntityId, x.ItemType))
+                .ToList();
+
+            var ok = await _flashcardService.UpdateUserCustomDeckAsync(userId, deckId, model.Name, model.Description, entries);
+            if (!ok)
+                return BadRequest(new { message = "Không cập nhật được. Chỉ có thể sửa bộ thẻ do bạn tạo, và các mục phải thuộc trình độ của bạn." });
+
+            var updatedDecks = await _flashcardService.GetUserDecksAsync(userId);
+            return Ok(updatedDecks);
+        }
+
+        [HttpDelete("decks/{deckId:guid}")]
+        public async Task<IActionResult> DeleteDeck(Guid deckId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            var ok = await _flashcardService.DeleteUserCustomDeckAsync(userId, deckId);
+            if (!ok)
+                return BadRequest(new { message = "Không xóa được. Chỉ có thể xóa bộ thẻ do bạn tạo." });
 
             var updatedDecks = await _flashcardService.GetUserDecksAsync(userId);
             return Ok(updatedDecks);
@@ -150,10 +193,24 @@ namespace QuizzTiengNhat.Controllers.Learners
         public SkillType ItemType { get; set; }
     }
 
+    public class DeckItemRefDto
+    {
+        public Guid EntityId { get; set; }
+        public SkillType ItemType { get; set; }
+    }
+
     public class CreateDeckDto
     {
         public string Name { get; set; } = "";
         public string? Description { get; set; }
+        public List<DeckItemRefDto>? Items { get; set; }
+    }
+
+    public class UpdateDeckDto
+    {
+        public string Name { get; set; } = "";
+        public string? Description { get; set; }
+        public List<DeckItemRefDto>? Items { get; set; }
         public SkillType SkillType { get; set; }
         public List<Guid>? ItemIds { get; set; }
     }

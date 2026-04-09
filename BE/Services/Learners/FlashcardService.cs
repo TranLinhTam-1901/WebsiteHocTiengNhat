@@ -4,6 +4,7 @@ using QuizzTiengNhat.DTOs.Learner;
 using QuizzTiengNhat.Models;
 using QuizzTiengNhat.Models.Enums;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace QuizzTiengNhat.Services.Learners
 {
@@ -228,29 +229,26 @@ namespace QuizzTiengNhat.Services.Learners
                 _ => false
             };
 
-        public async Task<FlashcardDeck?> CreateDeckAsync(string userId, string name, string? description, SkillType skillType, IReadOnlyList<Guid>? entityIds)
+        public async Task<FlashcardDeck?> CreateDeckAsync(string userId, string name, string? description, IReadOnlyList<(Guid EntityId, SkillType ItemType)> entries)
         {
-            if (skillType != SkillType.Vocabulary && skillType != SkillType.Kanji && skillType != SkillType.Grammar)
-                return null;
-
             var user = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId);
             if (user?.LevelID == null)
                 return null;
 
             var levelId = user.LevelID.Value;
-            var requested = entityIds?.Where(g => g != Guid.Empty).Distinct().ToList() ?? new List<Guid>();
-            if (requested.Count == 0)
-                return null;
-
-            var validIds = new List<Guid>();
-            foreach (var entityId in requested)
+            var seen = new HashSet<(Guid, SkillType)>();
+            var validRows = new List<(Guid EntityId, SkillType ItemType)>();
+            foreach (var (entityId, itemType) in entries ?? Array.Empty<(Guid, SkillType)>())
             {
-                if (await EntityExistsAtLevelAsync(entityId, skillType, levelId))
-                    validIds.Add(entityId);
+                if (entityId == Guid.Empty) continue;
+                if (itemType != SkillType.Vocabulary && itemType != SkillType.Kanji && itemType != SkillType.Grammar)
+                    continue;
+                if (!seen.Add((entityId, itemType))) continue;
+                if (await EntityExistsAtLevelAsync(entityId, itemType, levelId))
+                    validRows.Add((entityId, itemType));
             }
 
-            validIds = validIds.Distinct().ToList();
-            if (validIds.Count == 0)
+            if (validRows.Count == 0)
                 return null;
 
             var deck = new FlashcardDeck
@@ -259,21 +257,21 @@ namespace QuizzTiengNhat.Services.Learners
                 UserID = userId,
                 Name = name.Trim(),
                 Description = string.IsNullOrWhiteSpace(description) ? null : description.Trim(),
-                SkillType = skillType,
+                SkillType = SkillType.General,
                 LevelID = levelId,
                 IsUserCustomDeck = true,
                 CreatedAt = DateTime.UtcNow
             };
             _context.FlashcardDecks.Add(deck);
 
-            foreach (var entityId in validIds)
+            foreach (var (entityId, itemType) in validRows)
             {
                 _context.FlashcardItems.Add(new FlashcardItem
                 {
                     ItemID = Guid.NewGuid(),
                     DeckID = deck.DeckID,
                     EntityID = entityId,
-                    ItemType = skillType,
+                    ItemType = itemType,
                     EF = 2.5,
                     Interval = 0,
                     Repetitions = 0,
@@ -284,6 +282,86 @@ namespace QuizzTiengNhat.Services.Learners
 
             await _context.SaveChangesAsync();
             return deck;
+        }
+
+        public async Task<bool> UpdateUserCustomDeckAsync(string userId, Guid deckId, string name, string? description, IReadOnlyList<(Guid EntityId, SkillType ItemType)> entries)
+        {
+            var deck = await _context.FlashcardDecks
+                .Include(d => d.Items)
+                .FirstOrDefaultAsync(d => d.DeckID == deckId && d.UserID == userId);
+            if (deck == null || !deck.IsUserCustomDeck)
+                return false;
+
+            var user = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId);
+            if (user?.LevelID == null)
+                return false;
+            var levelId = user.LevelID.Value;
+
+            var seen = new HashSet<(Guid, SkillType)>();
+            var validRows = new List<(Guid EntityId, SkillType ItemType)>();
+            foreach (var (entityId, itemType) in entries ?? Array.Empty<(Guid, SkillType)>())
+            {
+                if (entityId == Guid.Empty) continue;
+                if (itemType != SkillType.Vocabulary && itemType != SkillType.Kanji && itemType != SkillType.Grammar)
+                    continue;
+                if (!seen.Add((entityId, itemType))) continue;
+                if (await EntityExistsAtLevelAsync(entityId, itemType, levelId))
+                    validRows.Add((entityId, itemType));
+            }
+
+            if (validRows.Count == 0)
+                return false;
+
+            deck.Name = name.Trim();
+            deck.Description = string.IsNullOrWhiteSpace(description) ? null : description.Trim();
+            deck.SkillType = SkillType.General;
+            deck.LevelID = levelId;
+            deck.ActiveStudyMode = null;
+            deck.ActiveStudyQueueJson = null;
+            deck.ActiveStudyCursor = 0;
+            deck.ActiveStudyUpdatedAt = null;
+
+            _context.FlashcardItems.RemoveRange(deck.Items);
+            foreach (var (entityId, itemType) in validRows)
+            {
+                _context.FlashcardItems.Add(new FlashcardItem
+                {
+                    ItemID = Guid.NewGuid(),
+                    DeckID = deck.DeckID,
+                    EntityID = entityId,
+                    ItemType = itemType,
+                    EF = 2.5,
+                    Interval = 0,
+                    Repetitions = 0,
+                    NextReview = DateTime.UtcNow,
+                    IsMastered = false
+                });
+            }
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> DeleteUserCustomDeckAsync(string userId, Guid deckId)
+        {
+            var deck = await _context.FlashcardDecks
+                .Include(d => d.Items)
+                .FirstOrDefaultAsync(d => d.DeckID == deckId && d.UserID == userId);
+            if (deck == null || !deck.IsUserCustomDeck)
+                return false;
+
+            _context.FlashcardItems.RemoveRange(deck.Items);
+            _context.FlashcardDecks.Remove(deck);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        /// <summary>Chủ đề hiển thị (bỏ hậu tố phân trang &quot;(P.n)&quot; khỏi tên deck).</summary>
+        private static string DeckTopicLabel(string? deckName)
+        {
+            if (string.IsNullOrWhiteSpace(deckName)) return deckName?.Trim() ?? "";
+            var m = Regex.Match(deckName.TrimEnd(), @"^(.*?)\s*\(P\.\d+\)\s*$", RegexOptions.CultureInvariant);
+            return m.Success ? m.Groups[1].Value.Trim() : deckName.Trim();
         }
 
         public async Task<IEnumerable<FlashcardItemDTO>> GetItemsInDeckAsync(Guid deckId, string userId)
@@ -542,7 +620,9 @@ namespace QuizzTiengNhat.Services.Learners
                     DeckID = d.DeckID,
                     SkillType = d.SkillType,
                     SkillName = d.Name,
-                    TopicName = d.Name,
+                    TopicName = DeckTopicLabel(d.Name),
+                    Description = d.Description,
+                    IsUserCustomDeck = d.IsUserCustomDeck,
                     LevelName = d.Level?.LevelName,
                     TotalCards = total,
                     MasteredCount = mastered,
@@ -608,16 +688,16 @@ namespace QuizzTiengNhat.Services.Learners
                 .Select(k => new
                 {
                     k.KanjiID,
-                    Radical = k.Radical
+                    Topic = k.Topic
                 })
-                .Where(x => x.Radical != null)
+                .Where(x => x.Topic != null)
                 .ToListAsync();
 
             var plans = new List<DeckSyncPlan>();
-            foreach (var group in rows.GroupBy(x => x.Radical!.RadicalID))
+            foreach (var group in rows.GroupBy(x => x.Topic!.TopicID))
             {
                 var ordered = group.OrderBy(x => x.KanjiID).ToList();
-                var ch = group.First().Radical!.Character;
+                var nameBase = group.First().Topic!.TopicName;
                 var parts = (int)Math.Ceiling(ordered.Count / (double)pageSize);
                 for (var p = 0; p < parts; p++)
                 {
@@ -625,7 +705,7 @@ namespace QuizzTiengNhat.Services.Learners
                     var suffix = parts > 1 ? $" (P.{p + 1})" : "";
                     plans.Add(new DeckSyncPlan(
                         BuildDeckSyncKey(levelId, SkillType.Kanji, group.Key, p),
-                        $"Hán tự nhóm {ch}{suffix}",
+                        $"{nameBase}{suffix}",
                         SkillType.Kanji,
                         chunk));
                 }
@@ -904,6 +984,8 @@ public class UserDeckDTO
     public SkillType SkillType { get; set; }
     public string SkillName { get; set; }
     public string? TopicName { get; set; }
+    public string? Description { get; set; }
+    public bool IsUserCustomDeck { get; set; }
     public string? LevelName { get; set; }
     public int TotalCards { get; set; }
     public int MasteredCount { get; set; }
