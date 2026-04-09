@@ -130,7 +130,20 @@ useEffect(() => {
             to="/learner/roadmap" 
             icon="map" 
             label="Lộ trình Minna" 
-            active={location.pathname.startsWith('/learner/roadmap') || location.pathname.includes('/learner/study')} 
+            active={location.pathname.startsWith('/learner/roadmap') || location.pathname.startsWith('/learner/study/')} 
+          />
+
+          <NavItem 
+            to="/learner/studyresource/vocabulary" 
+            icon="menu_book" 
+            label="Thư viện từ vựng" 
+            active={location.pathname.startsWith('/learner/studyresource/vocabulary')} 
+          />
+          <NavItem 
+            to="/learner/studyresource/kanji" 
+            icon="draw" 
+            label="Thư viện Kanji" 
+            active={location.pathname.startsWith('/learner/studyresource/kanji')} 
           />
 
           {/* --- PHẦN 3: RÈN LUYỆN KỸ NĂNG --- */}
@@ -157,27 +170,27 @@ useEffect(() => {
                 <SubNavItem 
                   to="/learner/skill-learning/vocabulary" 
                   label="Từ vựng" 
-                  active={isSubItemActive('/vocabulary', SkillType.Vocabulary)} 
+                  active={isSubItemActive('/skill-learning/vocabulary', SkillType.Vocabulary)} 
                 />
                 <SubNavItem 
                   to="/learner/skill-learning/kanji" 
                   label="Hán tự" 
-                  active={isSubItemActive('/kanji', SkillType.Kanji)} 
+                  active={isSubItemActive('/skill-learning/kanji', SkillType.Kanji)} 
                 />
                 <SubNavItem 
                   to="/learner/skill-learning/grammar" 
                   label="Ngữ pháp" 
-                  active={isSubItemActive('/grammar', SkillType.Grammar)} 
+                  active={isSubItemActive('/skill-learning/grammar', SkillType.Grammar)} 
                 />
                 <SubNavItem 
                   to="/learner/skill-learning/reading" 
                   label="Luyện đọc" 
-                  active={isSubItemActive('/reading', SkillType.Reading)} 
+                  active={isSubItemActive('/skill-learning/reading', SkillType.Reading)} 
                 />
                 <SubNavItem 
                   to="/learner/skill-learning/listening" 
                   label="Luyện nghe" 
-                  active={isSubItemActive('/listening', SkillType.Listening)}
+                  active={isSubItemActive('/skill-learning/listening', SkillType.Listening)}
                 />
               </div>
             )}
@@ -203,6 +216,12 @@ useEffect(() => {
             active={location.pathname === '/learner/leaderboard'} 
           /> */}
 
+          <NavItem 
+            to="/learner/ai-tutor" 
+            icon="smart_toy" 
+            label="Trợ lý AI (Ollama)" 
+            active={location.pathname === '/learner/ai-tutor'} 
+          />
           <NavItem 
             to="/learner/support" 
             icon="chat" 
