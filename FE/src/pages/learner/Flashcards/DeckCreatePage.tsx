@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useNavigate, useSearchParams, type NavigateFunction } from 'react-router-dom';
 import LearnerHeader from '../../../components/layout/learner/LearnerHeader';
 import { FlashcardService } from '../../../services/Learner/flashcardService';
 import { LearnerProfileService } from '../../../services/Learner/learnerProfileService';
 import { SkillType } from '../../../interfaces/Admin/QuestionBank';
+import { DeckItemRefDto } from '../../../interfaces/Learner/Flashcard';
 
 type AvailableCardRow = {
     id: string;
@@ -12,31 +13,78 @@ type AvailableCardRow = {
     meaning?: string;
 };
 
+type SelectedEntry = { entityId: string; itemType: SkillType };
+
+function parseFilterSkillType(raw: string | null): SkillType {
+    if (raw == null || raw === '') return SkillType.Vocabulary;
+    const n = Number(raw);
+    if (n === SkillType.General) return SkillType.Vocabulary;
+    if (n === SkillType.Vocabulary || n === SkillType.Kanji || n === SkillType.Grammar) return n;
+    return SkillType.Vocabulary;
+}
+
+/** Tab danh sách bộ thẻ cần khôi phục (?type=) — không đổi khi user đổi filter loại thẻ trên form. */
+function deckListReturnPath(searchParams: URLSearchParams): string {
+    const listType =
+        searchParams.get('listType') ?? searchParams.get('type') ?? searchParams.get('filter');
+    if (listType !== null && listType !== '') {
+        return `/learner/flashcards?type=${encodeURIComponent(listType)}`;
+    }
+    return '/learner/flashcards';
+}
+
+/** Giống nút Back trình duyệt khi có mục trước trong stack; tránh chồng thêm /flashcards. */
+function goBackToDeckList(navigate: NavigateFunction, searchParams: URLSearchParams) {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+        navigate(-1);
+        return;
+    }
+    navigate(deckListReturnPath(searchParams));
+}
+
 const DeckCreatePage: React.FC = () => {
     const navigate = useNavigate();
-    const [searchParams] = useSearchParams();
-    const urlType = searchParams.get('type');
-
-    const parseSkillFromUrl = (): SkillType => {
-        if (urlType == null || Number.isNaN(Number(urlType))) return SkillType.Vocabulary;
-        return Number(urlType) as SkillType;
-    };
+    const [searchParams, setSearchParams] = useSearchParams();
+    const editDeckId = searchParams.get('edit');
 
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
-    const [selectedType, setSelectedType] = useState<SkillType>(parseSkillFromUrl);
+    const [selectedType, setSelectedType] = useState<SkillType>(() =>
+        parseFilterSkillType(searchParams.get('filter'))
+    );
     const [levelId, setLevelId] = useState<string | null>(null);
     const [levelName, setLevelName] = useState('');
     const [profileLoading, setProfileLoading] = useState(true);
     const [availableCards, setAvailableCards] = useState<AvailableCardRow[]>([]);
+    const [selectedEntries, setSelectedEntries] = useState<SelectedEntry[]>([]);
+    // const [loading, setLoading] = useState(false);
+    // const [editLoading, setEditLoading] = useState(false);
+    // const [fetchingCards, setFetchingCards] = useState(false);
+    // const [cardSearch, setCardSearch] = useState('');
+
+    const setContentFilter = useCallback(
+        (type: SkillType) => {
+            setSelectedType(type);
+            const next = new URLSearchParams(searchParams);
+            next.set('filter', String(type));
+            if (editDeckId) next.set('edit', editDeckId);
+            setSearchParams(next, { replace: true });
+        },
+        [editDeckId, searchParams, setSearchParams]
+    );
+
+    useEffect(() => {
+        if (editDeckId) return;
+        setSelectedType(parseFilterSkillType(searchParams.get('filter')));
+    }, [searchParams, editDeckId]);
     const [selectedCardIds, setSelectedCardIds] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);
     const [fetchingCards, setFetchingCards] = useState(false);
     const [cardSearch, setCardSearch] = useState('');
 
-    useEffect(() => {
-        setSelectedType(parseSkillFromUrl());
-    }, [urlType]);
+    // useEffect(() => {
+    //     setSelectedType(parseSkillFromUrl());
+    // }, [urlType]);
 
     useEffect(() => {
         const loadProfile = async () => {
@@ -53,6 +101,38 @@ const DeckCreatePage: React.FC = () => {
         };
         loadProfile();
     }, []);
+
+    // useEffect(() => {
+    //     if (!editDeckId) return;
+    //     let cancelled = false;
+    //     (async () => {
+    //         setEditLoading(true);
+    //         try {
+    //             const [decks, items] = await Promise.all([
+    //                 FlashcardService.getDecks(),
+    //                 FlashcardService.getDeckItems(editDeckId),
+    //             ]);
+    //             if (cancelled) return;
+    //             const d = decks.find((x) => x.deckID === editDeckId);
+    //             if (d) {
+    //                 setName(d.skillName);
+    //                 setDescription(d.description ?? '');
+    //             }
+    //             setSelectedEntries(
+    //                 items.map((i) => ({ entityId: i.entityID, itemType: Number(i.itemType) as SkillType }))
+    //             );
+    //         } catch (e) {
+    //             console.error(e);
+    //             window.alert('Không tải được bộ thẻ để sửa.');
+    //             navigate(deckListReturnPath(new URLSearchParams(window.location.search)));
+    //         } finally {
+    //             if (!cancelled) setEditLoading(false);
+    //         }
+    //     })();
+    //     return () => {
+    //         cancelled = true;
+    //     };
+    // }, [editDeckId, navigate]);
 
     useEffect(() => {
         const fetchAvailableCards = async () => {
@@ -138,51 +218,66 @@ const DeckCreatePage: React.FC = () => {
         [SkillType.Kanji]: 'kanji',
     };
 
+    const buildPayload = (): { name: string; description?: string; items: DeckItemRefDto[] } => ({
+        name: name.trim(),
+        description: description.trim() || undefined,
+        items: selectedEntries.map((e) => ({
+            entityId: e.entityId,
+            itemType: e.itemType,
+        })),
+    });
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!name.trim() || selectedCardIds.length === 0) {
-            alert('Vui lòng nhập tên bộ thẻ và chọn ít nhất 1 thẻ.');
+        if (!name.trim() || selectedEntries.length === 0) {
+            window.alert('Vui lòng nhập tên bộ thẻ và chọn ít nhất 1 thẻ.');
             return;
         }
         if (!levelId) {
-            alert('Tài khoản chưa gán trình độ JLPT. Vui lòng cập nhật hồ sơ để tạo bộ thẻ.');
+            window.alert('Tài khoản chưa gán trình độ JLPT. Vui lòng cập nhật hồ sơ để tạo bộ thẻ.');
             return;
         }
 
         setLoading(true);
         try {
-            await FlashcardService.createDeck({
-                name: name.trim(),
-                description: description.trim() || undefined,
-                skillType: selectedType,
-                itemIds: selectedCardIds,
-            });
-            navigate(`/learner/flashcards?type=${selectedType}`);
+            const payload = buildPayload();
+            if (editDeckId) {
+                await FlashcardService.updateDeck(editDeckId, payload);
+            } else {
+                await FlashcardService.createDeck(payload);
+            }
+            navigate('/learner/flashcards?type=0');
         } catch (error: unknown) {
             const ax = error as { response?: { data?: { message?: string } } };
             const msg = ax?.response?.data?.message;
-            console.error('Lỗi khi tạo bộ thẻ:', error);
-            alert(typeof msg === 'string' ? msg : 'Có lỗi xảy ra. Vui lòng thử lại.');
+            console.error('Lỗi khi lưu bộ thẻ:', error);
+            window.alert(typeof msg === 'string' ? msg : 'Có lỗi xảy ra. Vui lòng thử lại.');
         } finally {
             setLoading(false);
         }
     };
 
-    const toggleCardSelection = (id: string) => {
-        setSelectedCardIds((prev) =>
-            prev.includes(id) ? prev.filter((cardId) => cardId !== id) : [...prev, id]
-        );
+    const toggleCardSelection = (entityId: string) => {
+        setSelectedEntries((prev) => {
+            const idx = prev.findIndex((e) => e.entityId === entityId && e.itemType === selectedType);
+            if (idx >= 0) return prev.filter((_, i) => i !== idx);
+            return [...prev, { entityId, itemType: selectedType }];
+        });
     };
 
-    const style = getSkillStyle(selectedType);
+    const isCardSelected = (entityId: string) =>
+        selectedEntries.some((e) => e.entityId === entityId && e.itemType === selectedType);
 
-    if (profileLoading) {
-        return (
-            <div className="flex h-screen items-center justify-center bg-[#fbf9fa]">
-                <div className="size-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-            </div>
-        );
-    }
+    const style = getSkillStyle(selectedType);
+    const isEdit = Boolean(editDeckId);
+
+    // if (profileLoading || (isEdit && editLoading)) {
+    //     return (
+    //         <div className="flex h-screen items-center justify-center bg-[#fbf9fa]">
+    //             <div className="size-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+    //         </div>
+    //     );
+    // }
 
     return (
         <div className="flex flex-col h-full bg-background-light font-['Lexend'] text-[#211118]">
@@ -191,7 +286,7 @@ const DeckCreatePage: React.FC = () => {
                     <div className="flex items-center gap-4 flex-1">
                         <button
                             type="button"
-                            onClick={() => navigate(`/learner/flashcards?type=${selectedType}`)}
+                            onClick={() => goBackToDeckList(navigate, searchParams)}
                             className="size-10 rounded-full border border-[#f4f0f2] flex items-center justify-center text-[#886373] hover:bg-[#f4f0f2] transition-colors active:scale-90"
                         >
                             <span className="material-symbols-outlined">arrow_back</span>
@@ -199,9 +294,11 @@ const DeckCreatePage: React.FC = () => {
                         <div className="flex flex-col">
                             <h2 className="text-xl font-bold text-[#181114] uppercase">Flashcards</h2>
                             <nav className="flex text-[10px] text-[#886373] font-medium gap-1 uppercase tracking-wider">
-                                <span>{SKILL_LABELS[Number(selectedType)] || 'Từ vựng'}</span>
+                                <span>{'Bộ thẻ của tôi'}</span>
                                 <span>/</span>
-                                <span className="text-primary font-bold">Tạo bộ thẻ</span>
+                                <span className="text-primary font-bold">
+                                    {isEdit ? 'Sửa bộ thẻ' : 'Tạo bộ thẻ'}
+                                </span>
                             </nav>
                         </div>
                     </div>
@@ -210,7 +307,6 @@ const DeckCreatePage: React.FC = () => {
 
             <div className="flex-1 overflow-y-auto p-8">
                 <div className="max-w-7xl mx-auto">
-
                     {!levelId ? (
                         <div className="bg-white rounded-xl p-10 border border-dashed border-[rgba(242,135,182,0.3)] text-center">
                             <span className="material-symbols-outlined text-5xl text-amber-400 mb-4">warning</span>
@@ -262,9 +358,9 @@ const DeckCreatePage: React.FC = () => {
 
                                     <div className="space-y-3">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-[#886373] ml-2">
-                                            Loại nội dung
+                                            Lọc ngân hàng
                                         </label>
-                                        <div className="flex flex-col gap-2">
+                                        <div className="flex flex-col gap-2 mt-2">
                                             {[
                                                 { type: SkillType.Vocabulary, label: 'Từ vựng' },
                                                 { type: SkillType.Kanji, label: 'Hán tự' },
@@ -273,11 +369,9 @@ const DeckCreatePage: React.FC = () => {
                                                 <button
                                                     key={item.type}
                                                     type="button"
-                                                    onClick={() => setSelectedType(item.type)}
-                                                    className={`py-3 px-6 rounded-full text-left font-bold transition-all flex items-center justify-between shadow-sm ${
-                                                        selectedType === item.type
-                                                            ? style.chipActive
-                                                            : style.chipIdle
+                                                    onClick={() => setContentFilter(item.type)}
+                                                    className={`py-3 px-6 rounded-full text-left font-bold transition-all mt-2 flex items-center justify-between shadow-sm ${
+                                                        selectedType === item.type ? style.chipActive : style.chipIdle
                                                     }`}
                                                 >
                                                     <span>{item.label}</span>
@@ -291,20 +385,24 @@ const DeckCreatePage: React.FC = () => {
 
                                     <button
                                         type="submit"
-                                        disabled={loading || !name.trim() || selectedCardIds.length === 0}
+                                        disabled={loading || !name.trim() || selectedEntries.length === 0}
                                         className={`w-full py-4 rounded-full font-black uppercase tracking-widest text-sm transition-all active:scale-[0.98] ${
-                                            loading || !name.trim() || selectedCardIds.length === 0
+                                            loading || !name.trim() || selectedEntries.length === 0
                                                 ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                                                 : `${style.buttonBg}`
                                         }`}
                                     >
-                                        {loading ? 'Đang tạo...' : `Tạo với ${selectedCardIds.length} thẻ`}
+                                        {loading
+                                            ? 'Đang lưu...'
+                                            : isEdit
+                                              ? `Cập nhật (${selectedEntries.length} thẻ)`
+                                              : `Tạo với ${selectedEntries.length} thẻ`}
                                     </button>
                                 </div>
                             </div>
 
                             <div className="lg:col-span-2 space-y-6">
-                                <div className="bg-white rounded-xl border border-[rgba(242,135,182,0.1)] shadow-sm overflow-hidden flex flex-col min-h-[520px] max-h-[calc(100vh-12rem)]">
+                                <div className="bg-white rounded-xl border border-[rgba(242,135,182,0.1)] shadow-sm overflow-hidden flex flex-col min-h-[520px] max-h-[828px]">
                                     <div className="p-6 border-b border-[#f4f0f2] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                         <div>
                                             <h3 className="font-black text-[#181114] uppercase tracking-tight text-sm">
@@ -317,7 +415,7 @@ const DeckCreatePage: React.FC = () => {
                                         <span
                                             className={`text-[10px] font-black uppercase px-3 py-1.5 rounded-full self-start sm:self-center ${style.iconBg} ${style.accent}`}
                                         >
-                                            Đã chọn {selectedCardIds.length}
+                                            Đã chọn {selectedEntries.length}
                                         </span>
                                     </div>
 
@@ -347,12 +445,12 @@ const DeckCreatePage: React.FC = () => {
                                                     inventory_2
                                                 </span>
                                                 <p className="font-bold text-[#211118]">Không có mục phù hợp</p>
-                                                <p className="text-sm mt-1">Thử đổi loại nội dung hoặc bộ lọc tìm kiếm.</p>
+                                                <p className="text-sm mt-1">Thử đổi bộ lọc ngân hàng hoặc tìm kiếm.</p>
                                             </div>
                                         ) : (
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 {filteredCards.map((card) => {
-                                                    const isSelected = selectedCardIds.includes(card.id);
+                                                    const isSelected = isCardSelected(card.id);
                                                     return (
                                                         <button
                                                             key={card.id}

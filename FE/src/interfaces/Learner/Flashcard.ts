@@ -42,6 +42,8 @@ export interface UserDeckDTO {
     skillType: SkillType;
     skillName: string;
     topicName?: string | null;
+    description?: string | null;
+    isUserCustomDeck?: boolean;
     levelName?: string | null;
     totalCards: number;
     masteredCount?: number;
@@ -63,9 +65,15 @@ export interface AddFlashcardDto {
     itemType: SkillType;
 }
 
+export interface DeckItemRefDto {
+    entityId: string;
+    itemType: SkillType;
+}
+
 export interface CreateDeckDto {
     name: string;
     description?: string;
-    skillType: SkillType;
-    itemIds: string[];
+    items: DeckItemRefDto[];
 }
+
+export interface UpdateDeckDto extends CreateDeckDto {}

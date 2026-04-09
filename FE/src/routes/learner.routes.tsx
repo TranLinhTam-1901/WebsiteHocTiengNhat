@@ -38,10 +38,19 @@ import Practice from '../pages/learner/Quiz/Practice';
 import Result from '../pages/learner/Quiz/Result';
 // Chat Support
 import LearnerChatPage from '../pages/learner/Support/LearnerChatPage';
+<<<<<<< HEAD
 // Courses (học theo khóa)
 import CourseListPage from '../pages/learner/Courses/CourseListPage';
 import CourseDetailPage from '../pages/learner/Courses/CourseDetailPage';
 import LessonLearnPage from '../pages/learner/Courses/LessonLearnPage';
+=======
+import AiTutorPage from '../pages/learner/Support/AiTutorPage';
+// Study resources (vocabulary & kanji)
+import StudyVocabularyListPage from '../pages/learner/StudyResource/VocabularyListPage';
+import StudyVocabularyDetailPage from '../pages/learner/StudyResource/VocabularyDetailPage';
+import StudyKanjiListPage from '../pages/learner/StudyResource/Kanji/KanjiListPage';
+import StudyKanjiDetailPage from '../pages/learner/StudyResource/Kanji/KanjiDetailPage';
+>>>>>>> develop
 
 export const learnerRoutes: RouteObject = {
   path: '/learner',
@@ -84,7 +93,12 @@ export const learnerRoutes: RouteObject = {
     { path: 'flashcards/review/:deckID', element: <FlashcardReviewPage /> },
     { path: 'flashcards/deck/:deckID', element: <DeckDetailPage /> },
     { path: 'flashcards/create', element: <DeckCreatePage /> },
+    { path: 'ai-tutor', element: <AiTutorPage /> },
     { path: 'support', element: <LearnerChatPage /> },
+    { path: 'studyresource/vocabulary', element: <StudyVocabularyListPage /> },
+    { path: 'studyresource/vocabulary/:id', element: <StudyVocabularyDetailPage /> },
+    { path: 'studyresource/kanji', element: <StudyKanjiListPage /> },
+    { path: 'studyresource/kanji/:id', element: <StudyKanjiDetailPage /> },
       ]
     }
   ],

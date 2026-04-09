@@ -2,7 +2,9 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using QuizzTiengNhat.Configurations;
 using QuizzTiengNhat.Data;
 using QuizzTiengNhat.Hubs;
 using QuizzTiengNhat.Middlewares;
@@ -104,7 +106,19 @@ builder.Services.AddScoped<IGrammarService, GrammarService>();
 builder.Services.AddScoped<IFlashcardService, FlashcardService>();
 builder.Services.AddScoped<IQuestionService, QuestionService>();
 builder.Services.AddScoped<IUserProgressService, UserProgressService>();
+<<<<<<< HEAD
 builder.Services.AddScoped<IProgressService, ProgressService>();
+=======
+
+builder.Services.Configure<OllamaOptions>(builder.Configuration.GetSection(OllamaOptions.SectionName));
+builder.Services.AddHttpClient<IOllamaTutorService, OllamaTutorService>((sp, client) =>
+{
+    var opt = sp.GetRequiredService<IOptions<OllamaOptions>>().Value;
+    client.BaseAddress = new Uri(opt.BaseUrl.TrimEnd('/') + "/");
+    client.Timeout = TimeSpan.FromSeconds(Math.Max(10, opt.TimeoutSeconds));
+});
+
+>>>>>>> develop
 // Đảm bảo tạo folder wwwroot nếu nó chưa tồn tại để WebRootPath không bị null
 if (!Directory.Exists(Path.Combine(builder.Environment.ContentRootPath, "wwwroot")))
 {
