@@ -1,4 +1,4 @@
-import { RouteObject } from 'react-router-dom';
+import React from 'react';
 import AuthLayout from '../components/layout/auth/AuthLayout';
 import LandingPage from '../pages/auth/LandingPage';
 import Login from '../pages/auth/Login';

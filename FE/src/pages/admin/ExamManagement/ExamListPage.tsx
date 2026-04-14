@@ -183,7 +183,7 @@ const ExamListPage: React.FC = () => {
                         </div>
 
                         <Link 
-                            to="/admin/exams/edit"
+                            to="/admin/exams/add"
                             className="bg-primary hover:bg-primary-dark text-white px-5 py-2 rounded-full text-sm font-bold flex items-center gap-2 transition-all shadow-lg shadow-primary/20 active:scale-95 no-underline"
                         >
                             <span className="material-symbols-outlined text-sm">add</span>

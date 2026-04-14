@@ -1,6 +1,7 @@
 import { RouteObject, Navigate } from 'react-router-dom';
 import LearnerLayout from '../components/layout/learner/LearnerLayout';
 import PrivateRoute from './PrivateRoute';
+import React from 'react';
 
 // Analytics
 import Leaderboard from '../pages/learner/Analytics/Leaderboard';
@@ -37,6 +38,10 @@ import Practice from '../pages/learner/Quiz/Practice';
 import Result from '../pages/learner/Quiz/Result';
 // Chat Support
 import LearnerChatPage from '../pages/learner/Support/LearnerChatPage';
+// Courses (học theo khóa)
+import CourseListPage from '../pages/learner/Courses/CourseListPage';
+import CourseDetailPage from '../pages/learner/Courses/CourseDetailPage';
+import LessonLearnPage from '../pages/learner/Courses/LessonLearnPage';
 import AiTutorPage from '../pages/learner/Support/AiTutorPage';
 // Study resources (vocabulary & kanji)
 import StudyVocabularyListPage from '../pages/learner/StudyResource/VocabularyListPage';
@@ -53,6 +58,9 @@ export const learnerRoutes: RouteObject = {
     children: [
     { index: true, element: <Navigate to="dashboard" replace /> },
     { path: 'dashboard', element: <LearnerDashboard /> },
+    { path: 'courses', element: <CourseListPage /> },
+    { path: 'courses/:courseId', element: <CourseDetailPage /> },
+    { path: 'lessons/:lessonId/learn', element: <LessonLearnPage /> },
     { path: 'leaderboard', element: <Leaderboard /> },
     { path: 'analytics/statistics', element: <LearningStatistics /> },
     { path: 'analytics/weakness', element: <WeaknessAnalysis /> },

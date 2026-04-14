@@ -4,6 +4,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../../../store'; 
 import { fetchUsers, toggleUserLock, updateUserRole } from '../../../store/admin.slice';
 import { User } from '../../../interfaces/User';
+import  adminService  from '../../../services/Admin/adminService';
+import { ProgressDetailResponse } from '../../../interfaces/Admin/ProgressDetail';
 
 const ROLE_OPTIONS = [
   { value: 'Learner', label: 'Học viên' },
@@ -34,6 +36,25 @@ const LearnerList: React.FC = () => {
   const [updatingRoleFor, setUpdatingRoleFor] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showAdmins, setShowAdmins] = useState(false);
+
+  // State quản lý Modal
+  const [selectedProgress, setSelectedProgress] = React.useState<ProgressDetailResponse | null>(null);
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
+  const [isFetchingDetail, setIsFetchingDetail] = React.useState(false);
+
+  // Hàm xử lý khi nhấn xem chi tiết
+  const handleViewDetail = async (userId: string) => {
+    try {
+      setIsFetchingDetail(true);
+      setIsModalOpen(true);
+      const data = await adminService.getLearnerProgress(userId);
+      setSelectedProgress(data);
+    } catch (error) {
+      console.error("Lỗi khi lấy tiến độ chi tiết", error);
+    } finally {
+      setIsFetchingDetail(false);
+    }
+  };
 
   // Lấy onlineCount trực tiếp từ Redux Store
   const { users, loading, onlineCount } = useSelector((state: RootState) => state.admin);
@@ -177,7 +198,7 @@ const LearnerList: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm text-slate-500 font-medium">Tiến độ trung bình</p>
-                <h3 className="text-2xl font-bold">{totalProgress}%</h3>
+                {/* <h3 className="text-2xl font-bold">{totalProgress}%</h3> */}
               </div>
             </div>
           </div>
@@ -186,6 +207,7 @@ const LearnerList: React.FC = () => {
         {/* Main Table - Giữ nguyên h-172 */}
         <div className="flex-1 overflow-hidden mt-8">
           <div className="bg-white rounded-2xl border border-[#f4f0f2] shadow-sm overflow-hidden flex flex-col h-172">
+
             <div className="overflow-hidden flex-1 no-scrollbar">
               <table className="w-full text-left border-collapse table-fixed">
                 <thead className='h-15'>
@@ -234,17 +256,20 @@ const LearnerList: React.FC = () => {
                         </td>
 
                         {/* Cột Tiến độ */}
-                        <td className="px-4 py-5 text-center">
-                          <div className="flex flex-col items-center gap-1">
-                              <span className="text-xs font-bold text-slate-500">{user.progressPercent || 0}%</span>
-                              <div className="w-20 bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                                <div 
-                                  className="bg-primary h-full rounded-full transition-all" 
-                                  style={{ width: `${user.progressPercent || 0}%` }}
-                                ></div>
-                              </div>
-                          </div>
-                        </td>
+                       <td className="px-8 py-5 text-center">
+                        <button 
+                          onClick={() => handleViewDetail(user.id)}
+                          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary border border-primary/20 hover:bg-primary hover:text-white transition-all duration-300 group shadow-sm"
+                        >
+                          <span className="material-symbols-outlined text-[18px] group-hover:rotate-180 transition-transform duration-500">
+                            monitoring
+                          </span>
+                          <span className="text-xs font-bold uppercase tracking-wider">Xem tiến độ</span>
+                        </button>
+                        
+                        {/* Chú thích nhỏ bên dưới nếu muốn */}
+                        <p className="text-[9px] text-slate-400 mt-1 font-medium italic">Click để tính toán 70/30</p>
+                      </td>
 
                         {/* Cột Mục tiêu (JLPT) */}
                         <td className="px-4 py-5 text-center">
@@ -313,6 +338,75 @@ const LearnerList: React.FC = () => {
                   )}
                 </tbody>
               </table>
+              {/* MODAL HIỂN THỊ CHI TIẾT 70/30 */}
+                  {isModalOpen && (
+                    <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+                      <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-300">
+                        <div className="p-6">
+                          <div className="flex justify-between items-center mb-6">
+                            <h3 className="font-black text-xl text-[#181114]">PHÂN TÍCH TIẾN ĐỘ</h3>
+                            <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-red-500 transition-colors">
+                              <span className="material-symbols-outlined">close</span>
+                            </button>
+                          </div>
+
+                          {isFetchingDetail ? (
+                            <div className="py-20 text-center flex flex-col items-center gap-3">
+                              <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+                              <p className="text-sm font-bold text-slate-400">AI đang tính toán...</p>
+                            </div>
+                          ) : (
+                            <div className="space-y-6">
+                              {/* Tổng quát */}
+                              <div className="text-center bg-primary/5 p-6 rounded-2xl border border-primary/10">
+                                <div className="text-4xl font-black text-primary mb-1">{selectedProgress?.totalPercent}%</div>
+                                <div className="text-xs font-bold text-[#886373] uppercase tracking-tighter">Hoàn thành lộ trình {selectedProgress?.currentLevelName}</div>
+                              </div>
+
+                              {/* Chi tiết 70/30 */}
+                              <div className="space-y-4">
+                                {/* Course - 70% */}
+                                <div className="p-4 bg-zinc-50 rounded-xl border border-zinc-100">
+                                  <div className="flex justify-between mb-2">
+                                    <span className="text-xs font-bold text-[#181114]">BÀI HỌC (70% Trọng số)</span>
+                                    <span className="text-xs font-bold text-primary">{selectedProgress?.courseProgress.percentage}%</span>
+                                  </div>
+                                  <div className="w-full bg-zinc-200 h-2 rounded-full overflow-hidden">
+                                    <div className="bg-primary h-full" style={{ width: `${selectedProgress?.courseProgress.percentage}%` }}></div>
+                                  </div>
+                                  <p className="text-[10px] text-slate-500 mt-2 italic">
+                                    Đã hoàn thành {selectedProgress?.courseProgress.completed}/{selectedProgress?.courseProgress.total} bài học.
+                                  </p>
+                                </div>
+
+                                {/* Flashcard - 30% */}
+                                <div className="p-4 bg-zinc-50 rounded-xl border border-zinc-100">
+                                  <div className="flex justify-between mb-2">
+                                    <span className="text-xs font-bold text-[#181114]">KỸ NĂNG/FLASHCARD (30% Trọng số)</span>
+                                    <span className="text-xs font-bold text-emerald-500">{selectedProgress?.skillProgress.percentage}%</span>
+                                  </div>
+                                  <div className="w-full bg-zinc-200 h-2 rounded-full overflow-hidden">
+                                    <div className="bg-emerald-500 h-full" style={{ width: `${selectedProgress?.skillProgress.percentage}%` }}></div>
+                                  </div>
+                                  <p className="text-[10px] text-slate-500 mt-2 italic">
+                                    Đã ghi nhớ {selectedProgress?.skillProgress.mastered}/{selectedProgress?.skillProgress.total} từ vựng/kanji.
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        <div className="p-4 bg-slate-50 text-center border-t border-slate-100">
+                            <button 
+                              onClick={() => setIsModalOpen(false)}
+                              className="w-full py-3 bg-[#181114] text-white rounded-xl font-bold text-sm hover:bg-black transition-colors"
+                            >
+                              XÁC NHẬN
+                            </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
             </div>
 
             {/* Pagination Footer */}
@@ -332,6 +426,8 @@ const LearnerList: React.FC = () => {
           </div>
         </div>
       </div>
+
+
     </div>
   );
 };
