@@ -3996,7 +3996,7 @@ BEGIN
     q_id := gen_random_uuid();
     INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
     VALUES (q_id, '家族は何人ですか？ (Gia đình có mấy người?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
-	
+
 	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
     
     INSERT INTO "Answers" ("AnswerID", "QuestionID", "AnswerText", "IsCorrect") VALUES 
@@ -4052,6 +4052,7 @@ BEGIN
 	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
     VALUES (q_id, '学校へ行きますか？ (Có đi đến trường không?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
 
+
 	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
 	
     INSERT INTO "Answers" ("AnswerID", "QuestionID", "AnswerText", "IsCorrect") VALUES 
@@ -4080,6 +4081,7 @@ BEGIN
 	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
     VALUES (q_id, '時計はどこにありますか？ (Cái đồng hồ ở đâu?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
 
+
 	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
 	
     INSERT INTO "Answers" ("AnswerID", "QuestionID", "AnswerText", "IsCorrect") VALUES 
@@ -4092,6 +4094,7 @@ BEGIN
     q_id := gen_random_uuid();
 	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
     VALUES (q_id, '学生は何人いますか？ (Có bao nhiêu học sinh?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
+
 
 	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
 	
@@ -4121,6 +4124,7 @@ BEGIN
 	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
     VALUES (q_id, '趣味は何ですか？ (Sở thích là gì?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
 
+
 	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
 	
     INSERT INTO "Answers" ("AnswerID", "QuestionID", "AnswerText", "IsCorrect") VALUES 
@@ -4133,6 +4137,7 @@ BEGIN
 	q_id := gen_random_uuid();
 	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
     VALUES (q_id, '休みの日にどこへ行きますか？ (Ngày nghỉ đi đâu?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
+
 
 	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
 	
@@ -4161,6 +4166,7 @@ BEGIN
     q_id := gen_random_uuid();
 	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
     VALUES (q_id, '何が大好きですか？ (Thích cái gì nhất?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
+
 
 	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
 	
@@ -4396,19 +4402,362 @@ BEGIN
 
 END $$;
 
--- -- Thay UserID tương ứng của ông vào
-DELETE FROM "FlashcardDecks" WHERE "UserID" = '2aed63c2-ce50-4194-a9af-2fafa255df5a';
 
-TRUNCATE TABLE "Kanjis" RESTART IDENTITY CASCADE;
-TRUNCATE TABLE "Radicals" RESTART IDENTITY CASCADE;
-TRUNCATE TABLE "RadicalVariants" RESTART IDENTITY CASCADE;
-
--------------------------------------------------------
--- SELECT VD
--------------------------------------------------------
-SELECT * FROM "GrammarGroups"
-WHERE "VocabID" = '014415d9-f006-4558-9a09-f4dcdee4a742';
+-- -- -- Thay UserID tương ứng của ông vào
+-- DELETE FROM "FlashcardDecks" WHERE "UserID" = '2aed63c2-ce50-4194-a9af-2fafa255df5a';
 
 
-SELECT * FROM "Vocabularies"
-WHERE "Word" = '置く';
+-- TRUNCATE TABLE "Kanjis" RESTART IDENTITY CASCADE;
+-- TRUNCATE TABLE "Radicals" RESTART IDENTITY CASCADE;
+-- TRUNCATE TABLE "RadicalVariants" RESTART IDENTITY CASCADE;
+
+
+-- -------------------------------------------------------
+-- -- SELECT VD
+-- -------------------------------------------------------
+-- SELECT * FROM "GrammarGroups"
+-- WHERE "VocabID" = '014415d9-f006-4558-9a09-f4dcdee4a742';
+
+
+-- SELECT * FROM "Vocabularies"
+-- WHERE "Word" = '置く';
+
+DO $$
+DECLARE 
+    n5_level_id uuid; 
+    new_course_id uuid;
+    new_lesson_id uuid;
+    grammar_id uuid;
+    t_id uuid;
+    group_id uuid;
+BEGIN
+    -- 1. LẤY ID CỦA LEVEL N5 TỪ BẢNG CHÍNH XÁC
+    SELECT "LevelID" INTO n5_level_id 
+    FROM "JLPT_Levels" 
+    WHERE "LevelName" = 'N5' 
+    LIMIT 1;
+
+    -- Kiểm tra phòng hờ nếu bảng JLPT_Levels chưa có dữ liệu N5
+    IF n5_level_id IS NULL THEN
+        RAISE EXCEPTION 'Không tìm thấy N5 trong bảng JLPT_Levels. Hãy chạy lệnh insert level trước!';
+    END IF;
+
+    -------------------------------------------------------
+    -- 2. TẠO KHÓA HỌC TEST MỚI CHO N5
+    -------------------------------------------------------
+    new_course_id := gen_random_uuid();
+    INSERT INTO "Courses" ("CourseID", "CourseName", "Description", "LevelID") 
+    VALUES (
+        new_course_id, 
+        'N5 Test Course - ' || TO_CHAR(NOW(), 'DD/MM'), -- Thêm ngày để bạn dễ phân biệt khi chạy lại
+        'Khóa học tạo ra để test cấu trúc bài học mới', 
+        n5_level_id
+    )
+    ON CONFLICT ("CourseName") DO NOTHING; 
+    
+    -- Lấy lại ID của khóa vừa tạo
+    SELECT "CourseID" INTO new_course_id FROM "Courses" WHERE "CourseName" LIKE 'N5 Test Course%' ORDER BY "CourseID" LIMIT 1;
+
+    -- 3. LẤY TOPIC ID (Minna no Nihongo)
+    SELECT "TopicID" INTO t_id FROM "Topics" WHERE "TopicName" LIKE 'Minna no Nihongo I' LIMIT 1;
+
+    -- 4. TẠO BÀI HỌC MỚI TRONG KHÓA NÀY
+    new_lesson_id := gen_random_uuid();
+    INSERT INTO "Lessons" ("LessonID", "Title", "SkillType", "Difficulty", "Priority", "CourseID")
+    VALUES (new_lesson_id, 'Bài Test 01', '0', 1, 1, new_course_id)
+    ON CONFLICT ("Title", "CourseID") DO NOTHING;
+
+    SELECT "LessonID" INTO new_lesson_id FROM "Lessons" WHERE "Title" = 'Bài Test 01' AND "CourseID" = new_course_id LIMIT 1;
+
+    -------------------------------------------------------
+    -- 5. NỘI DUNG NGỮ PHÁP MẪU
+    -------------------------------------------------------
+    -- Lấy hoặc tạo nhóm
+    SELECT "GrammarGroupID" INTO group_id FROM "GrammarGroups" WHERE "GroupName" = 'Cơ bản' LIMIT 1;
+    IF group_id IS NULL THEN
+        group_id := gen_random_uuid();
+        INSERT INTO "GrammarGroups" ("GrammarGroupID", "GroupName") VALUES (group_id, 'Cơ bản');
+    END IF;
+
+    grammar_id := gen_random_uuid();
+    INSERT INTO "Grammars" ("GrammarID", "Title", "Structure", "Meaning", "Explanation", "Formality", "GrammarType", "GrammarGroupID", "Status", "LevelID", "LessonID", "CreatedAt", "UpdatedAt")
+    VALUES (grammar_id, 'Cấu trúc Test', 'A は B です', 'A là B', 'Cấu trúc cơ bản nhất.', 2, 6, group_id, 1, 
+            n5_level_id, 
+            new_lesson_id, NOW(), NOW()) 
+    ON CONFLICT DO NOTHING;
+
+    INSERT INTO "Examples" ("ExampleID", "Content", "Translation", "GrammarID", "CreatedAt", "UpdatedAt") 
+    VALUES 
+    (gen_random_uuid(), 'これは テストです。', 'Đây là bài kiểm tra.', grammar_id, NOW(), NOW()),
+    (gen_random_uuid(), 'それは 本です。', 'Đó là quyển sách.', grammar_id, NOW(), NOW())
+    ON CONFLICT DO NOTHING;
+
+    RAISE NOTICE 'Script chạy thành công với bảng JLPT_Levels!';
+END $$;
+
+
+
+
+-- DO $$
+-- DECLARE 
+--     n5_level_id uuid; 
+--     t_id uuid;
+--     group_id uuid;
+    
+--     -- Mảng chứa tên 5 khóa học mới
+--     course_names text[] := ARRAY[
+--         'N5 Minna No Nihongo - Tập 1',
+--         'N5 Kanji nhập môn',
+--         'N5 Luyện nghe cơ bản',
+--         'N5 Từ vựng thông dụng',
+--         'N5 Cấu trúc ngữ pháp trọng tâm'
+--     ];
+    
+--     c_name text;
+--     new_course_id uuid;
+--     new_lesson_id uuid;
+--     grammar_id uuid;
+-- BEGIN
+--     -- 1. LẤY CÁC ID CẦN THIẾT (Topic và Level)
+--     SELECT "LevelID" INTO n5_level_id FROM "JLPT_Levels" WHERE "LevelName" = 'N5' LIMIT 1;
+--     SELECT "TopicID" INTO t_id FROM "Topics" WHERE "TopicName" LIKE 'Minna no Nihongo I' LIMIT 1;
+    
+--     -- Kiểm tra điều kiện tiên quyết
+--     IF n5_level_id IS NULL THEN
+--         RAISE EXCEPTION 'Không tìm thấy N5 trong bảng JLPT_Levels. Vui lòng nạp Level trước.';
+--     END IF;
+
+--     -- Lấy hoặc tạo nhóm ngữ pháp chung để test
+--     SELECT "GrammarGroupID" INTO group_id FROM "GrammarGroups" WHERE "GroupName" = 'Cơ bản' LIMIT 1;
+--     IF group_id IS NULL THEN
+--         group_id := gen_random_uuid();
+--         INSERT INTO "GrammarGroups" ("GrammarGroupID", "GroupName") VALUES (group_id, 'Cơ bản');
+--     END IF;
+
+--     -------------------------------------------------------
+--     -- 2. VÒNG LẶP TẠO 5 KHÓA HỌC
+--     -------------------------------------------------------
+--     FOREACH c_name IN ARRAY course_names
+--     LOOP
+--         -- Tạo Course mới
+--         new_course_id := gen_random_uuid();
+--         INSERT INTO "Courses" ("CourseID", "CourseName", "Description", "LevelID") 
+--         VALUES (
+--             new_course_id, 
+--             c_name, 
+--             'Dữ liệu mẫu cho khóa học: ' || c_name, 
+--             n5_level_id
+--         )
+--         ON CONFLICT ("CourseName") DO NOTHING;
+
+--         -- Lấy lại ID thực tế của Course (để phòng trường hợp ON CONFLICT xảy ra)
+--         SELECT "CourseID" INTO new_course_id FROM "Courses" WHERE "CourseName" = c_name LIMIT 1;
+
+--         -- Tạo 1 Lesson mẫu cho mỗi khóa
+--         new_lesson_id := gen_random_uuid();
+--         INSERT INTO "Lessons" ("LessonID", "Title", "SkillType", "Difficulty", "Priority", "CourseID")
+--         VALUES (
+--             new_lesson_id, 
+--             'Bài mở đầu: ' || c_name, 
+--             '0', 1, 1, 
+--             new_course_id
+--         )
+--         ON CONFLICT ("Title", "CourseID") DO NOTHING;
+
+--         -- Lấy lại ID thực tế của Lesson
+--         SELECT "LessonID" INTO new_lesson_id FROM "Lessons" 
+--         WHERE "Title" = 'Bài mở đầu: ' || c_name AND "CourseID" = new_course_id LIMIT 1;
+
+--         -- Tạo 1 Ngữ pháp mẫu cho mỗi Lesson
+--         grammar_id := gen_random_uuid();
+--         INSERT INTO "Grammars" ("GrammarID", "Title", "Structure", "Meaning", "Explanation", "Formality", "GrammarType", "GrammarGroupID", "Status", "LevelID", "LessonID", "CreatedAt", "UpdatedAt")
+--         VALUES (
+--             grammar_id, 
+--             'Ngữ pháp mẫu', 
+--             'Cấu trúc của ' || c_name, 
+--             'Nghĩa của mẫu câu này', 
+--             'Giải thích cho khóa học ' || c_name, 
+--             2, 6, group_id, 1, 
+--             n5_level_id, 
+--             new_lesson_id, NOW(), NOW()
+--         ) 
+--         ON CONFLICT DO NOTHING;
+
+--         -- Thêm 1 Ví dụ mẫu
+--         INSERT INTO "Examples" ("ExampleID", "Content", "Translation", "GrammarID", "CreatedAt", "UpdatedAt") 
+--         VALUES (
+--             gen_random_uuid(), 
+--             'これは ' || c_name || ' のテストです。', 
+--             'Đây là bài test của ' || c_name, 
+--             grammar_id, NOW(), NOW()
+--         )
+--         ON CONFLICT DO NOTHING;
+
+--     END LOOP;
+
+--     RAISE NOTICE 'Đã thêm thành công 5 khóa học N5 mới!';
+-- END $$;
+DO $$
+DECLARE 
+    n5_level_id uuid; 
+    group_id uuid;
+    c_name text;
+    lesson_index integer;
+    new_course_id uuid;
+    new_lesson_id uuid;
+    grammar_id uuid;
+
+    -- Danh sách khóa học
+    course_names text[] := ARRAY[
+        'N5 Minna No Nihongo - Tập 1',
+        'N5 Kanji nhập môn',
+        'N5 Luyện nghe cơ bản',
+        'N5 Từ vựng thông dụng',
+        'N5 Cấu trúc ngữ pháp trọng tâm'
+    ];
+BEGIN
+    -- Lấy Level N5
+    SELECT "LevelID" INTO n5_level_id 
+    FROM "JLPT_Levels" 
+    WHERE "LevelName" = 'N5' 
+    LIMIT 1;
+
+    IF n5_level_id IS NULL THEN
+        RAISE EXCEPTION 'Không tìm thấy Level N5.';
+    END IF;
+
+    -- Lấy hoặc tạo Grammar Group
+    SELECT "GrammarGroupID" INTO group_id 
+    FROM "GrammarGroups" 
+    WHERE "GroupName" = 'Cơ bản' 
+    LIMIT 1;
+
+    IF group_id IS NULL THEN
+        group_id := gen_random_uuid();
+        INSERT INTO "GrammarGroups" ("GrammarGroupID", "GroupName") 
+        VALUES (group_id, 'Cơ bản');
+    END IF;
+
+    -------------------------------------------------------
+    -- VÒNG LẶP TẠO KHÓA HỌC
+    -------------------------------------------------------
+    FOREACH c_name IN ARRAY course_names
+    LOOP
+        -- Tạo Course
+        INSERT INTO "Courses" ("CourseID", "CourseName", "Description", "LevelID") 
+        VALUES (
+            gen_random_uuid(), 
+            c_name, 
+            'Dữ liệu mẫu cho khóa học: ' || c_name, 
+            n5_level_id
+        )
+        ON CONFLICT ("CourseName") DO NOTHING;
+
+        -- Lấy lại CourseID
+        SELECT "CourseID" INTO new_course_id 
+        FROM "Courses" 
+        WHERE "CourseName" = c_name 
+        LIMIT 1;
+
+        -------------------------------------------------------
+        -- VÒNG LẶP TẠO 5 LESSON CHO MỖI KHÓA
+        -------------------------------------------------------
+        FOR lesson_index IN 1..5 LOOP
+            -- Tạo Lesson
+            INSERT INTO "Lessons" (
+                "LessonID", "Title", "SkillType", 
+                "Difficulty", "Priority", "CourseID"
+            )
+            VALUES (
+                gen_random_uuid(),
+                'Bài ' || lesson_index || ': ' || c_name,
+                '0',  -- Có thể thay đổi theo loại kỹ năng
+                lesson_index,
+                lesson_index,
+                new_course_id
+            )
+            ON CONFLICT ("Title", "CourseID") DO NOTHING;
+
+            -- Lấy lại LessonID
+            SELECT "LessonID" INTO new_lesson_id
+            FROM "Lessons"
+            WHERE "Title" = 'Bài ' || lesson_index || ': ' || c_name
+              AND "CourseID" = new_course_id
+            LIMIT 1;
+
+            -------------------------------------------------------
+            -- THÊM NGỮ PHÁP
+            -------------------------------------------------------
+            grammar_id := gen_random_uuid();
+            INSERT INTO "Grammars" (
+                "GrammarID", "Title", "Structure", "Meaning",
+                "Explanation", "Formality", "GrammarType",
+                "GrammarGroupID", "Status", "LevelID",
+                "LessonID", "CreatedAt", "UpdatedAt"
+            )
+            VALUES (
+                grammar_id,
+                'Ngữ pháp bài ' || lesson_index,
+                'A は B です',
+                'Câu khẳng định cơ bản',
+                'Dùng để giới thiệu hoặc mô tả.',
+                2, 6, group_id, 1,
+                n5_level_id,
+                new_lesson_id,
+                NOW(), NOW()
+            )
+            ON CONFLICT DO NOTHING;
+
+            -- Ví dụ cho ngữ pháp
+            INSERT INTO "Examples" (
+                "ExampleID", "Content", "Translation",
+                "GrammarID", "CreatedAt", "UpdatedAt"
+            )
+            VALUES (
+                gen_random_uuid(),
+                '私は学生です。',
+                'Tôi là sinh viên.',
+                grammar_id,
+                NOW(), NOW()
+            )
+            ON CONFLICT DO NOTHING;
+
+            -------------------------------------------------------
+            -- (TÙY CHỌN) THÊM TỪ VỰNG, KANJI, LISTENING...
+            -------------------------------------------------------
+            -- Ví dụ: Vocabulary
+            INSERT INTO "Vocabularies" (
+                "VocabID",
+				"Word",
+				"Reading",
+				"Meaning",
+				"IsCommon",
+				"Priority",
+				"Status",
+				"LevelID",
+				"LessonID",
+				"CreatedAt",
+				"UpdatedAt",
+				"AudioURL"
+            )
+            VALUES (
+                gen_random_uuid(),
+			    '学生',
+			    'がくせい',
+			    'Sinh viên',
+			    TRUE,                 -- IsCommon (NOT NULL)
+			    lesson_index,         -- Priority (NOT NULL)
+			    1,                    -- Status (NOT NULL, ví dụ: 1 = Active)
+			    n5_level_id,          -- LevelID (NOT NULL)
+			    new_lesson_id,        -- LessonID
+			    NOW(),
+			    NOW(),
+			    ''         
+            )
+            ON CONFLICT ("Word", "Reading") DO NOTHING;
+
+        END LOOP;
+    END LOOP;
+
+    RAISE NOTICE 'Đã thêm thành công các khóa học N5 với 5 bài mỗi khóa!';
+END $$;
