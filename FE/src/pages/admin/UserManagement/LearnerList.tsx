@@ -256,7 +256,6 @@ const LearnerList: React.FC = () => {
                         </td>
 
                         {/* Cột Tiến độ */}
-<<<<<<< HEAD
                        <td className="px-8 py-5 text-center">
                         <button 
                           onClick={() => handleViewDetail(user.id)}
@@ -271,19 +270,6 @@ const LearnerList: React.FC = () => {
                         {/* Chú thích nhỏ bên dưới nếu muốn */}
                         <p className="text-[9px] text-slate-400 mt-1 font-medium italic">Click để tính toán 70/30</p>
                       </td>
-=======
-                        <td className="px-4 py-5 text-center">
-                          <div className="flex flex-col items-center gap-1">
-                              <span className="text-xs font-bold text-slate-500">{user.progressPercent || 0}%</span>
-                              <div className="w-20 bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                                <div 
-                                  className="bg-primary h-full rounded-full transition-all" 
-                                  style={{ width: `${user.progressPercent || 0}%` }}
-                                ></div>
-                              </div>
-                          </div>
-                        </td>
->>>>>>> develop
 
                         {/* Cột Mục tiêu (JLPT) */}
                         <td className="px-4 py-5 text-center">
