@@ -106,9 +106,7 @@ builder.Services.AddScoped<IGrammarService, GrammarService>();
 builder.Services.AddScoped<IFlashcardService, FlashcardService>();
 builder.Services.AddScoped<IQuestionService, QuestionService>();
 builder.Services.AddScoped<IUserProgressService, UserProgressService>();
-<<<<<<< HEAD
 builder.Services.AddScoped<IProgressService, ProgressService>();
-=======
 
 builder.Services.Configure<OllamaOptions>(builder.Configuration.GetSection(OllamaOptions.SectionName));
 builder.Services.AddHttpClient<IOllamaTutorService, OllamaTutorService>((sp, client) =>
@@ -118,7 +116,7 @@ builder.Services.AddHttpClient<IOllamaTutorService, OllamaTutorService>((sp, cli
     client.Timeout = TimeSpan.FromSeconds(Math.Max(10, opt.TimeoutSeconds));
 });
 
->>>>>>> develop
+
 // Đảm bảo tạo folder wwwroot nếu nó chưa tồn tại để WebRootPath không bị null
 if (!Directory.Exists(Path.Combine(builder.Environment.ContentRootPath, "wwwroot")))
 {
