@@ -1,0 +1,72 @@
+{
+	"Type": "Live2D Expression",
+	"FadeInTime": 0.75,
+	"FadeOutTime": 0.75,
+	"Parameters": [
+		{
+			"Id": "Param149",
+			"Value": 1,
+			"Blend": "Add"
+		},
+		{
+			"Id": "Param150",
+			"Value": 0,
+			"Blend": "Add"
+		},
+		{
+			"Id": "Param135",
+			"Value": 0,
+			"Blend": "Add"
+		},
+		{
+			"Id": "ParamEyeRSmile",
+			"Value": 0,
+			"Blend": "Add"
+		},
+		{
+			"Id": "ParamEyeLSmile",
+			"Value": 0,
+			"Blend": "Add"
+		},
+		{
+			"Id": "ParamMouthOpenY",
+			"Value": 0.5,
+			"Blend": "Add"
+		},
+		{
+			"Id": "Param14",
+			"Value": 0,
+			"Blend": "Add"
+		},
+		{
+			"Id": "Param15",
+			"Value": 1,
+			"Blend": "Add"
+		},
+		{
+			"Id": "Param16",
+			"Value": 0,
+			"Blend": "Add"
+		},
+		{
+			"Id": "Param22",
+			"Value": 0,
+			"Blend": "Add"
+		},
+		{
+			"Id": "Param132",
+			"Value": 0,
+			"Blend": "Add"
+		},
+		{
+			"Id": "Param144",
+			"Value": 0,
+			"Blend": "Add"
+		},
+		{
+			"Id": "Param140",
+			"Value": 0,
+			"Blend": "Add"
+		}
+	]
+}

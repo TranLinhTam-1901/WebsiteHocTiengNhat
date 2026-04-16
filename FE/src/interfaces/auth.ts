@@ -9,6 +9,8 @@ export interface LoginPayload {
   email: string;
   password: string;
   rememberMe: boolean;
+  /** Cùng giá trị cho mọi tab một trình duyệt; khác trình duyệt khác. */
+  browserSessionId: string;
 }
 
 export interface AuthResponse {

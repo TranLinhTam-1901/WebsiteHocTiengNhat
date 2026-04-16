@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import LearnerHeader from '../../../components/layout/learner/LearnerHeader';
 import { useTimer } from '../../../hooks/useTimer';
@@ -58,6 +58,93 @@ const cardVariant = (type: SkillType): CardVariant => {
             };
     }
 };
+
+/** Chọn giọng tiếng Nhật nếu trình duyệt có (bắt buộc để TTS không câm/im lặng trên nhiều máy Windows/Chrome). */
+function pickJapaneseVoice(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice | undefined {
+    const norm = (lang: string) => lang?.toLowerCase().replace(/_/g, '-') || '';
+    return (
+        voices.find((v) => norm(v.lang) === 'ja-jp') ||
+        voices.find((v) => norm(v.lang).startsWith('ja')) ||
+        voices.find((v) => /日本|japanese|nihongo|kyoto|osaka|tokyo|sayuri|kyoko/i.test(`${v.name} ${v.lang}`))
+    );
+}
+
+/**
+ * Phát TTS tiếng Nhật: hủy queue cũ, chờ voices nếu cần (Chrome), gán voice ja-*.
+ */
+function speakJapanese(text: string): void {
+    const t = text.trim();
+    if (!t || typeof window === 'undefined' || !window.speechSynthesis) return;
+
+    const synth = window.speechSynthesis;
+
+    const run = () => {
+        synth.cancel();
+        const u = new SpeechSynthesisUtterance(t);
+        u.lang = 'ja-JP';
+        const voice = pickJapaneseVoice(synth.getVoices());
+        if (voice) u.voice = voice;
+        u.rate = 0.92;
+        u.pitch = 1;
+        u.onerror = (e) => console.warn('speechSynthesis error', e);
+        synth.speak(u);
+    };
+
+    if (synth.getVoices().length > 0) {
+        run();
+        return;
+    }
+
+    let settled = false;
+    const finish = () => {
+        synth.removeEventListener('voiceschanged', onVoices);
+        if (settled) return;
+        settled = true;
+        run();
+    };
+    const onVoices = () => finish();
+
+    synth.addEventListener('voiceschanged', onVoices);
+    void synth.getVoices();
+    requestAnimationFrame(() => {
+        if (synth.getVoices().length > 0) finish();
+    });
+    window.setTimeout(finish, 500);
+}
+
+function firstReadingChunk(raw: string | undefined): string {
+    const s = raw?.trim();
+    if (!s || s === '—') return '';
+    const part = s.split(/[、，,\s/／]+/).map((x) => x.trim()).find(Boolean);
+    return part || s;
+}
+
+/** Chuỗi tối ưu cho TTS: ưu tiên hiragana/katakana/reading, tránh chỉ gửi kanji khi có đọc âm. */
+function buildFlashcardTtsText(
+    itemType: SkillType,
+    entity: FlashcardContentDTO,
+    grammarStructure: string
+): string {
+    switch (Number(itemType)) {
+        case SkillType.Vocabulary: {
+            const reading = entity.furigana?.trim();
+            const word = entity.kanji?.trim();
+            return reading || word || '';
+        }
+        case SkillType.Kanji: {
+            const ku = firstReadingChunk(entity.kunyomi);
+            const on = firstReadingChunk(entity.onyomi);
+            const ch = entity.kanji?.trim();
+            return ku || on || ch || '';
+        }
+        case SkillType.Grammar: {
+            const g = grammarStructure.replace(/—/g, '').trim();
+            return g || entity.kanji?.trim() || '';
+        }
+        default:
+            return entity.kanji?.trim() || '';
+    }
+}
 
 const FlashcardReviewPage: React.FC = () => {
     const { deckID } = useParams<{ deckID: string }>();
@@ -193,6 +280,19 @@ const FlashcardReviewPage: React.FC = () => {
         studyMode === 'review' ? 'Ôn tập SRS'
             : studyMode === 'continue' ? 'Học các thẻ còn lại'
             : 'Học các thẻ mới';
+
+    const ttsText = useMemo(() => {
+        if (!activeItem) return '';
+        return buildFlashcardTtsText(activeItem.itemType, activeEntity, grammarStructure);
+    }, [
+        activeItem?.itemID,
+        activeItem?.itemType,
+        activeEntity.kanji,
+        activeEntity.furigana,
+        activeEntity.kunyomi,
+        activeEntity.onyomi,
+        grammarStructure,
+    ]);
 
     if (loading && items.length === 0) return (
         <div className="flex h-screen items-center justify-center bg-background-light">
@@ -332,7 +432,7 @@ const FlashcardReviewPage: React.FC = () => {
                                                                     : 'bg-white border-slate-200 text-slate-700 hover:border-primary/40 hover:bg-primary/5'
                                                             }`}
                                                         >
-                                                            {showFurigana ? 'Ẩn Hiragana / đọc' : 'Hiện Hiragana / đọc'}
+                                                            {showFurigana ? 'Ẩn Hiragana' : 'Hiện Hiragana'}
                                                         </button>
                                                     </>
                                                 ) : (
@@ -367,12 +467,12 @@ const FlashcardReviewPage: React.FC = () => {
                                     )}
                                 </div>
 
-                                {frontAudioText ? (
+                                {ttsText ? (
                                     <button
                                         type="button"
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            playAudio(frontAudioText);
+                                            speakJapanese(ttsText);
                                         }}
                                         className="inline-flex items-center gap-2 text-slate-500 hover:text-primary transition-colors py-2 px-4 rounded-full hover:bg-black/5 text-base font-semibold"
                                     >

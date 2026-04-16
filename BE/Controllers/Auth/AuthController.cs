@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using QuizzTiengNhat.DTOs.Auth;
+using QuizzTiengNhat.Hubs;
 using QuizzTiengNhat.Models;
 using QuizzTiengNhat.Services;
 
@@ -14,12 +16,24 @@ namespace QuizzTiengNhat.Controllers.Auth
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ITokenService _tokenService;
         private readonly ApplicationDbContext _context;
+        private readonly IBrowserSessionHubCoordinator _browserSessionHubCoordinator;
+        private readonly IHubContext<PresenceHub> _presenceHub;
+        private readonly IHubContext<ChatHub> _chatHub;
 
-        public AuthController(UserManager<ApplicationUser> userManager, ITokenService tokenService, ApplicationDbContext context)
+        public AuthController(
+            UserManager<ApplicationUser> userManager,
+            ITokenService tokenService,
+            ApplicationDbContext context,
+            IBrowserSessionHubCoordinator browserSessionHubCoordinator,
+            IHubContext<PresenceHub> presenceHub,
+            IHubContext<ChatHub> chatHub)
         {
             _userManager = userManager;
             _tokenService = tokenService;
             _context = context;
+            _browserSessionHubCoordinator = browserSessionHubCoordinator;
+            _presenceHub = presenceHub;
+            _chatHub = chatHub;
         }
 
         [HttpPost("register")]
@@ -57,6 +71,21 @@ namespace QuizzTiengNhat.Controllers.Auth
             }
 
             await _userManager.UpdateSecurityStampAsync(user);
+            user = await _userManager.FindByIdAsync(user.Id);
+            if (user == null)
+                return Unauthorized();
+
+            await _browserSessionHubCoordinator.NotifyNewLoginKickOthersAsync(
+                user.Email!,
+                dto.BrowserSessionId,
+                _presenceHub,
+                _chatHub,
+                HttpContext.RequestAborted);
+
+            await _presenceHub.Clients.All.SendAsync(
+                "UpdateOnlineCount",
+                _browserSessionHubCoordinator.GetOnlineLearnerCount(),
+                HttpContext.RequestAborted);
 
             var token = await _tokenService.CreateToken(user, dto.RememberMe);
             var roles = await _userManager.GetRolesAsync(user);

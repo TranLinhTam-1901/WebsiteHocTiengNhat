@@ -1,8 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using QuizzTiengNhat.Configurations;
 using QuizzTiengNhat.Data;
 using QuizzTiengNhat.Hubs;
 using QuizzTiengNhat.Middlewares;
@@ -85,6 +88,11 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
     });
 
+builder.Services.Configure<FormOptions>(o =>
+{
+    o.MultipartBodyLengthLimit = 32_768_000;
+});
+
 builder.Services.AddAuthorization();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IChatService, ChatService>();
@@ -105,10 +113,47 @@ builder.Services.AddScoped<IFlashcardService, FlashcardService>();
 builder.Services.AddScoped<IQuestionService, QuestionService>();
 builder.Services.AddScoped<IUserProgressService, UserProgressService>();
 
+builder.Services.Configure<OllamaOptions>(builder.Configuration.GetSection(OllamaOptions.SectionName));
+builder.Services.Configure<VoicevoxOptions>(builder.Configuration.GetSection(VoicevoxOptions.SectionName));
+builder.Services.Configure<WhisperOptions>(builder.Configuration.GetSection(WhisperOptions.SectionName));
+builder.Services.AddHttpClient<IWhisperSpeechToTextService, WhisperSpeechToTextService>((sp, client) =>
+{
+    var opt = sp.GetRequiredService<IOptions<WhisperOptions>>().Value;
+    var baseUrl = opt.BaseUrl.Trim();
+    if (!baseUrl.EndsWith('/'))
+        baseUrl += "/";
+    client.BaseAddress = new Uri(baseUrl);
+    client.Timeout = TimeSpan.FromSeconds(Math.Max(15, opt.TimeoutSeconds));
+});
+builder.Services.AddHttpClient<IOllamaTutorService, OllamaTutorService>((sp, client) =>
+{
+    var opt = sp.GetRequiredService<IOptions<OllamaOptions>>().Value;
+    client.BaseAddress = new Uri(opt.BaseUrl.TrimEnd('/') + "/");
+    client.Timeout = TimeSpan.FromSeconds(Math.Max(10, opt.TimeoutSeconds));
+});
+
+builder.Services.AddHttpClient<IVoicevoxTtsService, VoicevoxTtsService>((sp, client) =>
+{
+    var opt = sp.GetRequiredService<IOptions<VoicevoxOptions>>().Value;
+    // Đảm bảo URL kết thúc bằng dấu / để không bị lỗi cộng chuỗi
+    client.BaseAddress = new Uri(opt.BaseUrl.TrimEnd('/') + "/");
+    // Tăng timeout vì Voicevox tạo file audio khá chậm (tầm 30-60s)
+    client.Timeout = TimeSpan.FromSeconds(Math.Max(30, opt.TimeoutSeconds));
+});
+
+builder.Services.AddScoped<ITutorArchiveService, TutorArchiveService>();
+builder.Services.AddSingleton<IBrowserSessionHubCoordinator, BrowserSessionHubCoordinator>();
+
 // Đảm bảo tạo folder wwwroot nếu nó chưa tồn tại để WebRootPath không bị null
 if (!Directory.Exists(Path.Combine(builder.Environment.ContentRootPath, "wwwroot")))
 {
     Directory.CreateDirectory(Path.Combine(builder.Environment.ContentRootPath, "wwwroot"));
+}
+
+var tutorAudioDir = Path.Combine(builder.Environment.ContentRootPath, "wwwroot", "uploads", "tutor-audio");
+if (!Directory.Exists(tutorAudioDir))
+{
+    Directory.CreateDirectory(tutorAudioDir);
 }
 
 var app = builder.Build();
@@ -136,13 +181,18 @@ if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 
-app.UseStaticFiles();
+app.UseStaticFiles(); // Cho wwwroot chuẩn
 
 app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
         Path.Combine(builder.Environment.ContentRootPath, "wwwroot", "uploads")),
-    RequestPath = "/uploads"
+    RequestPath = "/uploads",
+    // Cho phép trình duyệt phát audio tốt hơn
+    OnPrepareResponse = ctx => {
+        ctx.Context.Response.Headers.Append("Access-Control-Allow-Origin", "*");
+        ctx.Context.Response.Headers.Append("Accept-Ranges", "bytes");
+    }
 });
 
 app.UseCors("AllowFrontend");

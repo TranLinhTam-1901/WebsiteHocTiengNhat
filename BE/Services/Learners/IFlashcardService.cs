@@ -14,7 +14,9 @@ namespace QuizzTiengNhat.Services.Learners
         Task<object> GetFlashcardDetailsAsync(Guid itemId);
         Task<IEnumerable<UserDeckDTO>> GetUserDecksAsync(string userId);
         Task<IEnumerable<FlashcardItemDTO>> GetItemsInDeckAsync(Guid deckId, string userId);
-        Task<FlashcardDeck?> CreateDeckAsync(string userId, string name, string? description, SkillType skillType, IReadOnlyList<Guid>? entityIds);
+        Task<FlashcardDeck?> CreateDeckAsync(string userId, string name, string? description, IReadOnlyList<(Guid EntityId, SkillType ItemType)> entries);
+        Task<bool> UpdateUserCustomDeckAsync(string userId, Guid deckId, string name, string? description, IReadOnlyList<(Guid EntityId, SkillType ItemType)> entries);
+        Task<bool> DeleteUserCustomDeckAsync(string userId, Guid deckId);
         Task<List<FlashcardReviewDTO>> GetReviewsByDeckAsync(string userId, Guid deckId, string? mode = null);
         Task<object> GetAvailableEntitiesAsync(string userId, Guid levelId, SkillType type, bool includeOwned = false);
     }
