@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginUser } from '../../store/auth.slice';
+import { getBrowserSessionId } from '../../utils/browserSessionId';
 import { useLocation } from 'react-router-dom';
 
 const Login: React.FC = () => {
@@ -51,7 +52,8 @@ const Login: React.FC = () => {
       const result = await dispatch(loginUser({ 
         email, 
         password, 
-        rememberMe: remember 
+        rememberMe: remember,
+        browserSessionId: getBrowserSessionId(),
       }) as any).unwrap();
 
       if (result && result.token) {

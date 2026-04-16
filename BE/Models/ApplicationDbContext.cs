@@ -61,6 +61,10 @@ namespace QuizzTiengNhat.Models
         public DbSet<ChatMessage> ChatMessages { get; set; }
         public DbSet<ChatRoundRobinState> ChatRoundRobinStates { get; set; }
 
+        public DbSet<TutorAiConversation> TutorAiConversations { get; set; }
+        public DbSet<TutorAiMessage> TutorAiMessages { get; set; }
+        public DbSet<TutorAiMessageAudio> TutorAiMessageAudios { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -75,6 +79,27 @@ namespace QuizzTiengNhat.Models
             modelBuilder.Entity<ReadingTopics>().HasKey(rt => new { rt.ReadingID, rt.TopicID });
             modelBuilder.Entity<ListeningTopics>().HasKey(lt => new { lt.ListeningID, lt.TopicID });
             modelBuilder.Entity<UserInterest>().HasKey(ui => new { ui.UserID, ui.TopicID });
+
+            modelBuilder.Entity<TutorAiConversation>(e =>
+            {
+                e.HasIndex(x => x.UserId);
+                e.HasIndex(x => new { x.UserId, x.UpdatedAt });
+                e.HasIndex(x => new { x.UserId, x.Live2dModelId, x.UpdatedAt });
+            });
+
+            modelBuilder.Entity<TutorAiMessage>(e =>
+            {
+                e.HasIndex(x => x.ConversationId);
+                e.HasIndex(x => new { x.ConversationId, x.ClientMessageId }).IsUnique();
+                e.HasOne(x => x.Conversation)
+                    .WithMany(c => c.Messages)
+                    .HasForeignKey(x => x.ConversationId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                e.HasOne(x => x.Audio)
+                    .WithOne(a => a.Message)
+                    .HasForeignKey<TutorAiMessageAudio>(a => a.MessageId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
 
             // --- B. USER & LEVEL ---
             modelBuilder.Entity<ApplicationUser>(entity => {
