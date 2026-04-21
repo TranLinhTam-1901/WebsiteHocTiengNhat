@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import LearnerHeader from '../../../components/layout/learner/LearnerHeader';
-import { learnerVocabService } from '../../../services/Learner/learnerVocabService';
-import { LearnerVocabDetail } from '../../../interfaces/Learner/StudyResource';
-import { resolveMediaUrl } from '../../../utils/resolveMediaUrl';
+import LearnerHeader from '../../../../components/layout/learner/LearnerHeader';
+import { learnerVocabService } from '../../../../services/Learner/learnerVocabService';
+import { LearnerVocabDetail } from '../../../../interfaces/Learner/StudyResource';
+import { resolveMediaUrl } from '../../../../utils/resolveMediaUrl';
 
 const StudyVocabularyDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -82,7 +82,7 @@ const StudyVocabularyDetailPage: React.FC = () => {
                     <p className="text-3xl font-japanese font-black text-[#181114]">{data.word}</p>
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-[#886373] uppercase mb-2">Furigana</p>
+                    <p className="text-xs font-bold text-[#886373] uppercase mb-2">Phiên âm (furigana)</p>
                     <p className="text-lg font-japanese text-primary font-bold">{data.reading || '—'}</p>
                   </div>
                   <div className="md:col-span-2">
@@ -182,7 +182,7 @@ const StudyVocabularyDetailPage: React.FC = () => {
               )}
 
               <div className="bg-white rounded-2xl border border-[#f4f0f2] shadow-sm p-6">
-                <h3 className="text-base font-bold mb-4">Kanji liên quan</h3>
+                <h3 className="text-base font-bold mb-4">Hán tự liên quan</h3>
                 {data.relatedKanjis?.length ? (
                   <ul className="space-y-3">
                     {data.relatedKanjis.map((k) => (
@@ -196,7 +196,7 @@ const StudyVocabularyDetailPage: React.FC = () => {
                           </span>
                           <div className="min-w-0 flex-1">
                             <p className="text-xs text-[#886373] font-japanese truncate">
-                              On {k.onyomi || '—'} · Kun {k.kunyomi || '—'}
+                              Âm On {k.onyomi || '—'} · Âm Kun {k.kunyomi || '—'}
                             </p>
                             <p className="text-sm font-bold text-[#181114] truncate">{k.meaning}</p>
                           </div>
@@ -206,7 +206,7 @@ const StudyVocabularyDetailPage: React.FC = () => {
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-sm text-[#886373]">Chưa có kanji liên kết.</p>
+                  <p className="text-sm text-[#886373]">Chưa có hán tự liên kết.</p>
                 )}
               </div>
             </div>

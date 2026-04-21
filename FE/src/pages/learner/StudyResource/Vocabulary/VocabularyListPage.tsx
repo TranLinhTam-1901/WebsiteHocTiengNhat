@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import LearnerHeader from '../../../components/layout/learner/LearnerHeader';
-import { learnerVocabService } from '../../../services/Learner/learnerVocabService';
-import { LearnerVocabListItem } from '../../../interfaces/Learner/StudyResource';
+import LearnerHeader from '../../../../components/layout/learner/LearnerHeader';
+import { learnerVocabService } from '../../../../services/Learner/learnerVocabService';
+import { LearnerVocabListItem } from '../../../../interfaces/Learner/StudyResource';
 
 const StudyVocabularyListPage: React.FC = () => {
   const [vocabList, setVocabList] = useState<LearnerVocabListItem[]>([]);
@@ -406,7 +406,7 @@ const StudyVocabularyListPage: React.FC = () => {
                     <span
                       className={`px-2 py-0.5 text-[15px] font-bold rounded border ${getLevelStyle(item.levelName)}`}
                     >
-                      {item.levelName || 'N/A'}
+                      {item.levelName || '—'}
                     </span>
                     <div className="flex justify-end max-w-[70%] items-center">
                       <div className="flex items-center gap-2">

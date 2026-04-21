@@ -135,7 +135,7 @@ const StudyKanjiListPage: React.FC = () => {
   if (loading && kanjiList.length === 0) {
     return (
       <div className="flex flex-col h-full bg-background-light">
-        <LearnerHeader title="Kanji" />
+        <LearnerHeader title="Hán tự" />
         <div className="p-8 text-center text-[#886373] font-bold">Đang tải dữ liệu...</div>
       </div>
     );
@@ -146,7 +146,7 @@ const StudyKanjiListPage: React.FC = () => {
       <LearnerHeader>
         <div className="flex items-center gap-4 w-full flex-wrap">
           <div className="flex flex-col flex-1 min-w-[200px]">
-            <h2 className="text-xl font-bold text-[#181114]">KANJI</h2>
+            <h2 className="text-xl font-bold text-[#181114]">HÁN TỰ</h2>
           </div>
           <div className="flex items-center gap-3">
             <div className="relative hidden md:block">
@@ -155,7 +155,7 @@ const StudyKanjiListPage: React.FC = () => {
               </span>
               <input
                 type="text"
-                placeholder="Tìm kiếm kanji, nghĩa..."
+                placeholder="Tìm kiếm hán tự, nghĩa..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="bg-[#f4f0f2] border-none rounded-full pl-10 pr-4 py-2 text-sm w-64 focus:ring-2 focus:ring-primary/50 outline-none"
@@ -419,11 +419,11 @@ const StudyKanjiListPage: React.FC = () => {
               >
                 <div className="flex items-start justify-between mb-2">
                   <span className={`px-2 py-0.5 text-[15px] font-bold rounded border ${getLevelStyle(kanji.levelName)}`}>
-                    {kanji.levelName || 'N/A'}
+                    {kanji.levelName || '—'}
                   </span>
                   <div className="text-[15px] text-[#886373] font-medium text-right mt-1">
                     Bộ thủ:
-                    <span className="font-japanese text-primary ml-1" title={kanji.radical?.name || 'N/A'}>
+                    <span className="font-japanese text-primary ml-1" title={kanji.radical?.name || '—'}>
                       {kanji.radical?.character || '？'}
                     </span>
                   </div>
@@ -434,8 +434,8 @@ const StudyKanjiListPage: React.FC = () => {
                     {kanji.character}
                   </span>
                   <div className="flex flex-col gap-2 w-full text-center mt-4">
-                    <p className="text-[15px] font-japanese text-[#181114]">On: {kanji.onyomi || '—'}</p>
-                    <p className="text-[15px] font-japanese text-[#181114]">Kun: {kanji.kunyomi || '—'}</p>
+                    <p className="text-[15px] font-japanese text-[#181114]">Âm On: {kanji.onyomi || '—'}</p>
+                    <p className="text-[15px] font-japanese text-[#181114]">Âm Kun: {kanji.kunyomi || '—'}</p>
                   </div>
                 </div>
 

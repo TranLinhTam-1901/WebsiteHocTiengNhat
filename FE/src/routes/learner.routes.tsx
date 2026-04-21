@@ -39,8 +39,8 @@ import Result from '../pages/learner/Quiz/Result';
 import LearnerChatPage from '../pages/learner/Support/LearnerChatPage';
 import AiTutorPage from '../pages/learner/Support/AiTutorPage';
 // Study resources (vocabulary & kanji)
-import StudyVocabularyListPage from '../pages/learner/StudyResource/VocabularyListPage';
-import StudyVocabularyDetailPage from '../pages/learner/StudyResource/VocabularyDetailPage';
+import StudyVocabularyListPage from '../pages/learner/StudyResource/Vocabulary/VocabularyListPage';
+import StudyVocabularyDetailPage from '../pages/learner/StudyResource/Vocabulary/VocabularyDetailPage';
 import StudyKanjiListPage from '../pages/learner/StudyResource/Kanji/KanjiListPage';
 import StudyKanjiDetailPage from '../pages/learner/StudyResource/Kanji/KanjiDetailPage';
 

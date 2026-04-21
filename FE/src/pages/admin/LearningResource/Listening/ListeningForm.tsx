@@ -451,7 +451,7 @@ const ListenEditor: React.FC = () => {
                 </div>
               </div>
               <div className="mt-4 p-4 bg-[#f287b6]/5 rounded-xl border border-dashed border-[#f287b6]/30 text-left">
-                <p className="text-xs font-bold text-[#f287b6] uppercase mb-2">Live Preview (Xem trước)</p>
+                <p className="text-xs font-bold text-[#f287b6] uppercase mb-2">Xem trước trực tiếp</p>
                 <div className="text-lg leading-[2.5] text-slate-800">
                   {formData.script ? renderFurigana(formData.script) : <span className="text-slate-400 italic">Văn bản xem trước sẽ hiện ở đây...</span>}
                 </div>
@@ -491,7 +491,7 @@ const ListenEditor: React.FC = () => {
 
             <div className="bg-white rounded-2xl border border-[#f4f0f2] shadow-sm p-8">
               <h3 className="text-base font-bold mb-6 flex items-center gap-2">
-                <span className="material-symbols-outlined text-primary">graphic_eq</span> File Audio
+                <span className="material-symbols-outlined text-primary">graphic_eq</span> File âm thanh
               </h3>
 
               {/* Input file ẩn & Audio thực thi */}
@@ -528,12 +528,12 @@ const ListenEditor: React.FC = () => {
                   <>
                     <span className="material-symbols-outlined text-2xl text-primary mb-1">check_circle</span>
                     <p className="text-[11px] font-bold text-primary uppercase text-center">Đã nhận file</p>
-                    <p className="text-[9px] text-[#886373] mt-0.5 opacity-60 italic text-center">Click để thay đổi</p>
+                    <p className="text-[9px] text-[#886373] mt-0.5 opacity-60 italic text-center">Nhấn để thay đổi</p>
                   </>
                 ) : (
                   <>
                     <span className="material-symbols-outlined text-2xl text-[#886373] mb-1">cloud_upload</span>
-                    <p className="text-[11px] font-bold text-[#886373] uppercase text-center">Upload MP3/WAV</p>
+                    <p className="text-[11px] font-bold text-[#886373] uppercase text-center">Tải lên MP3/WAV</p>
                   </>
                 )}
               </div>
@@ -665,7 +665,7 @@ const ListenEditor: React.FC = () => {
                     </span>
                     <input
                       type="text"
-                      placeholder="Tìm và chọn Topic..."
+                      placeholder="Tìm và chọn chủ đề..."
                       value={topicSearch}
                       onChange={(e) => {
                         setTopicSearch(e.target.value);
@@ -751,7 +751,7 @@ const ListenEditor: React.FC = () => {
 
               {/* 2. SECTION LESSON */}
               <div className="pt-5 border-t border-[#f4f0f2]">
-                  <label className="block text-xs font-bold text-[#886373] uppercase tracking-wider mb-2">Lesson Assign</label>
+                  <label className="block text-xs font-bold text-[#886373] uppercase tracking-wider mb-2">Gán bài học</label>
                   <div className="relative">
                       <button 
                           onClick={(e) => handleOpenDropdown('lesson', e)}
@@ -801,7 +801,7 @@ const ListenEditor: React.FC = () => {
 
               {/* 3. SECTION VISIBILITY */}
               <div className="pt-5 border-t border-[#f4f0f2]">
-                  <label className="block text-xs font-bold text-[#886373] uppercase tracking-wider mb-2">Visibility</label>
+                  <label className="block text-xs font-bold text-[#886373] uppercase tracking-wider mb-2">Hiển thị</label>
                   <div className="relative">
                       <button 
                           onClick={(e) => handleOpenDropdown('visibility', e)}

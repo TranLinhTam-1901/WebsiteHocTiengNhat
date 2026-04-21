@@ -84,14 +84,14 @@ const Login: React.FC = () => {
                 </svg>
              </div>
           </div>
-          <h1 className="text-5xl font-black tracking-tight leading-tight">Master Japanese with AI</h1>
+          <h1 className="text-5xl font-black tracking-tight leading-tight">Chinh phục tiếng Nhật cùng AI</h1>
           <p className="text-xl font-light opacity-90 max-w-md mx-auto">
-            Your personalized path to JLPT N5-N3 mastery starts here. Join thousands of students learning smarter, not harder.
+            Lộ trình cá nhân hóa từ N5 đến N3 bắt đầu từ đây. Cùng hàng nghìn học viên học thông minh hơn, không học vất vả hơn.
           </p>
           <div className="pt-8">
             <div className="flex items-center justify-center gap-2 text-sm">
               <span className="material-symbols-outlined text-primary">verified_user</span>
-              <span>Trusted by 50,000+ learners worldwide</span>
+              <span>Được hơn 50.000 học viên trên thế giới tin dùng</span>
             </div>
           </div>
         </div>
@@ -112,13 +112,13 @@ const Login: React.FC = () => {
           )}
           
           <div className="mb-10">
-            <h2 className="text-[#181114] text-3xl font-bold leading-tight mb-2">Welcome Back</h2>
-            <p className="text-[#886370] text-base">Enter your credentials to access your study dashboard.</p>
+            <h2 className="text-[#181114] text-3xl font-bold leading-tight mb-2">Chào mừng trở lại</h2>
+            <p className="text-[#886370] text-base">Nhập thông tin đăng nhập để vào bảng điều khiển học tập.</p>
           </div>
 
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div className="flex flex-col gap-2">
-              <label className="text-[#181114] text-sm font-semibold">Email Address</label>
+              <label className="text-[#181114] text-sm font-semibold">Địa chỉ email</label>
               <input 
                 type="email"
                 value={email}
@@ -130,8 +130,8 @@ const Login: React.FC = () => {
 
             <div className="flex flex-col gap-2">
               <div className="flex justify-between items-center">
-                <label className="text-[#181114] text-sm font-semibold">Password</label>
-                <Link className="text-primary text-xs font-bold hover:underline" to="/forgot-password">Forgot password?</Link>
+                <label className="text-[#181114] text-sm font-semibold">Mật khẩu</label>
+                <Link className="text-primary text-xs font-bold hover:underline" to="/forgot-password">Quên mật khẩu?</Link>
               </div>
               <div className="relative">
                 <input 
@@ -187,7 +187,7 @@ const Login: React.FC = () => {
               type="submit"
               disabled={loading}
             >
-              {loading ? 'Đang xử lý...' : 'Sign In'}
+              {loading ? 'Đang xử lý...' : 'Đăng nhập'}
             </button>
 
             <div className="relative py-4">
@@ -195,7 +195,7 @@ const Login: React.FC = () => {
                 <div className="w-full border-t border-[#e5dcdf]"></div>
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-[#886370]">Or continue with</span>
+                <span className="bg-white px-2 text-[#886370]">Hoặc tiếp tục với</span>
               </div>
             </div>
 
@@ -206,14 +206,14 @@ const Login: React.FC = () => {
                 <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
                 <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
               </svg>
-              <span>Sign in with Google</span>
+              <span>Đăng nhập bằng Google</span>
             </button>
           </form>
 
           <div className="mt-10 text-center">
             <p className="text-[#886370] text-sm">
-              Don't have an account? 
-              <Link to="/register" className="text-primary font-bold hover:underline ml-1">Create an account</Link>
+              Chưa có tài khoản?{' '}
+              <Link to="/register" className="text-primary font-bold hover:underline ml-1">Tạo tài khoản</Link>
             </p>
           </div>
         </div>
