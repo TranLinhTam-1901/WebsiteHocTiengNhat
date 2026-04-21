@@ -343,7 +343,7 @@ const FlashcardReviewPage: React.FC = () => {
                         </button>
                         <div className="flex flex-col">
                             <h2 className="text-xl font-bold text-[#181114] uppercase">
-                                Flashcards
+                                Thẻ ghi nhớ
                             </h2>
                             <nav className="flex text-[10px] text-[#886373] font-medium gap-1 uppercase tracking-wider">
                             <span>{skillTypeLabel}</span>
@@ -642,7 +642,7 @@ const FlashcardReviewPage: React.FC = () => {
                                 {isFlipped ? 'Úp lại' : 'Lật thẻ'}
                             </span>
                             
-                            <span className="text-[10px] text-slate-400 font-bold uppercase">(Space)</span>
+                            <span className="text-[10px] text-slate-400 font-bold uppercase">(Phím cách)</span>
                         </button>
                         
                         {/* Mark Learned */}

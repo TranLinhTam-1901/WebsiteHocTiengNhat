@@ -4,6 +4,7 @@ import LearnerHeader from '../../../components/layout/learner/LearnerHeader';
 import { SkillType } from '../../../interfaces/Admin/QuestionBank';
 import { SkillPracticeService } from '../../../services/Learner/skillPracticeService';
 import { SkillPracticeDTO } from '../../../interfaces/Learner/SkillPractice';
+import { skillRouteSlugToVi } from '../../../utils/skillRouteLabelVi';
 
 const SkillSelectionPage: React.FC = () => {
     const { skillType } = useParams<{ skillType: string }>();
@@ -177,7 +178,7 @@ const SkillSelectionPage: React.FC = () => {
 
     return (
         <div className="flex-1 flex flex-col overflow-hidden bg-[#fbf9fa]">
-            <LearnerHeader title={`Cấu hình luyện tập ${skillType}`} />
+            <LearnerHeader title={`Cấu hình luyện tập — ${skillRouteSlugToVi(skillType)}`} />
             
             <main className="flex-1 overflow-y-auto p-8">
                 <div className="max-w-4xl mx-auto space-y-8">
@@ -243,9 +244,9 @@ const SkillSelectionPage: React.FC = () => {
                                             className="w-full bg-[#fbf9fa] border-2 border-[#f4f0f2] rounded-2xl px-6 py-4 text-sm font-bold focus:border-primary outline-none transition-all"
                                         >
                                             <option value={0}>Mọi mức độ</option>
-                                            <option value={1}>Thân mật (Plain)</option>
-                                            <option value={2}>Lịch sự (Polite)</option>
-                                            <option value={3}>Kính ngữ (Keigo)</option>
+                                            <option value={1}>Thân mật (thể thường)</option>
+                                            <option value={2}>Lịch sự (thể lịch sự)</option>
+                                            <option value={3}>Kính ngữ</option>
                                         </select>
                                     </div>
                                 </>

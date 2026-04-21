@@ -69,7 +69,7 @@ const SkillHubPage: React.FC = () => {
                 </div>
                 <h2 className="text-3xl font-bold text-[#211118] mb-4">Học & Ôn tập</h2>
                 <p className="text-[#534248] text-lg leading-relaxed">
-                  Xây dựng nền tảng vững chắc thông qua hệ thống Flashcards thông minh (Spaced Repetition). Học từ mới và củng cố kiến thức đã quên.
+                  Xây dựng nền tảng vững chắc thông qua hệ thống thẻ ghi nhớ thông minh (ôn tập cách quãng — SRS). Học từ mới và củng cố kiến thức đã quên.
                 </p>
               </div>
               <div className="flex items-center justify-between">

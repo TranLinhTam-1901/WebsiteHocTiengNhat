@@ -14,7 +14,7 @@ const StudyKanjiDetailPage: React.FC = () => {
 
   useEffect(() => {
     if (!id) {
-      setError('Thiếu mã kanji.');
+      setError('Thiếu mã hán tự.');
       setLoading(false);
       return;
     }
@@ -25,7 +25,7 @@ const StudyKanjiDetailPage: React.FC = () => {
         setData(d);
         setError(null);
       } catch {
-        setError('Không tải được kanji.');
+        setError('Không tải được hán tự.');
         setData(null);
       } finally {
         setLoading(false);
@@ -48,10 +48,10 @@ const StudyKanjiDetailPage: React.FC = () => {
             <span className="material-symbols-outlined">arrow_back</span>
           </button>
           <div className="flex flex-col min-w-0">
-            <h2 className="text-xl font-bold text-[#181114]">Chi tiết Kanji</h2>
+            <h2 className="text-xl font-bold text-[#181114]">Chi tiết hán tự</h2>
             <nav className="flex text-[10px] text-[#886373] font-medium gap-1 uppercase tracking-wider">
               <Link to="/learner/studyresource/kanji" className="hover:text-primary no-underline text-inherit">
-                Kanji
+                Hán tự
               </Link>
               <span>/</span>
               <span className="text-primary font-bold">Chi tiết</span>
@@ -111,11 +111,11 @@ const StudyKanjiDetailPage: React.FC = () => {
               <div className="bg-white p-8 rounded-2xl border border-[#f4f0f2] shadow-sm space-y-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div>
-                    <p className="text-xs font-bold text-[#886373] uppercase mb-2">On-yomi</p>
+                    <p className="text-xs font-bold text-[#886373] uppercase mb-2">Âm On (on-yomi)</p>
                     <p className="font-japanese text-lg text-[#181114]">{data.onyomi || '—'}</p>
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-[#886373] uppercase mb-2">Kun-yomi</p>
+                    <p className="text-xs font-bold text-[#886373] uppercase mb-2">Âm Kun (kun-yomi)</p>
                     <p className="font-japanese text-lg text-[#181114]">{data.kunyomi || '—'}</p>
                   </div>
                 </div>
@@ -172,7 +172,7 @@ const StudyKanjiDetailPage: React.FC = () => {
               {gifSrc && (
                 <div className="bg-white rounded-2xl border border-[#f4f0f2] shadow-sm overflow-hidden p-4">
                   <p className="text-sm font-bold text-[#886373] mb-3">Trình tự nét</p>
-                  <img src={gifSrc} alt={`${data.character} stroke`} className="w-full rounded-xl bg-[#fbf9fa]" />
+                  <img src={gifSrc} alt={`Trình tự nét ${data.character}`} className="w-full rounded-xl bg-[#fbf9fa]" />
                 </div>
               )}
 

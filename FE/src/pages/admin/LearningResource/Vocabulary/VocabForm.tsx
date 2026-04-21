@@ -225,7 +225,7 @@ const VocabularyEditorPage: React.FC = () => {
                     <input name="word" value={formData.word} onChange={handleInputChange} className="w-full px-4 py-3 bg-[#fbf9fa] border border-[#f4f0f2] rounded-xl text-lg font-japanese focus:border-primary outline-none" placeholder="例：食べる" type="text" />
                   </div>
                   <div className="space-y-2">
-                    <label className="block text-xs font-bold text-[#886373] uppercase mb-2">Furigana</label>
+                    <label className="block text-xs font-bold text-[#886373] uppercase mb-2">Phiên âm (furigana)</label>
                     <input name="reading" value={formData.reading} onChange={handleInputChange} className="w-full px-4 py-3 bg-[#fbf9fa] border border-[#f4f0f2] rounded-xl text-sm font-japanese focus:border-primary outline-none" placeholder="たべる" type="text" />
                   </div>
 
@@ -364,7 +364,7 @@ const VocabularyEditorPage: React.FC = () => {
 
                   {/* HÀNG 4: Meaning */}
                   <div className="md:col-span-2 space-y-2">
-                    <label className="block text-xs font-bold text-[#886373] uppercase mb-2">Meaning (Vietnamese)</label>
+                    <label className="block text-xs font-bold text-[#886373] uppercase mb-2">Nghĩa (tiếng Việt)</label>
                     <textarea name="meaning" value={formData.meaning} onChange={handleInputChange} className="w-full px-4 py-3 bg-[#fbf9fa] border border-[#f4f0f2] rounded-xl text-sm min-h-20 resize-none outline-none focus:border-primary" placeholder="Enter meanings..."></textarea>
                   </div>
                 </div>
@@ -382,7 +382,7 @@ const VocabularyEditorPage: React.FC = () => {
                     onClick={() => setFormData({...formData, sentences: [...formData.sentences, {japanese: '', vietnamese: ''}]})} 
                     className="text-xs font-bold text-primary flex items-center gap-1"
                   >
-                    <span className="material-symbols-outlined text-sm pointer-events-none">add</span> <span className=" text-sm hover:underline">Add Sentence</span>
+                    <span className="material-symbols-outlined text-sm pointer-events-none">add</span> <span className=" text-sm hover:underline">Thêm câu ví dụ</span>
                   </button>
                 </div>
 
@@ -404,7 +404,7 @@ const VocabularyEditorPage: React.FC = () => {
 
                       {/* Input Tiếng Nhật */}
                       <div className="space-y-1">
-                        <label className="block text-[10px] font-bold text-[#886373] uppercase tracking-wider">Japanese</label>
+                        <label className="block text-[10px] font-bold text-[#886373] uppercase tracking-wider">Tiếng Nhật</label>
                         <input 
                           value={s.japanese} 
                           onChange={(e) => {
@@ -419,7 +419,7 @@ const VocabularyEditorPage: React.FC = () => {
 
                       {/* Input Tiếng Việt */}
                       <div className="space-y-1">
-                        <label className="block text-[10px] font-bold text-[#886373] uppercase tracking-wider">Vietnamese</label>
+                        <label className="block text-[10px] font-bold text-[#886373] uppercase tracking-wider">Tiếng Việt</label>
                         <input 
                           value={s.vietnamese} 
                           onChange={(e) => {
@@ -438,7 +438,7 @@ const VocabularyEditorPage: React.FC = () => {
 
                 {formData.sentences.length === 0 && (
                   <div className="text-center py-8 border-2 border-dashed border-[#f4f0f2] rounded-xl">
-                    <p className="text-xs text-[#886373]">Chưa có câu ví dụ nào. Nhấn "Add Sentence" để thêm.</p>
+                    <p className="text-xs text-[#886373]">Chưa có câu ví dụ nào. Nhấn &quot;Thêm câu ví dụ&quot; để thêm.</p>
                   </div>
                 )}
               </div>
@@ -461,7 +461,7 @@ const VocabularyEditorPage: React.FC = () => {
               <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" accept="audio/*" />
               <div onClick={() => fileInputRef.current?.click()} className="group flex flex-col items-center justify-center border-2 border-dashed border-[#d1ced0] rounded-2xl p-6 hover:border-primary cursor-pointer bg-[#fbf9fa]">
                 <span className="material-symbols-outlined text-3xl text-[#886373] mb-2 group-hover:text-primary">cloud_upload</span>
-                <p className="text-[11px] font-bold text-[#886373] uppercase">{formData.audioBase64 ? 'Hệ thống đã nhận file âm thanh' : 'Upload MP3/WAV'}</p>
+                <p className="text-[11px] font-bold text-[#886373] uppercase">{formData.audioBase64 ? 'Hệ thống đã nhận file âm thanh' : 'Tải lên MP3/WAV'}</p>
               </div>
 
               <div className="grid grid-cols-1 gap-8 mt-4">
@@ -485,7 +485,7 @@ const VocabularyEditorPage: React.FC = () => {
               {/* 1. SECTION TOPIC */}
               <div>
                   <label className="block text-xs font-bold text-[#886373] uppercase tracking-wider mb-3">
-                      Topic Assignment
+                      Gán chủ đề
                   </label>
                   <div className="relative">
                       {/* Search Input */}
@@ -495,7 +495,7 @@ const VocabularyEditorPage: React.FC = () => {
                           </span>
                           <input
                               type="text"
-                              placeholder="Tìm và thêm nhiều Topic..."
+                              placeholder="Tìm và thêm nhiều chủ đề..."
                               value={topicSearch}
                               onChange={(e) => {
                                   setTopicSearch(e.target.value);
@@ -578,7 +578,7 @@ const VocabularyEditorPage: React.FC = () => {
               {/* 2. SECTION LESSON */}
               <div className="pt-5 border-t border-[#f4f0f2]">
                 <label className="block text-xs font-bold text-[#886373] uppercase tracking-wider mb-2">
-                  Lesson Assign
+                  Gán bài học
                 </label>
                 <div className="relative">
                   <button
@@ -634,7 +634,7 @@ const VocabularyEditorPage: React.FC = () => {
               {/* 3. SECTION VISIBILITY */}
               <div className="pt-5 border-t border-[#f4f0f2]">
                 <label className="block text-xs font-bold text-[#886373] uppercase tracking-wider mb-2">
-                  Visibility
+                  Hiển thị
                 </label>
                 <div className="relative">
                   <button

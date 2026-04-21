@@ -109,10 +109,10 @@ const KanjiEditorPage: React.FC = () => {
         try {
             if (isEditMode && id) {
                 await kanjiService.update(id, finalData);
-                alert("Cập nhật Kanji thành công!");
+                alert("Cập nhật hán tự thành công!");
             } else {
                 await kanjiService.create(finalData);
-                alert("Thêm mới Kanji thành công!");
+                alert("Thêm mới hán tự thành công!");
             }
             navigate('/admin/resource/kanji');
         } catch (error: any) {
@@ -266,7 +266,7 @@ const KanjiEditorPage: React.FC = () => {
                             </button>
                             <div className="flex flex-col">
                                 <h2 className="text-xl font-bold text-[#181114] uppercase">
-                                    {isEditMode ? 'Chỉnh sửa Kanji' : 'Thêm Kanji'}
+                                    {isEditMode ? 'Chỉnh sửa hán tự' : 'Thêm hán tự'}
                                 </h2>
                                 <nav className="flex text-[10px] text-[#886373] font-medium gap-1 uppercase tracking-wider">
                                     <span>Quản lý</span>
@@ -282,7 +282,7 @@ const KanjiEditorPage: React.FC = () => {
                                 className="bg-primary hover:bg-primary-dark text-white px-5 py-2 rounded-full text-sm font-bold flex items-center gap-2 transition-all shadow-lg shadow-primary/20 active:scale-95 no-underline"
                             >
                                 <span className="material-symbols-outlined text-sm">save</span>
-                                {isEditMode ? 'Cập nhật' : 'Lưu Kanji'}
+                                {isEditMode ? 'Cập nhật' : 'Lưu hán tự'}
                             </button>
                         </div>
                     </div>
@@ -298,7 +298,7 @@ const KanjiEditorPage: React.FC = () => {
                             <div className="bg-white p-8 rounded-2xl border border-[#f4f0f2] shadow-sm">
                                 <div className="flex gap-8">
                                     <div className="shrink-0">
-                                        <label className="block text-xs font-bold text-[#886373] uppercase tracking-wider mb-2">Kanji</label>
+                                        <label className="block text-xs font-bold text-[#886373] uppercase tracking-wider mb-2">Hán tự</label>
                                         <input
                                             name="character"
                                             value={formData.character}
@@ -481,7 +481,7 @@ const KanjiEditorPage: React.FC = () => {
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-[#886373] uppercase tracking-wider mb-2">Meaning (English/Vietnamese)</label>
+                                    <label className="block text-xs font-bold text-[#886373] uppercase tracking-wider mb-2">Nghĩa (Anh / Việt)</label>
                                     <textarea
                                         name="meaning"
                                         value={formData.meaning}
@@ -531,7 +531,7 @@ const KanjiEditorPage: React.FC = () => {
                                                     {/* Phần nội dung: Tự động co giãn và xử lý text dài */}
                                                     <div className="flex flex-col min-w-0">
                                                         <span className="text-[12px] text-[#886373] font-semibold tracking-wider uppercase truncate">
-                                                            {vocab.reading || 'Reading'}
+                                                            {vocab.reading || 'Phiên âm'}
                                                         </span>
                                                         <span className="text-sm text-[#181114] truncate leading-tight mt-0.5">
                                                             {vocab.meaning}
@@ -544,7 +544,7 @@ const KanjiEditorPage: React.FC = () => {
                                                     type="button"
                                                     onClick={() => handleRemoveVocab(vocab.vocabID)}
                                                     className="shrink-0 opacity-0 group-hover:opacity-100 ml-2 size-8 flex items-center justify-center rounded-xl bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-all duration-200"
-                                                    title="Remove"
+                                                    title="Gỡ"
                                                 >
                                                     <span className="material-symbols-outlined text-sm">close</span>
                                                 </button>
@@ -599,7 +599,7 @@ const KanjiEditorPage: React.FC = () => {
                                                     </div>
 
                                                     <div>
-                                                        <label className="text-[12px] font-black uppercase text-[#886373] ml-1">Reading</label>
+                                                        <label className="text-[12px] font-black uppercase text-[#886373] ml-1">Phiên âm</label>
                                                         <input 
                                                             readOnly
                                                             type="text"

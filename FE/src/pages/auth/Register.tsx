@@ -83,10 +83,10 @@ const Register: React.FC = () => {
             </div>
           </div>
           <h1 className="text-[#181114] tracking-tight text-3xl font-bold leading-tight text-center">
-            Create Your JQuiz Account
+            Tạo tài khoản JQuiz
           </h1>
           <p className="text-[#886370] text-sm font-normal leading-normal pt-2 text-center">
-            AI-powered personalization starts the moment you join.
+            Cá nhân hóa bằng AI bắt đầu ngay khi bạn tham gia.
           </p>
         </div>
 
@@ -217,7 +217,7 @@ const Register: React.FC = () => {
                     
                     {/* Group: SƠ CẤP */}
                     <div className="px-4 py-2 text-[10px] text-slate-400 font-bold tracking-widest bg-slate-50 uppercase select-none">
-                      SƠ CẤP (Elementary)
+                      SƠ CẤP
                     </div>
                     {levels.filter(l => l.name.includes('N5') || l.name.includes('N4')).map((l) => (
                       <div 
@@ -232,7 +232,7 @@ const Register: React.FC = () => {
 
                     {/* Group: TRUNG & CAO CẤP */}
                     <div className="px-4 py-2 text-[10px] text-slate-400 font-bold tracking-widest bg-slate-50 uppercase select-none">
-                      TRUNG & CAO CẤP (Advanced)
+                      TRUNG VÀ CAO CẤP
                     </div>
                     {levels.filter(l => l.name.includes('N3') || l.name.includes('N2') || l.name.includes('N1')).map((l) => (
                       <div 
@@ -271,7 +271,7 @@ const Register: React.FC = () => {
           <div className="flex items-start gap-3 p-4 bg-primary/5 rounded-lg border border-primary/20">
             <span className="material-symbols-outlined text-primary text-xl">psychology</span>
             <p className="text-xs text-[#886370] leading-relaxed">
-              Our AI analyzes your starting level to curate a custom study plan with spaced repetition tailored to your learning speed.
+              AI phân tích trình độ xuất phát của bạn để xây lộ trình học phù hợp, kèm ôn tập cách quãng theo tốc độ học của bạn.
             </p>
           </div>
 
@@ -288,15 +288,15 @@ const Register: React.FC = () => {
             type="submit"
             disabled={loading}
           >
-            <span>{loading ? 'Đang xử lý...' : 'Start Learning'}</span>
+            <span>{loading ? 'Đang xử lý...' : 'Bắt đầu học'}</span>
             <span className="material-symbols-outlined">rocket_launch</span>
           </button>
 
           <div className="text-center pt-2">
             <p className="text-sm text-[#886370]">
-              Already have an account?{' '}
+              Đã có tài khoản?{' '}
               <Link className="text-primary font-semibold hover:underline" to="/login">
-                Back to Login
+                Quay lại đăng nhập
               </Link>
             </p>
           </div>

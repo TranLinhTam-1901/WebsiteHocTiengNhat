@@ -136,7 +136,7 @@ const LearnerList: React.FC = () => {
               <span className="material-symbols-outlined text-sm">
                 {showAdmins ? 'visibility' : 'visibility_off'}
               </span>
-              {showAdmins ? 'Ẩn admin' : 'Hiện admin'}
+              {showAdmins ? 'Ẩn quản trị' : 'Hiện quản trị'}
             </button>
           </div>
         </div>
@@ -167,7 +167,7 @@ const LearnerList: React.FC = () => {
                 <h3 className="text-2xl font-bold">{onlineCount}</h3>
               </div>
             </div>
-            <div className="mr-4 text-[#f287b6] text-xs font-bold italic">Realtime</div>
+            <div className="mr-4 text-[#f287b6] text-xs font-bold italic">Thời gian thực</div>
           </div>
 
           <div className="bg-white rounded-full p-6 flex items-center justify-between shadow-sm border border-[rgba(242,135,182,0.1)]">
@@ -194,7 +194,7 @@ const LearnerList: React.FC = () => {
                     <th className="w-[12%] px-4 py-4 text-center text-sm font-bold text-[#886373] uppercase tracking-wider">Trạng thái</th>
                     <th className="w-[12%] px-4 py-4 text-center text-sm font-bold text-[#886373] uppercase tracking-wider">Tiến độ</th>
                     <th className="w-[10%] px-4 py-4 text-center text-sm font-bold text-[#886373] uppercase tracking-wider">Mục tiêu</th>
-                    <th className="w-[16%] px-4 py-4 text-center text-sm font-bold text-[#886373] uppercase tracking-wider">Email</th>
+                    <th className="w-[16%] px-4 py-4 text-center text-sm font-bold text-[#886373] uppercase tracking-wider">Địa chỉ email</th>
                     <th className="w-[16%] px-4 py-4 text-center text-sm font-bold text-[#886373] uppercase tracking-wider">Vai trò</th>
                     <th className="w-[12%] px-4 py-4 text-center text-sm font-bold text-[#886373] uppercase tracking-wider">Thao tác</th>
                   </tr>

@@ -619,7 +619,7 @@ const GrammarListPage: React.FC = () => {
                                                                     )}
                                                                 </>
                                                             ) : (
-                                                                <span className="text-[10px] text-gray-400 italic">None</span>
+                                                                <span className="text-[10px] text-gray-400 italic">Không</span>
                                                             )}
                                                         </div>
                                                     </div>

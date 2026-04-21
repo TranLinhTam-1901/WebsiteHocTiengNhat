@@ -21,9 +21,9 @@ const JQuizLanding: React.FC = () => {
             </h2>
           </div>
           <div className="hidden md:flex items-center gap-8">
-            <a className="text-sm font-medium hover:text-primary transition-colors" href="#">Courses</a>
-            <a className="text-sm font-medium hover:text-primary transition-colors" href="#">Community</a>
-            <a className="text-sm font-medium hover:text-primary transition-colors" href="#">Pricing</a>
+            <a className="text-sm font-medium hover:text-primary transition-colors" href="#">Khóa học</a>
+            <a className="text-sm font-medium hover:text-primary transition-colors" href="#">Cộng đồng</a>
+            <a className="text-sm font-medium hover:text-primary transition-colors" href="#">Bảng giá</a>
             
             <Link
               to="/login"
@@ -46,20 +46,20 @@ const JQuizLanding: React.FC = () => {
             <div className="container mx-auto px-6 relative z-10">
               <div className="max-w-2xl text-white">
                 <span className="inline-block px-4 py-1.5 bg-primary/20 backdrop-blur-sm border border-primary/30 rounded-full text-primary font-bold text-sm mb-6">
-                  AI-Powered JLPT Mastery
+                  Luyện JLPT cùng AI
                 </span>
                 <h1 className="text-5xl md:text-7xl font-black leading-tight mb-6">
-                  Master Japanese <br/>with AI
+                  Chinh phục tiếng Nhật <br/>cùng AI
                 </h1>
                 <p className="text-xl md:text-2xl font-light opacity-90 mb-10 leading-relaxed max-w-xl">
-                  Your personalized path to JLPT N5-N3 mastery. Interactive quizzes, smart roadmaps, and real-time AI feedback.
+                  Lộ trình cá nhân từ N5 đến N3. Trắc nghiệm tương tác, lộ trình thông minh và phản hồi AI theo thời gian thực.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4">
                   <button className="bg-primary hover:bg-[#e07198] text-white px-8 py-4 rounded-xl text-lg font-bold transition-all shadow-xl shadow-primary/30 flex items-center justify-center gap-2">
-                    Get Started for Free <span className="material-symbols-outlined">arrow_forward</span>
+                    Bắt đầu miễn phí <span className="material-symbols-outlined">arrow_forward</span>
                   </button>
                   <button className="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/30 px-8 py-4 rounded-xl text-lg font-bold transition-all">
-                    View Demo
+                    Xem demo
                   </button>
                 </div>
                 <div className="mt-12 flex items-center gap-4 text-sm opacity-80">
@@ -68,7 +68,7 @@ const JQuizLanding: React.FC = () => {
                     <div className="w-8 h-8 rounded-full border-2 border-white bg-gray-300"></div>
                     <div className="w-8 h-8 rounded-full border-2 border-white bg-gray-400"></div>
                   </div>
-                  <p>Joined by 50,000+ active learners</p>
+                  <p>Hơn 50.000 học viên đang học tích cực</p>
                 </div>
               </div>
             </div>
@@ -78,13 +78,13 @@ const JQuizLanding: React.FC = () => {
           <section className="py-24 bg-background-light">
             <div className="container mx-auto px-6">
               <div className="text-center max-w-3xl mx-auto mb-16">
-                <h2 className="text-3xl md:text-4xl font-bold mb-4">Why choose JQuiz?</h2>
-                <p className="text-[#886370] text-lg">We combine cutting-edge AI with proven language acquisition techniques to accelerate your JLPT preparation.</p>
+                <h2 className="text-3xl md:text-4xl font-bold mb-4">Vì sao chọn JQuiz?</h2>
+                <p className="text-[#886370] text-lg">Kết hợp AI hiện đại với phương pháp học ngôn ngữ đã được kiểm chứng để rút ngắn thời gian ôn JLPT.</p>
               </div>
               <div className="grid md:grid-cols-3 gap-8">
-                <FeatureCard icon="map" title="AI-Personalized Roadmap" desc="Our AI analyzes your performance to create a custom study path tailored to your strengths and weaknesses." />
-                <FeatureCard icon="school" title="JLPT N5-N3 Prep" desc="Curated content specifically designed for N5 through N3 levels, including Kanji, Grammar, and Listening." />
-                <FeatureCard icon="query_stats" title="Real-time Progress Tracking" desc="Watch your proficiency grow with detailed analytics and daily streaks to keep you motivated." />
+                <FeatureCard icon="map" title="Lộ trình cá nhân hóa (AI)" desc="AI phân tích kết quả của bạn để dựng lộ trình học riêng, bám sát điểm mạnh và điểm yếu." />
+                <FeatureCard icon="school" title="Ôn JLPT N5–N3" desc="Nội dung chọn lọc cho N5 đến N3: hán tự, ngữ pháp và nghe hiểu." />
+                <FeatureCard icon="query_stats" title="Theo dõi tiến độ tức thì" desc="Theo dõi trình độ qua thống kê chi tiết và chuỗi ngày học để giữ động lực." />
               </div>
             </div>
           </section>
@@ -95,11 +95,11 @@ const JQuizLanding: React.FC = () => {
               <div className="grid lg:grid-cols-2 gap-16 items-center">
                 <div>
                   <h2 className="text-3xl md:text-5xl font-bold leading-tight mb-8">
-                    Loved by thousands of language learners.
+                    Được hàng nghìn người học ngoại ngữ yêu thích.
                   </h2>
                   <div className="space-y-6">
-                    <TestimonialCard avatar="Sarah" author="Sarah J." role="Student" text="The AI feedback on my grammar mistakes was a game-changer. I passed N4 comfortably!" />
-                    <TestimonialCard avatar="Marcus" author="Marcus K." role="Professional" text="JQuiz makes Kanji practice actually fun. The roadmap keeps me focused every single day." />
+                    <TestimonialCard avatar="Sarah" author="Sarah J." role="Sinh viên" text="Phản hồi AI về lỗi ngữ pháp đã thay đổi cách tôi học. Tôi đỗ N4 khá nhẹ nhàng!" />
+                    <TestimonialCard avatar="Marcus" author="Marcus K." role="Đi làm" text="JQuiz khiến luyện hán tự thú vị hơn. Lộ trình giúp tôi tập trung mỗi ngày." />
                   </div>
                 </div>
                 <div className="relative hidden lg:block">
@@ -124,10 +124,10 @@ const JQuizLanding: React.FC = () => {
           {/* CTA SECTION - Đã căn chỉnh rộng như hình 2 */}
           <section className="py-28 bg-primary">
             <div className="container mx-auto px-6 text-center">
-              <h2 className="text-4xl md:text-6xl font-black text-white mb-6">Ready to start your journey?</h2>
-              <p className="text-white/90 text-xl mb-12 max-w-2xl mx-auto">Join thousands of students and start mastering Japanese with the power of AI today.</p>
+              <h2 className="text-4xl md:text-6xl font-black text-white mb-6">Sẵn sàng bắt đầu hành trình?</h2>
+              <p className="text-white/90 text-xl mb-12 max-w-2xl mx-auto">Cùng hàng nghìn học viên chinh phục tiếng Nhật với sức mạnh AI ngay hôm nay.</p>
               <Link to="/register" className="bg-white text-primary px-12 py-5 rounded-2xl text-xl font-bold hover:shadow-2xl transition-all active:scale-95">
-                Create Your Free Account
+                Tạo tài khoản miễn phí
               </Link>
             </div>
           </section>
@@ -148,13 +148,13 @@ const JQuizLanding: React.FC = () => {
                     <span className="font-bold">JQuiz</span>
                   </span>
                 </div>
-                <p className="text-[#886370] max-w-sm">Making Japanese language learning accessible, intelligent, and effective for everyone.</p>
+                <p className="text-[#886370] max-w-sm">Đưa việc học tiếng Nhật đến gần hơn — thông minh và hiệu quả cho mọi người.</p>
               </div>
-              <FooterColumn title="Product" links={['Curriculum', 'AI Features', 'Pricing']} />
-              <FooterColumn title="Legal" links={['Privacy Policy', 'Terms of Service', 'Cookie Policy']} />
+              <FooterColumn title="Sản phẩm" links={['Chương trình', 'Tính năng AI', 'Bảng giá']} />
+              <FooterColumn title="Pháp lý" links={['Chính sách bảo mật', 'Điều khoản dịch vụ', 'Chính sách cookie']} />
             </div>
             <div className="pt-8 border-t border-[#f4f0f2] flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-[#886370]">
-              <p>© 2024 JQuiz AI. All rights reserved.</p>
+              <p>© 2024 JQuiz AI. Bảo lưu mọi quyền.</p>
               <div className="flex gap-6">
                 <a className="hover:text-primary transition-colors" href="#">Twitter</a>
                 <a className="hover:text-primary transition-colors" href="#">Discord</a>

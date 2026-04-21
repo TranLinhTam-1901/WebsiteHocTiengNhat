@@ -24,14 +24,14 @@ const ForgotPassword: React.FC = () => {
                 </svg>
              </div>
           </div>
-          <h1 className="text-5xl font-black tracking-tight leading-tight">Master Japanese with AI</h1>
+          <h1 className="text-5xl font-black tracking-tight leading-tight">Chinh phục tiếng Nhật cùng AI</h1>
           <p className="text-xl font-light opacity-90 max-w-md mx-auto">
-            Your personalized path to JLPT N5-N3 mastery starts here. Join thousands of students learning smarter, not harder.
+            Lộ trình cá nhân hóa từ N5 đến N3 bắt đầu từ đây. Cùng hàng nghìn học viên học thông minh hơn.
           </p>
           <div className="pt-8">
             <div className="flex items-center justify-center gap-2 text-sm">
               <span className="material-symbols-outlined text-primary">verified_user</span>
-              <span>Trusted by 50,000+ learners worldwide</span>
+              <span>Được hơn 50.000 học viên trên thế giới tin dùng</span>
             </div>
           </div>
         </div>
@@ -41,18 +41,18 @@ const ForgotPassword: React.FC = () => {
         <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 md:px-16 lg:px-24 py-12 bg-white">
           <div className="max-w-md mx-auto w-full">
             <div className="mb-10">
-              <h2 className="text-3xl font-bold leading-tight mb-2">Reset Password</h2>
-              <p className="text-[#886370] text-base font-medium">Choose a strong password to protect your account.</p>
+              <h2 className="text-3xl font-bold leading-tight mb-2">Đặt lại mật khẩu</h2>
+              <p className="text-[#886370] text-base font-medium">Chọn mật khẩu mạnh để bảo vệ tài khoản.</p>
             </div>
 
             <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
               {/* New Password */}
               <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold">New Password</label>
+                <label className="text-sm font-semibold">Mật khẩu mới</label>
                 <div className="relative">
                   <input 
                     type={showPassword ? "text" : "password"} 
-                    placeholder="Enter new password"
+                    placeholder="Nhập mật khẩu mới"
                     className="w-full rounded-lg border border-[#e5dcdf] bg-white h-14 p-3.75 pr-12 text-base focus:outline-none focus:ring-2 focus:ring-[#f287ae]/50 transition-all placeholder:text-[#886370]"
                   />
                   <button 
@@ -69,11 +69,11 @@ const ForgotPassword: React.FC = () => {
 
               {/* Confirm Password */}
               <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold">Confirm New Password</label>
+                <label className="text-sm font-semibold">Xác nhận mật khẩu mới</label>
                 <div className="relative">
                   <input 
                     type={showConfirmPassword ? "text" : "password"} 
-                    placeholder="Repeat new password"
+                    placeholder="Nhập lại mật khẩu mới"
                     className="w-full rounded-lg border border-[#e5dcdf] bg-white h-14 p-3.75 pr-12 text-base focus:outline-none focus:ring-2 focus:ring-[#f287ae]/50 transition-all placeholder:text-[#886370]"
                   />
                   <button 
@@ -90,15 +90,15 @@ const ForgotPassword: React.FC = () => {
 
               <div className="pt-2">
                 <button className="w-full h-14 bg-[#f287ae] hover:bg-[#e07198] text-white rounded-lg text-base font-bold shadow-lg shadow-[#f287ae]/20 transition-all active:scale-[0.98]">
-                  Update Password
+                  Cập nhật mật khẩu
                 </button>
               </div>
             </form>
 
             <div className="mt-10 text-center">
               <p className="text-[#886370] text-sm">
-                Remember your password? 
-                <Link to="/login" className="text-primary font-bold hover:underline ml-1">Sign in</Link>
+                Nhớ mật khẩu rồi?{' '}
+                <Link to="/login" className="text-primary font-bold hover:underline ml-1">Đăng nhập</Link>
               </p>
             </div>
           </div>

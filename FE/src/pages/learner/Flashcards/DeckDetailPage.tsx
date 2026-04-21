@@ -135,7 +135,7 @@ const DeckDetailPage: React.FC = () => {
                 return {
                     primaryLabel: 'Mặt trước',
                     secondaryLabel: 'Mặt sau',
-                    primaryPlaceholder: 'Tìm theo từ, kanji, nghĩa...',
+                    primaryPlaceholder: 'Tìm theo từ, chữ Hán, nghĩa...',
                     primaryCellClass: 'text-xl font-japanese font-black text-[#181114]',
                 };
         }
@@ -152,10 +152,10 @@ const DeckDetailPage: React.FC = () => {
         return 'Theo dõi SRS, ngày ôn tiếp theo và trạng thái từng thẻ trong bộ.';
     }, [deckSkillType]);
 
-    const SKILL_LABELS: Record<number, string> = {
-        [SkillType.Vocabulary]: 'vocabulary',
-        [SkillType.Grammar]: 'grammar',
-        [SkillType.Kanji]: 'kanji',
+    const SKILL_BREADCRUMB: Record<number, string> = {
+        [SkillType.Vocabulary]: 'Từ vựng',
+        [SkillType.Grammar]: 'Ngữ pháp',
+        [SkillType.Kanji]: 'Hán tự',
     };
 
     const style = getSkillStyle(deckSkillType);
@@ -181,9 +181,9 @@ const DeckDetailPage: React.FC = () => {
                             <span className="material-symbols-outlined">arrow_back</span>
                         </button>
                         <div className="flex flex-col">
-                            <h2 className="text-xl font-bold text-[#181114] uppercase">Flashcards</h2>
+                            <h2 className="text-xl font-bold text-[#181114] uppercase">Thẻ ghi nhớ</h2>
                             <nav className="flex text-[10px] text-[#886373] font-medium gap-1 uppercase tracking-wider">
-                                <span>{SKILL_LABELS[Number(deckSkillType)] || 'Tất cả'}</span>
+                                <span>{SKILL_BREADCRUMB[Number(deckSkillType)] || 'Tất cả'}</span>
                                 <span>/</span>
                                 <span className="text-primary font-bold">Chi tiết bộ thẻ</span>
                             </nav>

@@ -177,8 +177,13 @@ const DeckListPage: React.FC = () => {
         }
     };
 
-    const SKILL_LABELS: Record<number, string> = {
-        [SkillType.General]: 'của tôi',
+    const SKILL_BREADCRUMB: Record<number, string> = {
+        [SkillType.General]: 'Của tôi',
+        [SkillType.Vocabulary]: 'Từ vựng',
+        [SkillType.Grammar]: 'Ngữ pháp',
+        [SkillType.Kanji]: 'Hán tự',
+    };
+    const SKILL_ROUTE_SLUG: Record<number, string> = {
         [SkillType.Vocabulary]: 'vocabulary',
         [SkillType.Grammar]: 'grammar',
         [SkillType.Kanji]: 'kanji',
@@ -236,7 +241,7 @@ const DeckListPage: React.FC = () => {
             navigate('/learner');
             return;
         }
-        const skillSlug = SKILL_LABELS[Number(activeFilter)] || 'vocabulary';
+        const skillSlug = SKILL_ROUTE_SLUG[Number(activeFilter)] || 'vocabulary';
         navigate(`/learner/skill-learning/${skillSlug}`);
     };
 
@@ -259,11 +264,11 @@ const DeckListPage: React.FC = () => {
                         </button>
                         <div className="flex flex-col">
                             <h2 className="text-xl font-bold text-[#181114] uppercase">
-                                Flashcards
+                                Thẻ ghi nhớ
                             </h2>
                             <nav className="flex text-[10px] text-[#886373] font-medium gap-1 uppercase tracking-wider">
                                 {/* Hiển thị động tên kỹ năng dựa trên activeFilter */}
-                                <span>{SKILL_LABELS[Number(activeFilter)] || 'Tất cả'}</span>
+                                <span>{SKILL_BREADCRUMB[Number(activeFilter)] || 'Tất cả'}</span>
                                 <span>/</span>
                                 <span className="text-primary font-bold">Quản lý</span>
                             </nav>
@@ -293,7 +298,7 @@ const DeckListPage: React.FC = () => {
                     <header className="mb-10">
                         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                             <div>
-                                <h1 className="text-4xl font-black text-[#211118] tracking-tight mb-2">Bộ Flashcards</h1>
+                                <h1 className="text-4xl font-black text-[#211118] tracking-tight mb-2">Bộ thẻ ghi nhớ</h1>
                                 <p className="text-[#534248] max-w-lg">Nâng cao vốn từ vựng, ngữ pháp và Kanji của bạn thông qua phương pháp lặp lại ngắt quãng (SRS).</p>
                             </div>
                             <div className="flex items-center gap-3">
@@ -394,7 +399,7 @@ const DeckListPage: React.FC = () => {
                                                 <span className="material-symbols-outlined text-3xl">{getSkillIcon(deck.skillType)}</span>
                                             </div>
                                             <span className={`${style.levelBg} ${style.levelColor} px-4 py-1.5 rounded-full text-xs font-black tracking-widest uppercase`}>
-                                                {deck.levelName || 'N/A'}
+                                                {deck.levelName || '—'}
                                             </span>
                                         </div>
                                         <h3 className="text-xl font-bold text-[#211118] mb-2">{deck.skillName}</h3>

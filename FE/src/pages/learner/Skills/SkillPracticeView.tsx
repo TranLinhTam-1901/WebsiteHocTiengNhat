@@ -7,6 +7,7 @@ import { FlashcardService } from '../../../services/Learner/flashcardService';
 import { TutorAiService } from '../../../services/Learner/tutorAiService';
 import { useTimer } from '../../../hooks/useTimer';
 import PracticeResultPage from './PracticeResultPage';
+import { skillRouteSlugToVi } from '../../../utils/skillRouteLabelVi';
 
 const SkillPracticeView: React.FC = () => {
     const { skillType } = useParams<{ skillType: string }>();
@@ -189,7 +190,7 @@ const SkillPracticeView: React.FC = () => {
             {/* Header */}
             <div className="w-full max-w-5xl mx-auto flex justify-between items-center p-8">
                 <div>
-                    <h2 className="text-2xl font-black text-[#181114] tracking-tight uppercase">Luyện tập {skillType}</h2>
+                    <h2 className="text-2xl font-black text-[#181114] tracking-tight uppercase">Luyện tập {skillRouteSlugToVi(skillType)}</h2>
                     <div className="flex items-center gap-4 mt-1">
                         <span className="text-[#886373] text-xs font-black uppercase tracking-widest">Câu hỏi {currentIndex + 1} / {questions.length}</span>
                         <div className="flex items-center gap-1 text-primary">
@@ -219,7 +220,7 @@ const SkillPracticeView: React.FC = () => {
                     <div className="p-10 lg:p-16">
                         <div className="flex justify-between items-start mb-12">
                             <span className="px-4 py-2 rounded-xl bg-primary/10 text-primary text-[10px] font-black uppercase tracking-[0.2em] shadow-sm">
-                                {currentQuestion.questionType === 4 ? 'Listening' : currentQuestion.questionType === 5 ? 'Reading' : 'Quiz'}
+                                {currentQuestion.questionType === 4 ? 'Nghe hiểu' : currentQuestion.questionType === 5 ? 'Đọc hiểu' : 'Trắc nghiệm'}
                             </span>
                             <button 
                                 onClick={() => setShowHint(!showHint)}
@@ -236,7 +237,7 @@ const SkillPracticeView: React.FC = () => {
                                     <span className="material-symbols-outlined text-2xl">psychology</span>
                                 </div>
                                 <div>
-                                    <p className="text-[10px] font-black text-amber-700 uppercase tracking-widest mb-1">AI Suggestion</p>
+                                    <p className="text-[10px] font-black text-amber-700 uppercase tracking-widest mb-1">Gợi ý từ AI</p>
                                     <p className="text-sm text-amber-900 font-bold leading-relaxed">{currentQuestion.hint || "Hãy tập trung vào cấu trúc ngữ pháp và ngữ cảnh của câu."}</p>
                                 </div>
                             </div>
@@ -261,7 +262,7 @@ const SkillPracticeView: React.FC = () => {
 
                             {currentQuestion.imageURL && (
                                 <div className="max-w-md mx-auto">
-                                    <img src={currentQuestion.imageURL} alt="Question" className="w-full rounded-[2.5rem] border-4 border-[#f4f0f2] shadow-xl" />
+                                    <img src={currentQuestion.imageURL} alt="Hình minh họa câu hỏi" className="w-full rounded-[2.5rem] border-4 border-[#f4f0f2] shadow-xl" />
                                 </div>
                             )}
 

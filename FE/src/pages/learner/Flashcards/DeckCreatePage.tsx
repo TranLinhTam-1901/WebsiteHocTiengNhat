@@ -204,12 +204,6 @@ const DeckCreatePage: React.FC = () => {
         }
     };
 
-    const SKILL_LABELS: Record<number, string> = {
-        [SkillType.Vocabulary]: 'vocabulary',
-        [SkillType.Grammar]: 'grammar',
-        [SkillType.Kanji]: 'kanji',
-    };
-
     const buildPayload = (): { name: string; description?: string; items: DeckItemRefDto[] } => ({
         name: name.trim(),
         description: description.trim() || undefined,
@@ -284,7 +278,7 @@ const DeckCreatePage: React.FC = () => {
                             <span className="material-symbols-outlined">arrow_back</span>
                         </button>
                         <div className="flex flex-col">
-                            <h2 className="text-xl font-bold text-[#181114] uppercase">Flashcards</h2>
+                            <h2 className="text-xl font-bold text-[#181114] uppercase">Thẻ ghi nhớ</h2>
                             <nav className="flex text-[10px] text-[#886373] font-medium gap-1 uppercase tracking-wider">
                                 <span>{'Bộ thẻ của tôi'}</span>
                                 <span>/</span>
@@ -420,7 +414,7 @@ const DeckCreatePage: React.FC = () => {
                                                 value={cardSearch}
                                                 onChange={(e) => setCardSearch(e.target.value)}
                                                 className="w-full pl-12 pr-6 py-3 bg-[#fbf9fa] rounded-full border-none shadow-sm focus:ring-2 focus:ring-primary/20 outline-none placeholder:text-slate-400 text-sm font-medium"
-                                                placeholder="Lọc theo từ, kanji, nghĩa..."
+                                                placeholder="Lọc theo từ, chữ Hán, nghĩa..."
                                                 type="text"
                                             />
                                         </div>
