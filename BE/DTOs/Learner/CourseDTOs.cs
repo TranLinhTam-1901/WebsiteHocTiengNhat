@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using QuizzTiengNhat.Models.Enums;
 
 namespace QuizzTiengNhat.DTOs.Learner
 {
@@ -57,6 +58,46 @@ namespace QuizzTiengNhat.DTOs.Learner
         public GrammarBlockDTO? GrammarBlock { get; set; }
         public ReadingBlockDTO? ReadingBlock { get; set; }
         public ListeningBlockDTO? ListeningBlock { get; set; }
+    }
+
+    public class CourseTimelineItemDTO
+    {
+        public Guid ItemID { get; set; }
+        public string ItemType { get; set; }
+        public string Title { get; set; }
+        public int SortOrder { get; set; }
+        public int? Priority { get; set; }
+        public bool IsCheckpoint { get; set; }
+        public bool IsCompleted { get; set; }
+        public bool IsLocked { get; set; }
+        public SkillType? SkillType { get; set; }
+        public Guid? ExamID { get; set; }
+        public Guid? LessonID { get; set; }
+        public Guid? CourseID { get; set; }
+        public string? CourseName { get; set; }
+    }
+
+    public class SkillHubItemDTO
+    {
+        public Guid ExamID { get; set; }
+        public string Title { get; set; }
+        public Guid? CourseID { get; set; }
+        public string? CourseName { get; set; }
+        public Guid? LessonID { get; set; }
+        public int OrderIndex { get; set; }
+        public bool IsCheckpoint { get; set; }
+        public bool IsPublished { get; set; }
+        public float? BestScore { get; set; }
+        public Guid? LevelID { get; set; }
+    }
+
+    public class SkillHubGroupDTO
+    {
+        public SkillType SkillType { get; set; }
+        public string SkillName { get; set; }
+        public int CurrentProficiency { get; set; }
+        public bool NeedsReview { get; set; }
+        public List<SkillHubItemDTO> Items { get; set; } = new List<SkillHubItemDTO>();
     }
 
     public class KanjiBlockDTO

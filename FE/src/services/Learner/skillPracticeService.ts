@@ -25,4 +25,5 @@ export const SkillPracticeService = {
   getLevels: async () => (await axios.get(`${API_URL}/metadata/levels`, getAuthHeader())).data,
   getTopics: async () => (await axios.get(`${API_URL}/metadata/topics`, getAuthHeader())).data,
   getLessons: async () => (await axios.get(`${API_URL}/metadata/lessons`, getAuthHeader())).data,
+  getSkillHub: async () => (await axios.get(`${API_URL}/skill-hub`, getAuthHeader())).data,
 };

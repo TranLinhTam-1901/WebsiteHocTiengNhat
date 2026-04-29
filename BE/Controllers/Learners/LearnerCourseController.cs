@@ -268,6 +268,122 @@ namespace QuizzTiengNhat.Controllers.Learners
             }
         }
 
+        [HttpGet("{courseId}/timeline")]
+        public async Task<IActionResult> GetCourseTimeline([FromRoute] Guid courseId)
+        {
+            try
+            {
+                var userId = RequireUserId();
+                var user = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId);
+                if (user?.LevelID == null) return BadRequest(new { message = "User level not found." });
+
+                var course = await _context.Courses.AsNoTracking()
+                    .Where(c => c.CourseID == courseId && c.LevelID == user.LevelID.Value)
+                    .Select(c => new { c.CourseID, c.CourseName })
+                    .FirstOrDefaultAsync();
+
+                if (course == null) return NotFound(new { message = "Course not found or unavailable." });
+
+                var lessons = await _context.Lessons.AsNoTracking()
+                    .Where(l => l.CourseID == courseId)
+                    .Select(l => new { l.LessonID, l.Title, l.Priority })
+                    .ToListAsync();
+
+                var lessonIds = lessons.Select(l => l.LessonID).ToList();
+                var completedLessonIds = await _context.Progresses.AsNoTracking()
+                    .Where(p => p.UserID == userId && lessonIds.Contains(p.LessonsID) && p.Status == PROGRESS_COMPLETED)
+                    .Select(p => p.LessonsID)
+                    .ToListAsync();
+                var completedLessonSet = completedLessonIds.ToHashSet();
+
+                var passedResults = await _context.Exam_Results.AsNoTracking()
+                    .Where(r => r.UserID == userId && r.Exam.CourseID == courseId)
+                    .Select(r => new { r.ExamID, r.Score, PassingScore = r.Exam.PassingScore })
+                    .ToListAsync();
+
+                var passedExamIds = passedResults
+                    .Where(r => r.Score >= (double)r.PassingScore)
+                    .Select(r => r.ExamID)
+                    .Distinct()
+                    .ToList();
+                var passedExamSet = passedExamIds.ToHashSet();
+
+                var exams = await _context.Exams.AsNoTracking()
+                    .Where(e => e.CourseID == courseId)
+                    .Select(e => new
+                    {
+                        e.ExamID,
+                        e.Title,
+                        e.OrderIndex,
+                        e.IsCheckpoint,
+                        e.TargetSkill,
+                        e.LessonID,
+                        e.CourseID
+                    })
+                    .ToListAsync();
+
+                var timeline = new List<CourseTimelineItemDTO>();
+
+                foreach (var lesson in lessons)
+                {
+                    timeline.Add(new CourseTimelineItemDTO
+                    {
+                        ItemID = lesson.LessonID,
+                        ItemType = "Lesson",
+                        Title = lesson.Title,
+                        SortOrder = lesson.Priority,
+                        Priority = lesson.Priority,
+                        IsCompleted = completedLessonSet.Contains(lesson.LessonID),
+                        LessonID = lesson.LessonID,
+                        CourseID = course.CourseID,
+                        CourseName = course.CourseName
+                    });
+                }
+
+                foreach (var exam in exams)
+                {
+                    timeline.Add(new CourseTimelineItemDTO
+                    {
+                        ItemID = exam.ExamID,
+                        ItemType = "Exam",
+                        Title = exam.Title,
+                        SortOrder = exam.OrderIndex,
+                        Priority = exam.OrderIndex,
+                        IsCheckpoint = exam.IsCheckpoint,
+                        IsCompleted = passedExamSet.Contains(exam.ExamID),
+                        SkillType = exam.TargetSkill,
+                        ExamID = exam.ExamID,
+                        LessonID = exam.LessonID,
+                        CourseID = exam.CourseID,
+                        CourseName = course.CourseName
+                    });
+                }
+
+                var orderedTimeline = timeline
+                    .OrderBy(i => i.SortOrder)
+                    .ThenBy(i => i.ItemType)
+                    .ToList();
+
+                bool previousIncomplete = false;
+                foreach (var item in orderedTimeline)
+                {
+                    item.IsLocked = previousIncomplete;
+                    if (!item.IsCompleted)
+                    {
+                        previousIncomplete = true;
+                    }
+                }
+
+                if (orderedTimeline.Any()) orderedTimeline[0].IsLocked = false;
+
+                return Ok(orderedTimeline);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized();
+            }
+        }
+
         [HttpGet("{lessonId}/learn")]
         public async Task<IActionResult> GetLessonLearn([FromRoute] Guid lessonId)
         {

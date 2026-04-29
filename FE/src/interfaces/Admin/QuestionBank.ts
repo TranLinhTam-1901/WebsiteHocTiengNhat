@@ -70,6 +70,8 @@ export interface SourceMaterial {
 export interface LessonLookupDTO {
     lessonID: string;
     title: string;
+    courseID?: string;
+    courseName?: string;
     levelValue: string; 
     levelName: string;  
 }

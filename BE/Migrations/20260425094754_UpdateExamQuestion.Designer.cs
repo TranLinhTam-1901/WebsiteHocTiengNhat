@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using QuizzTiengNhat.Models;
@@ -11,9 +12,11 @@ using QuizzTiengNhat.Models;
 namespace QuizzTiengNhat.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260425094754_UpdateExamQuestion")]
+    partial class UpdateExamQuestion
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -91,17 +94,11 @@ namespace QuizzTiengNhat.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("CourseID")
-                        .HasColumnType("uuid");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("Duration")
                         .HasColumnType("integer");
-
-                    b.Property<bool>("IsCheckpoint")
-                        .HasColumnType("boolean");
 
                     b.Property<bool>("IsPublished")
                         .HasColumnType("boolean");
@@ -120,9 +117,6 @@ namespace QuizzTiengNhat.Migrations
 
                     b.Property<double>("MinReadingScore")
                         .HasColumnType("double precision");
-
-                    b.Property<int>("OrderIndex")
-                        .HasColumnType("integer");
 
                     b.Property<decimal>("PassingScore")
                         .HasColumnType("decimal(18,2)");
@@ -150,8 +144,6 @@ namespace QuizzTiengNhat.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("ExamID");
-
-                    b.HasIndex("CourseID");
 
                     b.HasIndex("LessonID");
 
@@ -529,61 +521,6 @@ namespace QuizzTiengNhat.Migrations
                     b.HasIndex("ReadingID");
 
                     b.ToTable("Exam_Questions");
-                });
-
-            modelBuilder.Entity("QuizzTiengNhat.Models.Exam_Result_Details", b =>
-                {
-                    b.Property<Guid>("ResultDetailID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid?>("ExamQuestionID")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid?>("ExamsExamID")
-                        .HasColumnType("uuid");
-
-                    b.Property<bool>("IsCorrect")
-                        .HasColumnType("boolean");
-
-                    b.Property<Guid?>("ListeningID")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("QuestionID")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid?>("ReadingID")
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("ResponseTime")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("ResultID")
-                        .HasColumnType("uuid");
-
-                    b.Property<int?>("SkillType")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid?>("TopicID")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("ResultDetailID");
-
-                    b.HasIndex("ExamQuestionID");
-
-                    b.HasIndex("ExamsExamID");
-
-                    b.HasIndex("ListeningID");
-
-                    b.HasIndex("QuestionID");
-
-                    b.HasIndex("ReadingID");
-
-                    b.HasIndex("ResultID");
-
-                    b.HasIndex("TopicID");
-
-                    b.ToTable("Exam_Result_Details");
                 });
 
             modelBuilder.Entity("QuizzTiengNhat.Models.Exam_Results", b =>
@@ -1392,44 +1329,6 @@ namespace QuizzTiengNhat.Migrations
                     b.ToTable("UserInterests");
                 });
 
-            modelBuilder.Entity("QuizzTiengNhat.Models.User_Skill_Matrix", b =>
-                {
-                    b.Property<Guid>("MatrixID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("Confidence")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("LastUpdated")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid?>("LevelID")
-                        .HasColumnType("uuid");
-
-                    b.Property<bool>("NeedsReview")
-                        .HasColumnType("boolean");
-
-                    b.Property<int>("ProficiencyScore")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("SkillType")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("UserID")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("MatrixID");
-
-                    b.HasIndex("LevelID");
-
-                    b.HasIndex("UserID", "SkillType")
-                        .IsUnique();
-
-                    b.ToTable("User_Skill_Matrices");
-                });
-
             modelBuilder.Entity("QuizzTiengNhat.Models.VocabTopics", b =>
                 {
                     b.Property<Guid>("VocabID")
@@ -1575,11 +1474,6 @@ namespace QuizzTiengNhat.Migrations
 
             modelBuilder.Entity("Exams", b =>
                 {
-                    b.HasOne("QuizzTiengNhat.Models.Courses", "Course")
-                        .WithMany()
-                        .HasForeignKey("CourseID")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("QuizzTiengNhat.Models.Lessons", "Lesson")
                         .WithMany()
                         .HasForeignKey("LessonID")
@@ -1593,8 +1487,6 @@ namespace QuizzTiengNhat.Migrations
                         .WithMany()
                         .HasForeignKey("TemplateID")
                         .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Course");
 
                     b.Navigation("Lesson");
 
@@ -1755,57 +1647,6 @@ namespace QuizzTiengNhat.Migrations
                     b.Navigation("Question");
 
                     b.Navigation("Reading");
-                });
-
-            modelBuilder.Entity("QuizzTiengNhat.Models.Exam_Result_Details", b =>
-                {
-                    b.HasOne("QuizzTiengNhat.Models.Exam_Questions", "ExamQuestion")
-                        .WithMany()
-                        .HasForeignKey("ExamQuestionID")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("Exams", null)
-                        .WithMany("ExamResultDetails")
-                        .HasForeignKey("ExamsExamID");
-
-                    b.HasOne("QuizzTiengNhat.Models.Listenings", "Listening")
-                        .WithMany()
-                        .HasForeignKey("ListeningID")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("QuizzTiengNhat.Models.Questions", "Question")
-                        .WithMany()
-                        .HasForeignKey("QuestionID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("QuizzTiengNhat.Models.Readings", "Reading")
-                        .WithMany()
-                        .HasForeignKey("ReadingID")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("QuizzTiengNhat.Models.Exam_Results", "Result")
-                        .WithMany("ResultDetails")
-                        .HasForeignKey("ResultID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("QuizzTiengNhat.Models.Topics", "Topic")
-                        .WithMany()
-                        .HasForeignKey("TopicID")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("ExamQuestion");
-
-                    b.Navigation("Listening");
-
-                    b.Navigation("Question");
-
-                    b.Navigation("Reading");
-
-                    b.Navigation("Result");
-
-                    b.Navigation("Topic");
                 });
 
             modelBuilder.Entity("QuizzTiengNhat.Models.Exam_Results", b =>
@@ -2182,24 +2023,6 @@ namespace QuizzTiengNhat.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("QuizzTiengNhat.Models.User_Skill_Matrix", b =>
-                {
-                    b.HasOne("QuizzTiengNhat.Models.JLPT_Level", "Level")
-                        .WithMany()
-                        .HasForeignKey("LevelID")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("QuizzTiengNhat.Models.ApplicationUser", "User")
-                        .WithMany("SkillMatrix")
-                        .HasForeignKey("UserID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Level");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("QuizzTiengNhat.Models.VocabTopics", b =>
                 {
                     b.HasOne("QuizzTiengNhat.Models.Topics", "Topic")
@@ -2285,8 +2108,6 @@ namespace QuizzTiengNhat.Migrations
                 {
                     b.Navigation("ExamQuestions");
 
-                    b.Navigation("ExamResultDetails");
-
                     b.Navigation("ExamResults");
                 });
 
@@ -2295,8 +2116,6 @@ namespace QuizzTiengNhat.Migrations
                     b.Navigation("ExamResults");
 
                     b.Navigation("Progresses");
-
-                    b.Navigation("SkillMatrix");
                 });
 
             modelBuilder.Entity("QuizzTiengNhat.Models.ChatConversation", b =>
@@ -2307,11 +2126,6 @@ namespace QuizzTiengNhat.Migrations
             modelBuilder.Entity("QuizzTiengNhat.Models.Courses", b =>
                 {
                     b.Navigation("Lessons");
-                });
-
-            modelBuilder.Entity("QuizzTiengNhat.Models.Exam_Results", b =>
-                {
-                    b.Navigation("ResultDetails");
                 });
 
             modelBuilder.Entity("QuizzTiengNhat.Models.FlashcardDeck", b =>

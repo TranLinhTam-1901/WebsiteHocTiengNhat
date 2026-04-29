@@ -165,12 +165,26 @@ namespace QuizzTiengNhat.Controllers.Admins
         }
 
         [HttpGet("lessons-lookup")]
-        public async Task<IActionResult> GetLessonsLookup()
+        public async Task<IActionResult> GetLessonsLookup([FromQuery] Guid? levelId = null, [FromQuery] Guid? courseId = null)
         {
-            var lessons = await _context.Lessons
+            var query = _context.Lessons.AsNoTracking().AsQueryable();
+
+            if (levelId.HasValue && levelId != Guid.Empty)
+            {
+                query = query.Where(l => l.Course.LevelID == levelId.Value);
+            }
+
+            if (courseId.HasValue && courseId != Guid.Empty)
+            {
+                query = query.Where(l => l.CourseID == courseId.Value);
+            }
+
+            var lessons = await query
                 .Select(l => new {
                     l.LessonID,
                     l.Title,
+                    CourseID = l.CourseID,
+                    CourseName = l.Course.CourseName,
                     LevelValue = l.Course.Level.LevelID,
                     LevelName = l.Course.Level.LevelName
                 })
@@ -213,6 +227,7 @@ namespace QuizzTiengNhat.Controllers.Admins
                     Status = dto.Status,
                     SourceID = dto.SourceID,
                     LessonID = dto.LessonID,
+                    SkillType = dto.SkillType,
                     CreatedAt = DateTime.UtcNow
                 };
 

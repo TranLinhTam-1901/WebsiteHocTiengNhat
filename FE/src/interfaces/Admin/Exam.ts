@@ -6,6 +6,27 @@ export interface ExamPartConfig {
     quantity: number;
     pointPerQuestion: number;
 }
+export interface CourseLookupResponse {
+    courseID: string;
+    courseName: string;
+}
+
+// Interface cho thống kê kỹ năng trong từng bài học
+export interface LessonSkillStat {
+    skillId: number;
+    skillName: string;
+    totalQuestions: number;
+}
+
+// Interface cho bài học trả về từ API lọc
+export interface LessonFilterResponse {
+    lessonID: string;
+    title: string;
+    courseID?: string;
+    courseName?: string;
+    rawItemCount: number;
+    skillStats: LessonSkillStat[];
+}
 
 // Request gửi lên API generate
 export interface GenerateExamRequest {
@@ -47,7 +68,7 @@ export interface ExamDetailResponse {
     examID: string;
     title: string;
     passingScore: number;
-    duration: number;
+    duration?: number;
     examType: ExamType;
     showResultImmediately: boolean;
     minScores: {

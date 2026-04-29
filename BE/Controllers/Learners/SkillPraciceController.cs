@@ -1,10 +1,11 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QuizzTiengNhat.DTOs.Learner;
 using QuizzTiengNhat.Models;
 using QuizzTiengNhat.Services.Learners;
-
+using QuizzTiengNhat.Models.Enums;
 namespace QuizzTiengNhat.Controllers.Learners
 {
     [ApiController]
@@ -19,6 +20,14 @@ namespace QuizzTiengNhat.Controllers.Learners
         {
             _context = context;
             _questionService = questionService;
+        }
+
+        private string RequireUserId()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                throw new UnauthorizedAccessException("Missing userId in token.");
+            return userId;
         }
 
         [HttpGet("questions-by-filter")]
@@ -39,6 +48,90 @@ namespace QuizzTiengNhat.Controllers.Learners
             catch (Exception ex)
             {
                 return BadRequest(new { message = "Lỗi khi lấy danh sách câu hỏi", detail = ex.Message });
+            }
+        }
+
+        [HttpGet("skill-hub")]
+        public async Task<IActionResult> GetSkillHub()
+        {
+            try
+            {
+                var userId = RequireUserId();
+
+                var skillMatrix = await _context.User_Skill_Matrices.AsNoTracking()
+                    .Where(s => s.UserID == userId)
+                    .GroupBy(s => s.SkillType)
+                    .Select(g => new
+                    {
+                        SkillType = g.Key,
+                        CurrentProficiency = g.Max(x => x.ProficiencyScore),
+                        NeedsReview = g.Any(x => x.NeedsReview)
+                    })
+                    .ToListAsync();
+
+                var skillSummary = skillMatrix.ToDictionary(
+                    x => x.SkillType,
+                    x => new { x.CurrentProficiency, x.NeedsReview });
+
+                var examBestScores = await _context.Exam_Results.AsNoTracking()
+                    .Where(r => r.UserID == userId)
+                    .GroupBy(r => r.ExamID)
+                    .Select(g => new { ExamID = g.Key, BestScore = g.Max(r => r.Score) })
+                    .ToDictionaryAsync(x => x.ExamID, x => x.BestScore);
+
+                var exams = await _context.Exams.AsNoTracking()
+                    .Where(e => e.TargetSkill != null && e.IsPublished)
+                    .Select(e => new
+                    {
+                        e.ExamID,
+                        e.Title,
+                        e.OrderIndex,
+                        e.IsCheckpoint,
+                        e.TargetSkill,
+                        e.CourseID,
+                        CourseName = e.Course.CourseName,
+                        e.LessonID,
+                        e.LevelID
+                    })
+                    .ToListAsync();
+
+                var groups = exams
+                    .Where(e => e.TargetSkill.HasValue)
+                    .GroupBy(e => e.TargetSkill!.Value)
+                    .Select(g => new SkillHubGroupDTO
+                    {
+                        SkillType = g.Key,
+                        SkillName = Enum.GetName(typeof(SkillType), g.Key) ?? g.Key.ToString(),
+                        CurrentProficiency = skillSummary.TryGetValue(g.Key, out var summary) ? summary.CurrentProficiency : 0,
+                        NeedsReview = skillSummary.TryGetValue(g.Key, out var summary2) ? summary2.NeedsReview : false,
+                        Items = g.Select(exam => new SkillHubItemDTO
+                        {
+                            ExamID = exam.ExamID,
+                            Title = exam.Title,
+                            CourseID = exam.CourseID,
+                            CourseName = exam.CourseName,
+                            LessonID = exam.LessonID,
+                            OrderIndex = exam.OrderIndex,
+                            IsCheckpoint = exam.IsCheckpoint,
+                            IsPublished = true,
+                            BestScore = examBestScores.TryGetValue(exam.ExamID, out var score) ? score : null,
+                            LevelID = exam.LevelID
+                        })
+                        .OrderBy(item => item.OrderIndex)
+                        .ToList()
+                    })
+                    .OrderBy(g => g.SkillType)
+                    .ToList();
+
+                return Ok(groups);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Lỗi khi lấy Skill Hub", detail = ex.Message });
             }
         }
 

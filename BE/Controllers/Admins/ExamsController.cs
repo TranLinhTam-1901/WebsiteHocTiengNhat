@@ -150,6 +150,8 @@ public class ExamsController : ControllerBase
                             ExamID = exam.ExamID,
                             QuestionID = q.QuestionID,
                             OrderIndex = currentOrder++,
+                            ReadingID = q.ReadingID,
+                            ListeningID = q.ListeningID,
                             Score = part.PointPerQuestion 
                         };
                         _context.Exam_Questions.Add(examQuestion);
@@ -229,28 +231,110 @@ public class ExamsController : ControllerBase
         });
     }
 
-    [HttpGet("lessons-by-level/{levelId}")]
-    public async Task<IActionResult> GetLessonsByLevel(Guid levelId)
+    // [HttpGet("lessons-by-level/{levelId}")]
+    // public async Task<IActionResult> GetLessonsByLevel(Guid levelId)
+    // {
+    //     var lessons = await _context.Lessons
+    //         .Where(l => l.Course.LevelID == levelId)
+    //         .OrderBy(l => l.Title)
+    //         .Select(l => new {
+    //             l.LessonID,
+    //             l.Title,
+    //             RawQuestionCount = _context.Questions.Count(q => q.LessonID == l.LessonID), 
+    //             SkillStats = _context.Questions
+    //                 .Where(q => q.LessonID == l.LessonID)
+    //                 .GroupBy(q => q.SkillType)
+    //                 .Select(g => new {
+    //                     SkillId = (int)g.Key,
+    //                     SkillName = g.Key.ToString(),
+    //                     TotalQuestions = g.Count()
+    //                 }).ToList()
+    //         })
+    //         .ToListAsync();
+
+    //     return Ok(lessons);
+    // }
+
+    //Lấy danh sách khóa học để lọc
+    [HttpGet("courses-by-level/{levelId}")]
+    public async Task<IActionResult> GetCoursesByLevel(Guid levelId)
     {
-        var lessons = await _context.Lessons
-            .Where(l => l.Course.LevelID == levelId)
+        var courses = await _context.Courses
+            .Where(c => c.LevelID == levelId)
+            .Select(c => new { c.CourseID, c.CourseName })
+            .ToListAsync();
+        return Ok(courses);
+    }
+
+    //Lấy danh sách bài học (Có thể lọc theo Level hoặc sâu hơn là Course)
+    [HttpGet("lessons-filter")]
+    public async Task<IActionResult> GetFilteredLessons([FromQuery] Guid levelId, [FromQuery] Guid? courseId = null)
+    {
+        // 1. Luôn bắt đầu lọc theo Level
+        var query = _context.Lessons.Where(l => l.Course.LevelID == levelId);
+
+        // 2. Nếu người dùng chọn Course cụ thể thì lọc tiếp, nếu không thì lấy hết Lessons của Level đó
+        if (courseId.HasValue && courseId.Value != Guid.Empty)
+        {
+            query = query.Where(l => l.CourseID == courseId.Value);
+        }
+
+       // 2. Thực thi query và tính toán stats
+        var lessons = await query
             .OrderBy(l => l.Title)
             .Select(l => new {
                 l.LessonID,
                 l.Title,
-                RawQuestionCount = _context.Questions.Count(q => q.LessonID == l.LessonID), 
-                SkillStats = _context.Questions
+                // Đếm từ bảng Questions
+                Questions = _context.Questions
                     .Where(q => q.LessonID == l.LessonID)
                     .GroupBy(q => q.SkillType)
-                    .Select(g => new {
-                        SkillId = (int)g.Key,
-                        SkillName = g.Key.ToString(),
-                        TotalQuestions = g.Count()
-                    }).ToList()
+                    .Select(g => new { SkillId = (int)g.Key, Count = g.Count() }).ToList(),
+
+                // Đếm từ bảng Readings (SkillType.Reading = 4)
+                ReadingCount = _context.Readings.Count(r => r.LessonID == l.LessonID),
+
+                // Đếm từ bảng Listenings (SkillType.Listening = 5)
+                ListeningCount = _context.Listenings.Count(li => li.LessonID == l.LessonID)
             })
             .ToListAsync();
 
-        return Ok(lessons);
+        // 3. Mapping lại cấu trúc SkillStats để FE dễ dùng
+        var result = lessons.Select(l => {
+        // 1. Khởi tạo list kiểu object để "đựng" được mọi thứ
+        var stats = l.Questions.Select(q => (object)new {
+            SkillId = q.SkillId,
+            SkillName = Enum.GetName(typeof(SkillType), q.SkillId),
+            TotalQuestions = q.Count
+        }).ToList();
+
+        // 2. Bây giờ dòng Add này sẽ KHÔNG bị gạch vàng nữa
+        if (l.ReadingCount > 0) {
+            stats.Add(new { 
+                SkillId = (int)SkillType.Reading, 
+                SkillName = nameof(SkillType.Reading), 
+                TotalQuestions = l.ReadingCount 
+            });
+        }
+
+        if (l.ListeningCount > 0) {
+            stats.Add(new { 
+                SkillId = (int)SkillType.Listening, 
+                SkillName = nameof(SkillType.Listening), 
+                TotalQuestions = l.ListeningCount 
+            });
+        }
+
+        return new {
+            l.LessonID,
+            l.Title,
+            RawItemCount = l.Questions.Sum(q => q.Count) + l.ReadingCount + l.ListeningCount,
+            SkillStats = stats // Hệ thống sẽ tự Sort lại nếu bạn dùng .OrderBy ở đây
+        };
+    });
+
+    return Ok(result);
+    
     }
 
     [HttpGet("stats-by-skill/{levelId}")]
@@ -333,6 +417,8 @@ public class ExamsController : ControllerBase
                 exam.ExamID,
                 exam.Title,
                 exam.PassingScore,
+                exam.Duration,
+                exam.ShowResultImmediately,
                 // Các mốc điểm liệt thực tế từ Database
                 MinScores = new {
                     Language = exam.MinLanguageKnowledgeScore,
