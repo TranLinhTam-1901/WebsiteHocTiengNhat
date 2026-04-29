@@ -31,6 +31,11 @@ export const LearnerCourseService = {
     return unwrapArray<LessonListItemDTO>(data);
   },
 
+  getCourseTimeline: async (courseId: string): Promise<any[]> => {
+    const { data } = await axiosInstance.get<any[]>(`${COURSES_BASE}/${courseId}/timeline`);
+    return unwrapArray<any>(data);
+  },
+
   /** GET /api/learner/courses/{lessonId}/learn — tham số là lessonId, không phải courseId */
   getLessonLearn: async (lessonId: string): Promise<LessonLearnDTO> => {
     const { data } = await axiosInstance.get<LessonLearnDTO>(`${COURSES_BASE}/${lessonId}/learn`);

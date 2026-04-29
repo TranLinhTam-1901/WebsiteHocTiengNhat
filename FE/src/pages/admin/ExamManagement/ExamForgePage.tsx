@@ -12,7 +12,7 @@ import SkillPractice from '../../../components/Admin/Exam/SkillPractice';
 
 const ExamForgePage: React.FC = () => {
     const navigate = useNavigate();
-    // State lưu trữ dữ liệu form - Khớp 100% với GenerateExamRequest
+   
     const [formData, setFormData] = useState<GenerateExamRequest>({
         title: "",
         duration: 0,
@@ -31,6 +31,9 @@ const ExamForgePage: React.FC = () => {
     const [lessons, setLessons] = useState<{ lessonID: string, title: string }[]>([]);
     const [lessonDataFull, setLessonDataFull] = useState<any[]>([]);
 
+    // Thêm vào cùng cụm các useState ở đầu component
+    const [courses, setCourses] = useState<{ courseID: string, courseName: string }[]>([]);
+    const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
     useEffect(() => {
         const fetchLevels = async () => {
             try {
@@ -56,10 +59,16 @@ const ExamForgePage: React.FC = () => {
                     duration: 0,
                     parts: [],             
                 }));
+                setCourses([]);
                 return; 
             }
             // Cập nhật LevelID trước cho toàn bộ Form
             setFormData(prev => ({ ...prev, levelID: levelId, lessonID : null, title: "" }));
+            setSelectedCourseId(null); // Reset khóa học đang chọn khi đổi level
+
+            // 1. Lấy danh sách Khóa học thuộc Level này
+            const courseData = await ExamService.getCoursesByLevel(levelId);
+            setCourses(courseData);
 
             // Nếu là chế độ JLPT Tiêu chuẩn -> Mới gọi Template cấu trúc đề
             if (formData.type === ExamType.StandardJLPT) {
@@ -75,10 +84,31 @@ const ExamForgePage: React.FC = () => {
                     minListeningScore: template.minListeningScore
                 }));
             }
+            // 3. Tự động load tất cả bài học của Level này (chưa lọc theo Course)
+            const lessonsWithStats = await ExamService.getLessonsByFilter(levelId);
+            setLessonDataFull(lessonsWithStats);
+            setLessons(lessonsWithStats.map((l: any) => ({ lessonID: l.lessonID, title: l.title })));
+
         } catch (error) {
             console.error("Lỗi chi tiết:", error);
             toast.error("Lỗi khi cập nhật trình độ");
         }
+    };
+
+    const handleCourseChange = async (courseId: string) => {
+    setSelectedCourseId(courseId);
+    
+    // Reset lessonID trong form vì bài học cũ có thể không thuộc khóa học mới
+    setFormData(prev => ({ ...prev, lessonID: null }));
+
+    try {
+        // Gọi API lọc bài học theo Level + Course
+        const filteredLessons = await ExamService.getLessonsByFilter(formData.levelID, courseId);
+        setLessonDataFull(filteredLessons);
+        setLessons(filteredLessons.map((l: any) => ({ lessonID: l.lessonID, title: l.title })));
+    } catch (error) {
+        toast.error("Lỗi khi lọc bài học theo khóa học");
+    }
     };
 
     const [levelStats, setLevelStats] = useState<any[]>([]);
@@ -145,7 +175,7 @@ const ExamForgePage: React.FC = () => {
        const loadExtraData = async () => {
             if (formData.type === ExamType.LessonPractice && formData.levelID) {
                 try {
-                    const lessonsWithStats = await ExamService.getLessonsByLevel(formData.levelID);
+                    const lessonsWithStats = await ExamService.getLessonsByFilter(formData.levelID);
                     setLessonDataFull(lessonsWithStats); // Lưu data đầy đủ (có SkillStats)
                     setLessons(lessonsWithStats.map((l: any) => ({ lessonID: l.lessonID, title: l.title })));
                 } catch (error) {
@@ -165,7 +195,10 @@ const ExamForgePage: React.FC = () => {
             case ExamType.StandardJLPT:
                 return <StandardJLPT {...commonProps} levels={levels} onLevelChange={handleLevelChange} />;
             case ExamType.LessonPractice:
-                return <LessonPractice {...commonProps} levels={levels} lessons={lessons} lessonDataFull={lessonDataFull} onLevelChange={handleLevelChange}/>;
+                return <LessonPractice {...commonProps} levels={levels} lessons={lessons} lessonDataFull={lessonDataFull} onLevelChange={handleLevelChange}
+                    courses={courses}
+                    selectedCourseId={selectedCourseId}
+                    onCourseChange={handleCourseChange}/>;
              case ExamType.SkillPractice:
                 return <SkillPractice {...commonProps} onLevelChange={handleSkillLevelChange} />;
             default:

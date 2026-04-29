@@ -258,6 +258,33 @@ const ExamDetailPage: React.FC = () => {
                                         <span className="text-[10px] font-bold text-primary/60 uppercase">Câu</span>
                                     </div>
 
+                                    <div className="flex items-center justify-between p-4 bg-sky-50 rounded-2xl border border-sky-100">
+                                        <div className="flex items-center gap-3">
+                                            <div className="size-10 rounded-xl bg-white flex items-center justify-center shadow-sm">
+                                                <span className="material-symbols-outlined text-sky-600">timer</span>
+                                            </div>
+                                            <div>
+                                                <p className="text-[10px] font-bold text-[#886373] uppercase tracking-wider">Thời lượng</p>
+                                                <p className="text-2xl font-black text-sky-600 leading-none mt-1">{details.duration ?? 0}</p>
+                                            </div>
+                                        </div>
+                                        <span className="text-[10px] font-bold text-sky-600/60 uppercase">phút</span>
+                                    </div>
+
+                                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                        <div className="flex items-center gap-3">
+                                            <div className="size-10 rounded-xl bg-white flex items-center justify-center shadow-sm">
+                                                <span className="material-symbols-outlined text-slate-700">visibility</span>
+                                            </div>
+                                            <div>
+                                                <p className="text-[10px] font-bold text-[#886373] uppercase tracking-wider">Trả kết quả ngay</p>
+                                                <p className="text-2xl font-black text-slate-700 leading-none mt-1">
+                                                    {details.showResultImmediately ? 'Có' : 'Không'}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <div className="flex items-center justify-between p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
                                         <div className="flex items-center gap-3">
                                             <div className="size-10 rounded-xl bg-white flex items-center justify-center shadow-sm">

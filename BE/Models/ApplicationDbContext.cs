@@ -51,6 +51,8 @@ namespace QuizzTiengNhat.Models
         public DbSet<ExamTemplateDetail> ExamTemplateDetails { get; set; }
         public DbSet<Exams> Exams { get; set; }
         public DbSet<Exam_Questions> Exam_Questions { get; set; }
+        public DbSet<Exam_Result_Details> Exam_Result_Details { get; set; }
+        public DbSet<User_Skill_Matrix> User_Skill_Matrices { get; set; }
 
         // --- 6. Hệ thống Flashcard & Cá nhân hóa (MỚI) ---
         public DbSet<FlashcardDeck> FlashcardDecks { get; set; }
@@ -119,6 +121,24 @@ namespace QuizzTiengNhat.Models
                 e.Property(x => x.TargetSkill).HasConversion<int>();
                 e.HasOne(x => x.Template).WithMany().HasForeignKey(x => x.TemplateID).OnDelete(DeleteBehavior.SetNull);
                 e.HasOne(x => x.Lesson).WithMany().HasForeignKey(x => x.LessonID).OnDelete(DeleteBehavior.SetNull);
+                e.HasOne(x => x.Course).WithMany().HasForeignKey(x => x.CourseID).OnDelete(DeleteBehavior.SetNull);
+            });
+
+            modelBuilder.Entity<Exam_Result_Details>(e => {
+                e.Property(x => x.SkillType).HasConversion<int>();
+                e.HasOne(x => x.Result).WithMany(r => r.ResultDetails).HasForeignKey(x => x.ResultID).OnDelete(DeleteBehavior.Cascade);
+                e.HasOne(x => x.Question).WithMany().HasForeignKey(x => x.QuestionID).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(x => x.Topic).WithMany().HasForeignKey(x => x.TopicID).OnDelete(DeleteBehavior.SetNull);
+                e.HasOne(x => x.Reading).WithMany().HasForeignKey(x => x.ReadingID).OnDelete(DeleteBehavior.SetNull);
+                e.HasOne(x => x.Listening).WithMany().HasForeignKey(x => x.ListeningID).OnDelete(DeleteBehavior.SetNull);
+                e.HasOne(x => x.ExamQuestion).WithMany().HasForeignKey(x => x.ExamQuestionID).OnDelete(DeleteBehavior.SetNull);
+            });
+
+            modelBuilder.Entity<User_Skill_Matrix>(e => {
+                e.Property(x => x.SkillType).HasConversion<int>();
+                e.HasOne(x => x.User).WithMany(u => u.SkillMatrix).HasForeignKey(x => x.UserID).OnDelete(DeleteBehavior.Cascade);
+                e.HasOne(x => x.Level).WithMany().HasForeignKey(x => x.LevelID).OnDelete(DeleteBehavior.SetNull);
+                e.HasIndex(x => new { x.UserID, x.SkillType }).IsUnique();
             });
 
             modelBuilder.Entity<Kanjis>(e => {

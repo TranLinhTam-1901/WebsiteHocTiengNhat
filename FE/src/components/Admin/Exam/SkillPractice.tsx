@@ -21,6 +21,20 @@ const SkillPractice: React.FC<Props> = ({ data, onChange, levels, levelStats, on
 
     const selectedLevel = levels.find(l => l.levelID === data.levelID);
 
+    const visibleSkillTypes = [
+        SkillType.Vocabulary,
+        SkillType.Grammar,
+        SkillType.Kanji,
+        SkillType.Reading,
+        SkillType.Listening
+    ];
+
+    const visibleLevelStats = Array.isArray(levelStats)
+        ? levelStats.filter((stat: any) => visibleSkillTypes.includes(Number(stat.skillId)))
+        : [];
+
+    const visibleParts = data.parts.filter((part) => visibleSkillTypes.includes(part.skillType));
+
     const handleAddSkill = (stat: any) => {
         if (data.parts.find(p => p.skillType === stat.skillId)) {
             return;
@@ -130,8 +144,8 @@ const SkillPractice: React.FC<Props> = ({ data, onChange, levels, levelStats, on
                     </div>
                     
                     <div className="flex flex-wrap gap-3">
-                        {levelStats && levelStats.length > 0 ? (
-                            levelStats.map((stat: any) => {
+                        {visibleLevelStats.length > 0 ? (
+                            visibleLevelStats.map((stat: any) => {
                                 const isSelected = data.parts.some(p => p.skillType === stat.skillId);
                                 return (
                                     <button
@@ -162,12 +176,12 @@ const SkillPractice: React.FC<Props> = ({ data, onChange, levels, levelStats, on
             )}
 
             {/* SECTION 3: BẢNG CHI TIẾT CẤU HÌNH */}
-            {data.levelID && data.parts.length > 0 && (
+            {data.levelID && visibleParts.length > 0 && (
                 <section className="bg-white rounded-2xl border border-[#f4f0f2] shadow-sm overflow-hidden animate-in slide-in-from-top-4">
                     <div className="p-6 border-b border-[#f4f0f2] bg-[#fbf9fa] flex justify-between items-center">
                         <h3 className="text-sm font-bold text-[#181114] uppercase tracking-tight">Chi tiết cấu hình kỹ năng</h3>
                         <span className="px-3 py-1 bg-primary text-white text-[10px] font-black rounded-full uppercase shadow-sm shadow-primary/20">
-                            {data.parts.length} KỸ NĂNG
+                            {visibleParts.length} KỸ NĂNG
                         </span>
                     </div>
                     
@@ -182,8 +196,8 @@ const SkillPractice: React.FC<Props> = ({ data, onChange, levels, levelStats, on
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-[#f4f0f2]">
-                                {data.parts.map((part, idx) => {
-                                    const stat = levelStats?.find((s: any) => s.skillId === part.skillType);
+                                {visibleParts.map((part, idx) => {
+                                    const stat = visibleLevelStats.find((s: any) => Number(s.skillId) === Number(part.skillType));
                                     const maxCount = stat?.totalAvailable || 0;
 
                                     return (

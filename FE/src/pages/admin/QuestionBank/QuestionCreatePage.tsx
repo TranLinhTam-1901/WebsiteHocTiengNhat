@@ -47,6 +47,7 @@ const QuestionCreatePage: React.FC = () => {
 
     const [visibility, setVisibility] = useState<QuestionVisibility>('Published');
     const [lessons, setLessons] = useState<LessonLookupDTO[]>([]);
+    const [selectedCourseId, setSelectedCourseId] = useState('');
     const [saving, setSaving] = useState(false);
 
     const [topicSearch, setTopicSearch] = useState('');
@@ -80,6 +81,39 @@ const QuestionCreatePage: React.FC = () => {
             difficulty: matched ? matched.value : prev.difficulty
         }));
     };
+
+    const availableCourses = lessons
+        .filter((l) => !sourceFilterLevel || l.levelName === sourceFilterLevel)
+        .reduce((acc: { courseID: string; courseName: string }[], lesson) => {
+            if (!lesson.courseID) return acc;
+            if (!acc.some((c) => c.courseID === lesson.courseID)) {
+                acc.push({ courseID: lesson.courseID, courseName: lesson.courseName || '' });
+            }
+            return acc;
+        }, []);
+
+    const filteredLessons = lessons.filter(
+        (l) => (!sourceFilterLevel || l.levelName === sourceFilterLevel) && (!selectedCourseId || l.courseID === selectedCourseId)
+    );
+
+    useEffect(() => {
+        if (formData.lessonID && !filteredLessons.some((l) => l.lessonID === formData.lessonID)) {
+            setFormData((prev) => ({ ...prev, lessonID: '' }));
+        }
+    }, [filteredLessons, formData.lessonID]);
+
+    useEffect(() => {
+        if (
+            formData.lessonID &&
+            !lessons.some((l) => l.lessonID === formData.lessonID && (!sourceFilterLevel || l.levelName === sourceFilterLevel))
+        ) {
+            setFormData((prev) => ({ ...prev, lessonID: '' }));
+        }
+    }, [sourceFilterLevel, lessons, formData.lessonID]);
+
+    useEffect(() => {
+        setSelectedCourseId('');
+    }, [sourceFilterLevel]);
 
     useEffect(() => {
         const loadLessons = async () => {
@@ -814,72 +848,99 @@ const QuestionCreatePage: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div className="mt-6 border-t border-[#f4f0f2] pt-6">
-                                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-[#886373]">
-                                    Bài học
-                                </label>
-                                <div className="relative">
-                                    <button
-                                        type="button"
-                                        onClick={(e) => handleOpenDropdown('lesson', e)}
-                                        className="flex w-full items-center justify-between rounded-xl border border-[#f4f0f2] bg-[#fbf9fa] px-4 py-2.5 text-sm outline-none transition-all hover:border-primary/30"
+                            <div className="mt-6 border-t border-[#f4f0f2] pt-6 space-y-4">
+                                <div>
+                                    <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-[#886373]">
+                                        Khóa học
+                                    </label>
+                                    <select
+                                        value={selectedCourseId}
+                                        onChange={(e) => {
+                                            setSelectedCourseId(e.target.value);
+                                            setFormData((prev) => ({ ...prev, lessonID: '' }));
+                                        }}
+                                        className="w-full rounded-xl border border-[#f4f0f2] bg-[#fbf9fa] px-4 py-2.5 text-sm text-[#181114] outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
                                     >
-                                        <span className={formData.lessonID ? 'font-medium text-[#181114]' : 'text-[#886373]/60'}>
-                                            {selectedLessonLabel}
-                                        </span>
-                                        <span
-                                            className={`material-symbols-outlined text-[#886373] transition-transform duration-300 ${isLessonMenuOpen ? 'rotate-180' : ''}`}
-                                        >
-                                            expand_more
-                                        </span>
-                                    </button>
+                                        <option value="">Chọn khóa học</option>
+                                        {availableCourses.map((course) => (
+                                            <option key={course.courseID} value={course.courseID}>
+                                                {course.courseName}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
 
-                                    {isLessonMenuOpen && (
-                                        <>
-                                            <div className="fixed inset-0 z-10" onClick={() => setIsLessonMenuOpen(false)} />
-                                            <div
-                                                className={`absolute left-0 right-0 z-20 rounded-xl border border-[#f4f0f2] bg-white p-1 shadow-2xl animate-in fade-in duration-200 ${
-                                                    dropUp.lesson
-                                                        ? 'bottom-full mb-2 slide-in-from-bottom-2'
-                                                        : 'top-full mt-2 slide-in-from-top-2'
-                                                }`}
+                                <div>
+                                    <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-[#886373]">
+                                        Bài học
+                                    </label>
+                                    <div className="relative">
+                                        <button
+                                            type="button"
+                                            onClick={(e) => handleOpenDropdown('lesson', e)}
+                                            className="flex w-full items-center justify-between rounded-xl border border-[#f4f0f2] bg-[#fbf9fa] px-4 py-2.5 text-sm outline-none transition-all hover:border-primary/30"
+                                        >
+                                            <span className={formData.lessonID ? 'font-medium text-[#181114]' : 'text-[#886373]/60'}>
+                                                {selectedLessonLabel}
+                                            </span>
+                                            <span
+                                                className={`material-symbols-outlined text-[#886373] transition-transform duration-300 ${isLessonMenuOpen ? 'rotate-180' : ''}`}
                                             >
-                                                <div className="custom-scrollbar max-h-72 overflow-y-auto">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                            applyLessonSelection('', '');
-                                                            setIsLessonMenuOpen(false);
-                                                        }}
-                                                        className="w-full rounded-lg px-3 py-2 text-left text-xs text-red-500 transition-colors hover:bg-red-50"
-                                                    >
-                                                        Không chọn bài học
-                                                    </button>
-                                                    <div className="my-1 h-px bg-[#f4f0f2]" />
-                                                    {lessons.map((l) => (
+                                                expand_more
+                                            </span>
+                                        </button>
+
+                                        {isLessonMenuOpen && (
+                                            <>
+                                                <div className="fixed inset-0 z-10" onClick={() => setIsLessonMenuOpen(false)} />
+                                                <div
+                                                    className={`absolute left-0 right-0 z-20 rounded-xl border border-[#f4f0f2] bg-white p-1 shadow-2xl animate-in fade-in duration-200 ${
+                                                        dropUp.lesson
+                                                            ? 'bottom-full mb-2 slide-in-from-bottom-2'
+                                                            : 'top-full mt-2 slide-in-from-top-2'
+                                                    }`}
+                                                >
+                                                    <div className="custom-scrollbar max-h-72 overflow-y-auto">
                                                         <button
-                                                            key={l.lessonID}
                                                             type="button"
                                                             onClick={() => {
-                                                                applyLessonSelection(l.lessonID, l.levelName || '');
+                                                                applyLessonSelection('', '');
                                                                 setIsLessonMenuOpen(false);
                                                             }}
-                                                            className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition-colors ${
-                                                                formData.lessonID === l.lessonID
-                                                                    ? 'bg-primary/10 font-bold text-primary'
-                                                                    : 'hover:bg-primary/5 hover:text-primary'
-                                                            }`}
+                                                            className="w-full rounded-lg px-3 py-2 text-left text-xs text-red-500 transition-colors hover:bg-red-50"
                                                         >
-                                                            {l.title}
-                                                            {formData.lessonID === l.lessonID && (
-                                                                <span className="material-symbols-outlined text-sm">check</span>
-                                                            )}
+                                                            Không chọn bài học
                                                         </button>
-                                                    ))}
+                                                        <div className="my-1 h-px bg-[#f4f0f2]" />
+                                                        {filteredLessons.map((l) => (
+                                                            <button
+                                                                key={l.lessonID}
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    applyLessonSelection(l.lessonID, l.levelName || '');
+                                                                    setSelectedCourseId(l.courseID || '');
+                                                                    setIsLessonMenuOpen(false);
+                                                                }}
+                                                                className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition-colors ${
+                                                                    formData.lessonID === l.lessonID
+                                                                        ? 'bg-primary/10 font-bold text-primary'
+                                                                        : 'hover:bg-primary/5 hover:text-primary'
+                                                                }`}
+                                                            >
+                                                                <div className="min-w-0">
+                                                                    <div className="truncate">{l.title}</div>
+                                                                    <div className="text-[10px] text-[#886373]">{l.courseName}</div>
+                                                                </div>
+                                                                {formData.lessonID === l.lessonID && (
+                                                                    <span className="material-symbols-outlined text-sm">check</span>
+                                                                )}
+                                                            </button>
+                                                        ))}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </>
-                                    )}
+                                            </>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         </div>

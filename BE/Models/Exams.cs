@@ -9,6 +9,10 @@ public class Exams {
 
     [ForeignKey("TemplateID")]
     public virtual ExamTemplate? Template { get; set; }
+    public Guid? CourseID { get; set; }
+    [ForeignKey("CourseID")]
+    public virtual Courses? Course { get; set; }
+
     public Guid? LessonID { get; set; }   // Trỏ đến bài học cụ thể
     [ForeignKey("LessonID")]
     public virtual Lessons? Lesson { get; set; }
@@ -18,6 +22,8 @@ public class Exams {
     
     // Thêm Enum SkillType (dùng lại Enum SkillType bạn đã có)
     public SkillType? TargetSkill { get; set; } 
+    public int OrderIndex { get; set; } = 0;
+    public bool IsCheckpoint { get; set; } = false;
     
     public ExamType Type { get; set; }
     public string Title { get; set; }
@@ -45,4 +51,5 @@ public class Exams {
 
     public virtual ICollection<Exam_Questions> ExamQuestions { get; set; }
     public virtual ICollection<Exam_Results> ExamResults { get; set; } = new List<Exam_Results>();
+    public virtual ICollection<Exam_Result_Details> ExamResultDetails { get; set; } = new List<Exam_Result_Details>();
 }

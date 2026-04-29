@@ -17,5 +17,7 @@ namespace QuizzTiengNhat.Models
 
         [ForeignKey("ExamID")]
         public virtual Exams Exam { get; set; }
+
+        public virtual ICollection<Exam_Result_Details> ResultDetails { get; set; } = new List<Exam_Result_Details>();
     }
 }
