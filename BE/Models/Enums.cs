@@ -70,4 +70,10 @@ namespace QuizzTiengNhat.Models.Enums
         SkillPractice = 2   // Luyện tập chuyên sâu kỹ năng (Theo QuestionType)
     }
 
+    public enum CourseTimelineItemType
+    {
+        Lesson = 0,
+        Exam = 1
+    }
+
 }

@@ -24,7 +24,7 @@ namespace QuizzTiengNhat.DTOs.Learner
         public Guid LessonID { get; set; }
         public string Title { get; set; }
         public int Difficulty { get; set; }
-        public int Priority { get; set; }
+        public int SortOrder { get; set; }
 
         public Guid? TopicID { get; set; }
         public string? TopicName { get; set; }
@@ -63,10 +63,9 @@ namespace QuizzTiengNhat.DTOs.Learner
     public class CourseTimelineItemDTO
     {
         public Guid ItemID { get; set; }
-        public string ItemType { get; set; }
+        public CourseTimelineItemType ItemType { get; set; }
         public string Title { get; set; }
         public int SortOrder { get; set; }
-        public int? Priority { get; set; }
         public bool IsCheckpoint { get; set; }
         public bool IsCompleted { get; set; }
         public bool IsLocked { get; set; }
@@ -84,7 +83,7 @@ namespace QuizzTiengNhat.DTOs.Learner
         public Guid? CourseID { get; set; }
         public string? CourseName { get; set; }
         public Guid? LessonID { get; set; }
-        public int OrderIndex { get; set; }
+        public int SortOrder { get; set; }
         public bool IsCheckpoint { get; set; }
         public bool IsPublished { get; set; }
         public float? BestScore { get; set; }

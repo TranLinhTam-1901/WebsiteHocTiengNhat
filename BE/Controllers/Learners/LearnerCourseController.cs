@@ -80,7 +80,7 @@ namespace QuizzTiengNhat.Controllers.Learners
                         l.LessonID,
                         l.CourseID,
                         l.Title,
-                        l.Priority
+                        l.SortOrder
                     })
                     .ToListAsync();
 
@@ -99,7 +99,7 @@ namespace QuizzTiengNhat.Controllers.Learners
                     var progressPercent = totalLessons == 0 ? 0 : (double)completedLessons / totalLessons * 100d;
 
                     var continueLesson = courseLessons
-                        .OrderBy(l => l.Priority)
+                        .OrderBy(l => l.SortOrder)
                         .FirstOrDefault(l => !completedSet.Contains(l.LessonID));
 
                     return new CourseListItemDTO
@@ -138,8 +138,8 @@ namespace QuizzTiengNhat.Controllers.Learners
                 // Only return lessons from courses of the same level (keeps UI consistent)
                 var lessons = await _context.Lessons.AsNoTracking()
                     .Where(l => l.CourseID == courseId && l.Course.LevelID == user.LevelID.Value)
-                    .OrderBy(l => l.Priority)
-                    .Select(l => new { l.LessonID, l.Title, l.Difficulty, l.Priority })
+                    .OrderBy(l => l.SortOrder)
+                    .Select(l => new { l.LessonID, l.Title, l.Difficulty, l.SortOrder })
                     .ToListAsync();
 
                 if (!lessons.Any())
@@ -213,7 +213,7 @@ namespace QuizzTiengNhat.Controllers.Learners
 
                 // Recompute with correct logic:
                 bool previousIncomplete = false;
-                var orderedLessons = lessons.OrderBy(l => l.Priority).ToList();
+                var orderedLessons = lessons.OrderBy(l => l.SortOrder).ToList();
                 var result = orderedLessons.Select(l =>
                 {
                     var isCompleted = completedSet.Contains(l.LessonID);
@@ -238,7 +238,7 @@ namespace QuizzTiengNhat.Controllers.Learners
                         LessonID = l.LessonID,
                         Title = l.Title,
                         Difficulty = l.Difficulty,
-                        Priority = l.Priority,
+                        SortOrder = l.SortOrder,
                         TopicID = topicId,
                         TopicName = topicId.HasValue && topicNameLookup.TryGetValue(topicId.Value, out var tn) ? tn : null,
                         IsCompleted = isCompleted,
@@ -286,7 +286,7 @@ namespace QuizzTiengNhat.Controllers.Learners
 
                 var lessons = await _context.Lessons.AsNoTracking()
                     .Where(l => l.CourseID == courseId)
-                    .Select(l => new { l.LessonID, l.Title, l.Priority })
+                    .Select(l => new { l.LessonID, l.Title, l.SortOrder })
                     .ToListAsync();
 
                 var lessonIds = lessons.Select(l => l.LessonID).ToList();
@@ -314,11 +314,12 @@ namespace QuizzTiengNhat.Controllers.Learners
                     {
                         e.ExamID,
                         e.Title,
-                        e.OrderIndex,
+                        e.SortOrder,
                         e.IsCheckpoint,
                         e.TargetSkill,
                         e.LessonID,
-                        e.CourseID
+                        e.CourseID,
+                        e.Type
                     })
                     .ToListAsync();
 
@@ -329,10 +330,9 @@ namespace QuizzTiengNhat.Controllers.Learners
                     timeline.Add(new CourseTimelineItemDTO
                     {
                         ItemID = lesson.LessonID,
-                        ItemType = "Lesson",
+                        ItemType = CourseTimelineItemType.Lesson,
                         Title = lesson.Title,
-                        SortOrder = lesson.Priority,
-                        Priority = lesson.Priority,
+                        SortOrder = lesson.SortOrder,
                         IsCompleted = completedLessonSet.Contains(lesson.LessonID),
                         LessonID = lesson.LessonID,
                         CourseID = course.CourseID,
@@ -345,10 +345,9 @@ namespace QuizzTiengNhat.Controllers.Learners
                     timeline.Add(new CourseTimelineItemDTO
                     {
                         ItemID = exam.ExamID,
-                        ItemType = "Exam",
+                        ItemType = CourseTimelineItemType.Exam,
                         Title = exam.Title,
-                        SortOrder = exam.OrderIndex,
-                        Priority = exam.OrderIndex,
+                        SortOrder = exam.SortOrder,
                         IsCheckpoint = exam.IsCheckpoint,
                         IsCompleted = passedExamSet.Contains(exam.ExamID),
                         SkillType = exam.TargetSkill,

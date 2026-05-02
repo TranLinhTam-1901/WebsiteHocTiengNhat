@@ -160,7 +160,11 @@ const ExamDetailPage: React.FC = () => {
                                 />
                             </div>
                             <button 
-                                onClick={() => navigate(`/admin/exams/edit/${id}`)}
+                                onClick={() => {
+                                    if (details && id) {
+                                        navigate(`/admin/exams/edit/${id}`, { state: { editData: details, isEdit: true } });
+                                    }
+                                }}
                                 className="bg-primary hover:bg-primary-dark text-white px-5 py-2 rounded-full text-sm font-bold flex items-center gap-2 transition-all shadow-lg active:scale-95"
                             >
                                 <span className="material-symbols-outlined text-sm">edit</span> Chỉnh sửa
