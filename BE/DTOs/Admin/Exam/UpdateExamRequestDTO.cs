@@ -14,6 +14,7 @@ public class UpdateExamRequestDTO
     public double MinLanguageKnowledgeScore { get; set; }
     public double MinReadingScore { get; set; }
     public double MinListeningScore { get; set; }
-
     public bool ShowResultImmediately { get; set; }
+    
+    public List<ExamPartConfigDTO> Parts { get; set; }
 }

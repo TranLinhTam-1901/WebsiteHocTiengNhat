@@ -85,11 +85,11 @@ namespace QuizzTiengNhat.Controllers.Learners
                     {
                         e.ExamID,
                         e.Title,
-                        e.OrderIndex,
+                        e.SortOrder,
                         e.IsCheckpoint,
                         e.TargetSkill,
                         e.CourseID,
-                        CourseName = e.Course.CourseName,
+                        CourseName = e.Course == null ? null : e.Course.CourseName,
                         e.LessonID,
                         e.LevelID
                     })
@@ -111,13 +111,13 @@ namespace QuizzTiengNhat.Controllers.Learners
                             CourseID = exam.CourseID,
                             CourseName = exam.CourseName,
                             LessonID = exam.LessonID,
-                            OrderIndex = exam.OrderIndex,
+                            SortOrder = exam.SortOrder,
                             IsCheckpoint = exam.IsCheckpoint,
                             IsPublished = true,
                             BestScore = examBestScores.TryGetValue(exam.ExamID, out var score) ? score : null,
                             LevelID = exam.LevelID
                         })
-                        .OrderBy(item => item.OrderIndex)
+                        .OrderBy(item => item.SortOrder)
                         .ToList()
                     })
                     .OrderBy(g => g.SkillType)

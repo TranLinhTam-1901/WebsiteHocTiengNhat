@@ -7,7 +7,7 @@ interface Props {
     onChange: (data: GenerateExamRequest) => void;
     levels: any[];
     levelStats: any; 
-    onLevelChange: (levelId: string) => Promise<void>;
+    onLevelChange: (levelId: string) => void;
 }
 
 const SkillPractice: React.FC<Props> = ({ data, onChange, levels, levelStats, onLevelChange }) => {

@@ -33,5 +33,7 @@ namespace QuizzTiengNhat.Models
         // (Ví dụ: Câu đọc hiểu có thể 5 điểm, câu từ vựng 1 điểm)
         [Column(TypeName = "decimal(18,2)")]
         public decimal Score { get; set; } 
+
+        public int Version { get; set; } = 1; 
     }
 }

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using QuizzTiengNhat.Models;
@@ -11,9 +12,11 @@ using QuizzTiengNhat.Models;
 namespace QuizzTiengNhat.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260430084312_Updatedb1")]
+    partial class Updatedb1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -129,7 +132,7 @@ namespace QuizzTiengNhat.Migrations
 
                     b.Property<int>("SortOrder")
                         .HasColumnType("integer")
-                        .HasColumnName("Priority");
+                        .HasColumnName("OrderIndex");
 
                     b.Property<int?>("TargetSkill")
                         .HasColumnType("integer");
@@ -149,9 +152,6 @@ namespace QuizzTiengNhat.Migrations
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("Version")
-                        .HasColumnType("integer");
 
                     b.HasKey("ExamID");
 
@@ -521,9 +521,6 @@ namespace QuizzTiengNhat.Migrations
 
                     b.Property<decimal>("Score")
                         .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("Version")
-                        .HasColumnType("integer");
 
                     b.HasKey("ExamQuestionID");
 

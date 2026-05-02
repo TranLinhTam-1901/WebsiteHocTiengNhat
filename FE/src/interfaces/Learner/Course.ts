@@ -1,3 +1,5 @@
+import { SkillType } from '../Admin/QuestionBank';
+
 /** Khớp JSON PascalCase từ LearnerCourseController */
 
 export interface LearnCountsDTO {
@@ -24,12 +26,32 @@ export interface LessonListItemDTO {
   lessonID: string;
   title: string;
   difficulty: number;
-  priority: number;
+  sortOrder: number;
   topicID?: string | null;
   topicName?: string | null;
   isCompleted: boolean;
   isLocked: boolean;
   counts: LearnCountsDTO;
+}
+
+export enum CourseTimelineItemType {
+  Lesson = 0,
+  Exam = 1,
+}
+
+export interface CourseTimelineItemDTO {
+  itemID: string;
+  itemType: CourseTimelineItemType;
+  title: string;
+  sortOrder: number;
+  isCheckpoint?: boolean;
+  isCompleted: boolean;
+  isLocked: boolean;
+  skillType?: SkillType | null;
+  examID?: string | null;
+  lessonID?: string | null;
+  courseID: string;
+  courseName: string;
 }
 
 export interface ExampleDTO {

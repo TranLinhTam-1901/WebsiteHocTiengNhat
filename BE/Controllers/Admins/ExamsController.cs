@@ -97,6 +97,40 @@ public class ExamsController : ControllerBase
         {
             try
             {
+
+                var lesson = await _context.Lessons
+                .AsNoTracking()
+                .FirstOrDefaultAsync(l => l.LessonID == request.LessonID);
+
+                if (lesson == null && request.Type == ExamType.LessonPractice)
+                    return BadRequest("Không tìm thấy bài học tương ứng.");
+
+                //kiểm tra xem tiêu đề EXAMTYPE = SKILLPRACTICE đã tồn tại chưa để tránh trùng lặp  
+                var isTitleExisted = await _context.Exams
+                .AnyAsync(e => e.Title.ToLower() == request.Title.ToLower());
+            
+                if (isTitleExisted)
+                {
+                    return BadRequest(new { 
+                        success = false, 
+                        message = $"Tiêu đề đề thi '{request.Title}' đã tồn tại. Vui lòng chọn tên khác." 
+                    });
+                }
+
+                // Kiểm tra nếu là bài luyện tập theo bài học thì không được phép tạo thêm nếu đã tồn tại
+                if (request.Type == ExamType.LessonPractice && request.LessonID.HasValue)
+                {
+                    var isExisted = await _context.Exams
+                        .AnyAsync(e => e.LessonID == request.LessonID && e.Type == ExamType.LessonPractice);
+
+                    if (isExisted)
+                    {
+                        return BadRequest(new { 
+                            success = false, 
+                            message = "Bài học này đã có bài luyện tập. Không thể tạo thêm đề mới." 
+                        });
+                    }
+                }
                 // Bước 1: Tạo bản ghi Exams
                 var exam = new Exams
                 {
@@ -112,7 +146,11 @@ public class ExamsController : ControllerBase
                     MinReadingScore = request.MinReadingScore,
                     MinListeningScore = request.MinListeningScore,
                     CreatedAt = DateTime.UtcNow,
-                    IsPublished = true
+                    IsPublished = true,
+                    CourseID = lesson?.CourseID,
+                    SortOrder = lesson?.SortOrder ?? 0,
+                    Version = 1
+                   
                 };
 
                 _context.Exams.Add(exam);
@@ -152,7 +190,8 @@ public class ExamsController : ControllerBase
                             OrderIndex = currentOrder++,
                             ReadingID = q.ReadingID,
                             ListeningID = q.ListeningID,
-                            Score = part.PointPerQuestion 
+                            Score = part.PointPerQuestion ,
+                            Version = 1
                         };
                         _context.Exam_Questions.Add(examQuestion);
                     }
@@ -161,7 +200,9 @@ public class ExamsController : ControllerBase
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
-                return Ok(new { success = true, examId = exam.ExamID });
+                return Ok(new { success = true,
+                                message = "Tạo đề thi thành công",
+                                data = exam });
             }
             catch (Exception ex)
             {
@@ -194,25 +235,102 @@ public class ExamsController : ControllerBase
         }
     }
 
-    
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateExamInfo(Guid id, [FromBody] UpdateExamRequestDTO request)
     {
-        var exam = await _context.Exams.FindAsync(id);
-        if (exam == null) return NotFound("Không tìm thấy đề thi.");
+        using (var transaction = await _context.Database.BeginTransactionAsync())
+        {
+            try
+            {
+                var exam = await _context.Exams.FirstOrDefaultAsync(e => e.ExamID == id);
+                if (exam == null) return NotFound("Không tìm thấy đề thi.");
+            
+            // Chỉ kiểm tra nếu Title gửi lên khác với Title hiện tại của Exam
+            if (!string.Equals(exam.Title, request.Title, StringComparison.OrdinalIgnoreCase))
+            {
+                var isTitleExisted = await _context.Exams
+                    .AnyAsync(e => e.Title.ToLower() == request.Title.ToLower() && e.ExamID != id);
 
-        // Cập nhật các trường cơ bản
-        exam.Title = request.Title;
-        exam.Duration = request.Duration;
-        exam.PassingScore = request.PassingScore;
-        exam.MinLanguageKnowledgeScore = request.MinLanguageKnowledgeScore;
-        exam.MinReadingScore = request.MinReadingScore;
-        exam.MinListeningScore = request.MinListeningScore;
-        exam.ShowResultImmediately = request.ShowResultImmediately;
-        
-        await _context.SaveChangesAsync();
-        return Ok(new { success = true, message = "Cập nhật thông tin đề thi thành công." });
+                if (isTitleExisted)
+                {
+                    return BadRequest(new { 
+                        success = false, 
+                        message = "Tiêu đề này đã được sử dụng bởi một đề thi khác." 
+                    });
+                }
+            }
+                // 1. Cập nhật các trường cơ bản
+                exam.Title = request.Title;
+                exam.Duration = request.Duration;
+                exam.PassingScore = request.PassingScore;
+                exam.MinLanguageKnowledgeScore = request.MinLanguageKnowledgeScore;
+                exam.MinReadingScore = request.MinReadingScore;
+                exam.MinListeningScore = request.MinListeningScore;
+                exam.ShowResultImmediately = request.ShowResultImmediately;
+                exam.UpdatedAt = DateTime.UtcNow;
 
+                // 2. KIỂM TRA NẾU ADMIN THAY ĐỔI CẤU TRÚC (PARTS)
+                if (request.Parts != null && request.Parts.Any())
+                {
+                    // TĂNG VERSION - Đánh dấu đây là bộ câu hỏi mới
+                    exam.Version += 1;
+                    int newVersion = exam.Version;
+
+                    // 3. BỐC CÂU HỎI MỚI CHO VERSION MỚI
+                    int currentOrder = 1;
+                    foreach (var part in request.Parts)
+                    {
+                        if (part.Quantity <= 0) continue;
+
+                        var query = _context.Questions.AsQueryable();
+                        
+                        // Lọc câu hỏi 
+                        query = query.Where(q => q.SkillType == part.SkillType);
+                        if (exam.Type == ExamType.LessonPractice)
+                            query = query.Where(q => q.LessonID == exam.LessonID);
+                        else
+                            query = query.Where(q => q.Lesson.Course.LevelID == exam.LevelID);
+
+                        var selectedQuestions = await query
+                            .OrderBy(q => Guid.NewGuid())
+                            .Take(part.Quantity)
+                            .ToListAsync();
+
+                        if (selectedQuestions.Count < part.Quantity)
+                            throw new Exception($"Không đủ câu hỏi cho phần {part.SkillType} ở Version mới.");
+
+                        foreach (var q in selectedQuestions)
+                        {
+                            _context.Exam_Questions.Add(new Exam_Questions
+                            {
+                                ExamQuestionID = Guid.NewGuid(),
+                                ExamID = id,
+                                QuestionID = q.QuestionID,
+                                Version = newVersion, 
+                                OrderIndex = currentOrder++,
+                                Score = part.PointPerQuestion,
+                                ReadingID = q.ReadingID,
+                                ListeningID = q.ListeningID
+                            });
+                        }
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                return Ok(new { 
+                    success = true, 
+                    message = "Cập nhật thành công.", 
+                    currentVersion = exam.Version 
+                });
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
     }
 
     [HttpPost("summary")]
@@ -329,7 +447,7 @@ public class ExamsController : ControllerBase
             l.LessonID,
             l.Title,
             RawItemCount = l.Questions.Sum(q => q.Count) + l.ReadingCount + l.ListeningCount,
-            SkillStats = stats // Hệ thống sẽ tự Sort lại nếu bạn dùng .OrderBy ở đây
+            SkillStats = stats 
         };
     });
 
@@ -379,7 +497,7 @@ public class ExamsController : ControllerBase
                 query = query.Where(e => e.Type == type);
             }
 
-            // 3. Thực thi Query và ánh xạ sang DTO
+            
             var result = await query
                 .OrderByDescending(e => e.CreatedAt)
                 .Select(e => new ExamListResponseDTO
@@ -389,16 +507,24 @@ public class ExamsController : ControllerBase
                     LevelName = e.Level != null ? e.Level.LevelName : "N/A",
                     Type = e.Type, 
                     LessonTitle = e.Lesson != null ? e.Lesson.Title : null,
-                    TotalQuestions = e.ExamQuestions.Count(),
-                    TotalScore = (double)e.ExamQuestions.Sum(q => q.Score),
+                    
+                   
+                    TotalQuestions = e.ExamQuestions
+                        .Where(q => q.Version == e.Version)
+                        .Count(),
+
+                    
+                    TotalScore = (double)e.ExamQuestions
+                        .Where(q => q.Version == e.Version)
+                        .Sum(q => q.Score),
+
                     Duration = e.Duration,
                     CreatedAt = e.CreatedAt,
                     IsPublished = e.IsPublished
                 })
                 .ToListAsync();
-
-            // 4. Trả về kết quả HTTP 200 kèm dữ liệu
-            return Ok(result);
+               
+                return Ok(result);
         }
 
         [HttpGet("{id}/details")]
@@ -406,27 +532,52 @@ public class ExamsController : ControllerBase
         {
             var exam = await _context.Exams
                 .Include(e => e.Level)
+                .Include(e => e.Course)
                 .Include(e => e.ExamQuestions)
                     .ThenInclude(eq => eq.Question)
                 .FirstOrDefaultAsync(e => e.ExamID == id);
 
             if (exam == null) return NotFound("Không tìm thấy đề thi.");
 
+            var currentVersionQuestions = exam.ExamQuestions
+                .Where(eq => eq.Version == exam.Version) 
+                .ToList();
+
+            var questionGroups = currentVersionQuestions
+                .Select(eq => new { eq.Question.SkillType, eq.Score })
+                .ToList()
+                .GroupBy(x => new { x.SkillType, x.Score })
+                .Select(g => new ExamPartConfigDTO
+                {
+                    SkillType = g.Key.SkillType,
+                    Quantity = g.Count(),
+                    PointPerQuestion = g.Key.Score
+                })
+                .ToList();
+
             var details = new
             {
                 exam.ExamID,
+                exam.CourseID,
+                CourseName = exam.Course?.CourseName,
                 exam.Title,
                 exam.PassingScore,
                 exam.Duration,
+                ExamType = exam.Type,
+                exam.LevelID,
+                exam.LessonID,
+                LevelName = exam.Level != null ? exam.Level.LevelName : null,
+                LessonTitle = exam.Lesson != null ? exam.Lesson.Title : null,
                 exam.ShowResultImmediately,
-                // Các mốc điểm liệt thực tế từ Database
+                exam.Version,
                 MinScores = new {
                     Language = exam.MinLanguageKnowledgeScore,
                     Reading = exam.MinReadingScore,
                     Listening = exam.MinListeningScore
                 },
-                // Danh sách câu hỏi để hiển thị ở sidebar "Inspection"
-                Questions = exam.ExamQuestions
+                Parts = questionGroups,
+                // Danh sách câu hỏi 
+                Questions = currentVersionQuestions
                     .OrderBy(eq => eq.OrderIndex)
                     .Select(eq => new {
                         eq.QuestionID,

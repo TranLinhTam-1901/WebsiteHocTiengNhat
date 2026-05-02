@@ -70,12 +70,19 @@ export interface ExamDetailResponse {
     passingScore: number;
     duration?: number;
     examType: ExamType;
+    levelID?: string;
+    lessonID?: string;
+    courseID?: string;
+    courseName?: string;
+    levelName?: string;
+    lessonTitle?: string;
     showResultImmediately: boolean;
     minScores: {
         language: number;
         reading: number;
         listening: number;
     };
+    parts?: ExamPartConfig[];
     questions: {
         questionID: string;
         orderIndex: number;
@@ -83,8 +90,6 @@ export interface ExamDetailResponse {
         skillType: string;
         score: number;
     }[];
-
-    
 }
 
 export interface UpdateExamRequest {
@@ -95,4 +100,5 @@ export interface UpdateExamRequest {
     minReadingScore: number;
     minListeningScore: number;
     showResultImmediately: boolean;
+    parts?: ExamPartConfig[];
 }

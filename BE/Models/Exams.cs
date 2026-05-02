@@ -20,9 +20,11 @@ public class Exams {
     [ForeignKey("LevelID")]
     public virtual JLPT_Level? Level { get; set; }
     
-    // Thêm Enum SkillType (dùng lại Enum SkillType bạn đã có)
-    public SkillType? TargetSkill { get; set; } 
-    public int OrderIndex { get; set; } = 0;
+    public SkillType? TargetSkill { get; set; }
+
+    [Column("Priority")] 
+    public int SortOrder { get; set; } = 0;
+    
     public bool IsCheckpoint { get; set; } = false;
     
     public ExamType Type { get; set; }
@@ -48,6 +50,7 @@ public class Exams {
     
     // Thuộc tính để Admin xác nhận đề đã sẵn sàng cho User làm chưa
     public bool IsPublished { get; set; }
+    public int Version { get; set; } = 1; // Phiên bản đề thi, tăng khi có chỉnh sửa quan trọng
 
     public virtual ICollection<Exam_Questions> ExamQuestions { get; set; }
     public virtual ICollection<Exam_Results> ExamResults { get; set; } = new List<Exam_Results>();
