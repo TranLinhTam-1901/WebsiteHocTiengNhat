@@ -12,8 +12,8 @@ using QuizzTiengNhat.Models;
 namespace QuizzTiengNhat.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260409165141_Initial")]
-    partial class Initial
+    [Migration("20260505234111_AddAvatarUrlToUser")]
+    partial class AddAvatarUrlToUser
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -317,6 +317,9 @@ namespace QuizzTiengNhat.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("integer");
 
+                    b.Property<string>("AvatarUrl")
+                        .HasColumnType("text");
+
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("text");
@@ -588,29 +591,11 @@ namespace QuizzTiengNhat.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<int>("ActiveStudyCursor")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("ActiveStudyMode")
-                        .HasColumnType("text");
-
-                    b.Property<string>("ActiveStudyQueueJson")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("ActiveStudyUpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("DeckSyncKey")
-                        .HasColumnType("text");
-
                     b.Property<string>("Description")
                         .HasColumnType("text");
-
-                    b.Property<bool>("IsUserCustomDeck")
-                        .HasColumnType("boolean");
 
                     b.Property<Guid?>("LevelID")
                         .HasColumnType("uuid");
@@ -631,10 +616,6 @@ namespace QuizzTiengNhat.Migrations
                     b.HasIndex("LevelID");
 
                     b.HasIndex("UserID");
-
-                    b.HasIndex("UserID", "DeckSyncKey")
-                        .IsUnique()
-                        .HasFilter("\"DeckSyncKey\" IS NOT NULL");
 
                     b.ToTable("FlashcardDecks");
                 });
@@ -663,14 +644,8 @@ namespace QuizzTiengNhat.Migrations
                     b.Property<int>("ItemType")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("LastReviewQuality")
-                        .HasColumnType("integer");
-
                     b.Property<DateTime>("LastReviewed")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("LastTimeTakenSeconds")
-                        .HasColumnType("integer");
 
                     b.Property<DateTime>("NextReview")
                         .HasColumnType("timestamp with time zone");

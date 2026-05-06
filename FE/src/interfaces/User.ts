@@ -10,6 +10,7 @@ export interface User {
   progressPercent?: number;
   completedLessons?: number;
   totalLessons?: number;
+  avatarUrl?: string;
 }
 
 export interface UpdateRoleRequest {

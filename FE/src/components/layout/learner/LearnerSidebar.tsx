@@ -114,6 +114,12 @@ useEffect(() => {
             label="Tổng quan" 
             active={location.pathname === '/learner/dashboard'} 
           />
+          <NavItem 
+            to="/learner/profile" 
+            icon="person" 
+            label="Hồ sơ" 
+            active={location.pathname === '/learner/profile'} 
+          />
 
           <NavItem
             to="/learner/courses"
