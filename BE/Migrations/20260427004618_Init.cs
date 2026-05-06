@@ -7,7 +7,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace QuizzTiengNhat.Migrations
 {
     /// <inheritdoc />
+<<<<<<<< HEAD:BE/Migrations/20260409165141_Initial.cs
     public partial class Initial : Migration
+========
+    public partial class Init : Migration
+>>>>>>>> c995081 (cap nhat giao dien profile):BE/Migrations/20260427004618_Init.cs
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

@@ -14,6 +14,7 @@ import PracticeResultPage from '../pages/learner/Skills/PracticeResultPage';
 import SkillFilterPage from '../pages/learner/Skills/SkillFilterPage';
 import SkillHubPage from '../pages/learner/Skills/SkillHubPage';
 import SkillPracticeView from '../pages/learner/Skills/SkillPracticeView';
+import LearnerProfile from '../pages/learner/Profile/LearnerProfile';
 // Flashcards
 import DeckListPage from '../pages/learner/Flashcards/DeckListPage';
 import FlashcardReviewPage from '../pages/learner/Flashcards/FlashcardReviewPage';
@@ -61,6 +62,7 @@ export const learnerRoutes: RouteObject = {
     { path: 'courses', element: <CourseListPage /> },
     { path: 'courses/:courseId', element: <CourseDetailPage /> },
     { path: 'lessons/:lessonId/learn', element: <LessonLearnPage /> },
+    { path: 'profile', element: <LearnerProfile /> },
     { path: 'leaderboard', element: <Leaderboard /> },
     { path: 'analytics/statistics', element: <LearningStatistics /> },
     { path: 'analytics/weakness', element: <WeaknessAnalysis /> },
