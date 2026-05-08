@@ -1,10 +1,17 @@
 import axiosInstance from '../../utils/axiosInstance';
 import { ExamType } from '../../interfaces/Admin/QuestionBank';
-import { LearnerExamListItem, LearnerExamFilters } from '../../interfaces/Learner/Exam';
+import {
+  LearnerExamListItem,
+  LearnerExamFilters,
+  ExamDisplayDTO,
+  SubmitExamRequestDTO,
+  SubmitExamResultDTO,
+} from '../../interfaces/Learner/Exam';
 
-const API_URL = '/api/learner/exams';
+const API_URL = 'learner/exams';
 
 export const LearnerExamService = {
+
   async getExams(filters: LearnerExamFilters = {}): Promise<LearnerExamListItem[]> {
     const response = await axiosInstance.get(API_URL, {
       params: {
@@ -16,8 +23,24 @@ export const LearnerExamService = {
     return response.data;
   },
 
-  async getExamDetails(id: string): Promise<LearnerExamListItem> {
-    const response = await axiosInstance.get(`${API_URL}/${id}`);
+    async getExamDetails(id: string): Promise<LearnerExamListItem> {
+      const response = await axiosInstance.get(`${API_URL}/${id}`);
+      return response.data;
+    },
+
+  async getExamQuestions(id: string): Promise<ExamDisplayDTO> {
+    const response = await axiosInstance.get(`${API_URL}/${id}/questions`);
     return response.data;
   },
+
+  async submitExam(id: string, data: SubmitExamRequestDTO): Promise<SubmitExamResultDTO> {
+    const response = await axiosInstance.post(`${API_URL}/${id}/submit`, data);
+    return response.data;
+  },
+
+  async getExamResult(resultId: string): Promise<SubmitExamResultDTO> {
+    const response = await axiosInstance.get(`${API_URL}/results/${resultId}`);
+    return response.data;
+  }
+  
 };

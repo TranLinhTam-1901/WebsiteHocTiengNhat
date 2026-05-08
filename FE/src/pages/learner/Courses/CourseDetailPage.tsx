@@ -9,6 +9,7 @@ import { SkillType } from '../../../interfaces/Admin/QuestionBank';
 
 const CourseDetailPage: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>();
+  const [courseName, setCourseName] = useState<string>('');
   const navigate = useNavigate();
   const location = useLocation();
   const [timeline, setTimeline] = useState<CourseTimelineItemDTO[]>([]);
@@ -16,26 +17,36 @@ const CourseDetailPage: React.FC = () => {
 
   useEffect(() => {
     if (!courseId) return;
-    let alive = true;
+    let alive = true; // Bắt đầu "sự sống" của hiệu ứng này
+
     (async () => {
       setLoading(true);
       try {
-        const list = await LearnerCourseService.getCourseTimeline(courseId);
-        if (alive) setTimeline(list);
+        // Giả sử API trả về: { courseName: string, items: CourseTimelineItemDTO[] }
+        const data = await LearnerCourseService.getCourseTimeline(courseId);
+        
+        // CHỈ cập nhật nếu Component vẫn còn "sống"
+       if (alive) {
+        setTimeline(data);
+        
+        // Lấy courseName từ phần tử đầu tiên nếu mảng có dữ liệu
+        if (data.length > 0) {
+          setCourseName(data[0].courseName);
+        }
+      }
       } catch (e: unknown) {
-        const msg =
-          (e as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-          'Không tải được danh sách bài học và kiểm tra.';
+        const msg = (e as any)?.response?.data?.message || 'Lỗi tải dữ liệu';
         toast.error(msg);
         if (alive) setTimeline([]);
       } finally {
         if (alive) setLoading(false);
       }
     })();
-    return () => {
-      alive = false;
-    };
-  }, [courseId, location.key]);
+
+  return () => {
+    alive = false; 
+  };
+}, [courseId, location.key]);
 
   if (loading) {
     return (
@@ -59,7 +70,7 @@ const CourseDetailPage: React.FC = () => {
           >
             <span className="material-symbols-outlined">arrow_back</span>
           </button>
-          <h2 className="text-xl font-bold text-[#181114] uppercase tracking-tight">Bài trong khóa</h2>
+          <h2 className="text-xl font-bold text-[#181114] uppercase tracking-tight">{courseName || 'Đang tải...'}</h2>
         </div>
       </LearnerHeader>
 
@@ -74,7 +85,7 @@ const CourseDetailPage: React.FC = () => {
                 ? 'Bài học'
                 : item.isCheckpoint
                 ? 'Checkpoint'
-                : 'Bài kiểm tra';
+                : 'Bài luyện tập';
               const examSkillLabel = item.skillType != null ? SkillType[item.skillType] : 'Luyện tập';
 
               return (
@@ -90,6 +101,11 @@ const CourseDetailPage: React.FC = () => {
                         <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-lg bg-primary/10 text-primary">
                           {badgeLabel}
                         </span>
+                        {item.hasNewVersion && (
+                          <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-lg bg-amber-100 text-amber-700 border border-amber-200 animate-pulse">
+                            Có bản mới
+                          </span>
+                        )}
                         {item.isCompleted && (
                           <span className="text-[10px] font-black uppercase text-emerald-600">Đã xong</span>
                         )}
@@ -101,10 +117,10 @@ const CourseDetailPage: React.FC = () => {
                         )}
                       </div>
                       <h3 className="text-lg font-black text-[#181114]">{item.title}</h3>
-                      <p className="text-xs text-[#886373] mt-1">
+                      {/* <p className="text-xs text-[#886373] mt-1">
                         Thứ tự {item.sortOrder}
                         {!isLesson && item.skillType != null ? ` · ${examSkillLabel}` : ''}
-                      </p>
+                      </p> */}
                     </div>
                     {!item.isLocked && (
                       isLesson ? (
@@ -116,19 +132,34 @@ const CourseDetailPage: React.FC = () => {
                           Học
                         </Link>
                       ) : (
-                        <button
-                          type="button"
-                          onClick={() => navigate('/learner/quiz/exam', { state: { examId: item.examID } })}
-                          className="shrink-0 px-4 py-2 rounded-xl bg-primary text-white text-sm font-bold"
-                        >
-                          Làm bài
-                        </button>
+                        <div className="flex flex-col sm:flex-row gap-2 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => navigate(`/learner/quiz/exam/${item.examID}`, { state: { courseId } })}
+                           className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+                            item.hasNewVersion 
+                              ? 'bg-amber-500 text-white shadow-md hover:bg-amber-600 ring-2 ring-amber-200' // Làm nổi bật nút nếu có bản mới
+                              : 'bg-primary text-white'
+                          }`}
+                          >
+                          {item.hasNewVersion ? 'Làm bản mới' : 'Làm bài'}
+                          </button>
+                          {item.isCompleted && item.latestResultID && (
+                            <button
+                              type="button"
+                              onClick={() => navigate(`/learner/quiz/result/${item.latestResultID}`, { state: { courseId } })}
+                              className="px-4 py-2 rounded-xl border border-[#f4f0f2] bg-white text-[#181114] text-sm font-bold hover:border-primary/30"
+                            >
+                              Xem kết quả cũ
+                            </button>
+                          )}
+                        </div>
                       )
                     )}
                   </div>
-                  {!isLesson && item.lessonID && (
+                  {/* {!isLesson && item.lessonID && (
                     <p className="text-xs text-[#886373]">Theo bài học: {item.lessonID}</p>
-                  )}
+                  )} */}
                 </div>
               );
             })

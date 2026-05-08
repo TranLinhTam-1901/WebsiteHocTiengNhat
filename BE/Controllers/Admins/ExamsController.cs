@@ -131,14 +131,28 @@ public class ExamsController : ControllerBase
                         });
                     }
                 }
+
+                SkillType? targetSkill = null; 
+
+                if (request.Type == ExamType.SkillPractice && request.Parts != null && request.Parts.Any())
+                {
+                    targetSkill = (SkillType)request.Parts.First().SkillType;
+                }
+
                 // Bước 1: Tạo bản ghi Exams
                 var exam = new Exams
                 {
                     ExamID = Guid.NewGuid(),
+                    TemplateID = request.TemplateID,
                     Title = request.Title,
                     Duration = request.Duration,
                     LevelID = request.LevelID,
+
+                    //ExamType
                     Type = request.Type, 
+                    //SkillType
+                    TargetSkill = targetSkill,
+
                     LessonID = request.LessonID,
                     ShowResultImmediately = request.ShowResultImmediately,
                     PassingScore = request.PassingScore,
@@ -157,6 +171,7 @@ public class ExamsController : ControllerBase
 
                 int currentOrder = 1;
 
+                Guid? detectedCourseId = null;
                 // Bước 2: Duyệt qua từng phần cấu hình để bốc câu hỏi
                 foreach (var part in request.Parts)
                 {
@@ -172,9 +187,16 @@ public class ExamsController : ControllerBase
 
                     // Logic Random: NEWID() trong SQL
                     var selectedQuestions = await query
+                        .Include(q => q.Lesson) // Thêm Include để lấy thông tin Lesson để gán cho TH ExamType = 2
                         .OrderBy(q => Guid.NewGuid()) 
                         .Take(part.Quantity)
                         .ToListAsync();
+
+
+                    if (detectedCourseId == null && selectedQuestions.Any())
+                        {
+                            detectedCourseId = selectedQuestions.First().Lesson.CourseID;
+                        }
 
                     if (selectedQuestions.Count < part.Quantity)
                         throw new Exception($"Không đủ câu hỏi cho phần {part.SkillType}. Cần {part.Quantity}, có {selectedQuestions.Count}");
@@ -196,7 +218,8 @@ public class ExamsController : ControllerBase
                         _context.Exam_Questions.Add(examQuestion);
                     }
                 }
-
+                    exam.CourseID = exam.CourseID ?? detectedCourseId;
+            
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 

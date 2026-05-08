@@ -25,7 +25,8 @@ const SkillHubPage: React.FC = () => {
   };
 
   const handleGoToPractice = () => {
-    navigate(`/learner/skill-learning/${skillType || 'vocabulary'}/select`);
+    const type = skillType || 'vocabulary'; 
+    navigate(`/learner/skill-learning/${type}/practice-list`); 
   };
 
   return (
@@ -111,7 +112,13 @@ const SkillHubPage: React.FC = () => {
                   <span className="material-symbols-outlined text-lg">verified</span>
                   Đề thi chính thức
                 </div>
-                <button className={`px-8 py-3 bg-white border-2 border-[#f4f0f2] text-[#266c24] rounded-full font-bold hover:bg-[#266c24] hover:border-transparent hover:text-white transition-all flex items-center gap-2`}>
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation(); // Ngăn chặn sự kiện click của thẻ cha (Card)
+                      handleGoToPractice();
+                    }}
+                    className={`px-8 py-3 bg-white border-2 border-[#f4f0f2] text-[#266c24] rounded-full font-bold hover:bg-[#266c24] hover:border-transparent hover:text-white transition-all flex items-center gap-2`}
+                  >                  
                   Thực hành ngay
                   <span className="material-symbols-outlined">bolt</span>
                 </button>

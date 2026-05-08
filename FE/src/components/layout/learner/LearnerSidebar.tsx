@@ -126,12 +126,12 @@ useEffect(() => {
           />
 
           {/* --- PHẦN 2: LỘ TRÌNH HỌC CHÍNH --- */}
-          <NavItem 
+          {/* <NavItem 
             to="/learner/roadmap" 
             icon="map" 
             label="Lộ trình Minna" 
             active={location.pathname.startsWith('/learner/roadmap') || location.pathname.startsWith('/learner/study/')} 
-          />
+          /> */}
 
           <NavItem 
             to="/learner/studyresource/vocabulary" 

@@ -68,9 +68,11 @@ namespace QuizzTiengNhat.DTOs.Learner
         public int SortOrder { get; set; }
         public bool IsCheckpoint { get; set; }
         public bool IsCompleted { get; set; }
+        public bool HasNewVersion { get; set; }
         public bool IsLocked { get; set; }
         public SkillType? SkillType { get; set; }
         public Guid? ExamID { get; set; }
+        public Guid? LatestResultID { get; set; }
         public Guid? LessonID { get; set; }
         public Guid? CourseID { get; set; }
         public string? CourseName { get; set; }

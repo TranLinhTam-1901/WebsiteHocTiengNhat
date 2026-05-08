@@ -49,9 +49,11 @@ export interface CourseTimelineItemDTO {
   isLocked: boolean;
   skillType?: SkillType | null;
   examID?: string | null;
+  latestResultID?: string | null;
   lessonID?: string | null;
   courseID: string;
   courseName: string;
+  hasNewVersion: boolean;
 }
 
 export interface ExampleDTO {
