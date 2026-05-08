@@ -1,3 +1,5 @@
+import { SkillType } from "../Admin/QuestionBank";
+
 export interface SkillPracticeDTO {
     levelId?: string | null;
     topicIds?: string[];
@@ -11,4 +13,16 @@ export interface SkillPracticeDTO {
     formality: number;
     
     limit: number;
+}
+
+
+export interface SkillPracticeExamDTO {
+  examID: string;
+  title: string;
+  duration: number;
+  targetSkill: SkillType;
+  bestScore: number;
+  isCompleted: boolean;
+  hasNewVersion: boolean;
+  latestResultID?: string;
 }

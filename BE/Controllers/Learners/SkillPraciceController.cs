@@ -169,5 +169,80 @@ namespace QuizzTiengNhat.Controllers.Learners
 
         [HttpGet("metadata/lessons")]
         public async Task<IActionResult> GetLessons() => Ok(await _context.Lessons.Select(l => new { id = l.LessonID, name = l.Title }).ToListAsync());
+
+
+        [HttpGet]
+        public async Task<IActionResult> GetSkillPracticeExams([FromQuery] int? skillType) 
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(userId)) return Unauthorized();
+                
+                //Xác định trình độ của User để trả về bài tập phù hợp
+                var user = await _context.Users.AsNoTracking()
+                    .FirstOrDefaultAsync(u => u.Id == userId);
+                if (user?.LevelID == null) return BadRequest(new { message = "User level not found." });
+
+                var query = _context.Exams.AsNoTracking()
+                .Where(e => e.Type == ExamType.SkillPractice && e.LevelID == user.LevelID);
+
+                //CHỈ LỌC THEO SKILL NẾU CÓ TRUYỀN THAM SỐ
+                if (skillType.HasValue)
+                {
+                    query = query.Where(e => (int)e.TargetSkill == skillType.Value);
+                }
+
+                //Lấy danh sách Exams theo Type = 2 và đúng Skill + Trình độ
+                var exams = await query
+                    .Select(e => new
+                    {
+                        e.ExamID,
+                        e.Title,              
+                        e.Duration,
+                        e.PassingScore,
+                        e.Version,
+                        e.TargetSkill
+                    })
+                    .ToListAsync();
+
+                //Lấy kết quả tốt nhất của User cho các bài thi này
+                var examIds = exams.Select(e => e.ExamID).ToList();
+                var userResults = await _context.Exam_Results.AsNoTracking()
+                    .Where(r => r.UserID == userId && examIds.Contains(r.ExamID))
+                    .ToListAsync();
+
+                // Map dữ liệu trả về
+                var result = exams.Select(e => {
+                    // Lấy kết quả mới nhất để check Version
+                    var latestRes = userResults
+                        .Where(r => r.ExamID == e.ExamID)
+                        .OrderByDescending(r => r.CreatedAt)
+                        .FirstOrDefault();
+
+                    // Lấy điểm cao nhất
+                    var bestScore = userResults
+                        .Where(r => r.ExamID == e.ExamID)
+                        .Max(r => (double?)r.Score) ?? 0;
+
+                    return new {
+                        e.ExamID,
+                        e.Title,
+                        e.Duration,
+                        e.TargetSkill,
+                        BestScore = bestScore,
+                        IsCompleted = userResults.Any(r => r.ExamID == e.ExamID && r.Score >= (double)e.PassingScore),
+                        HasNewVersion = latestRes != null && e.Version > latestRes.ExamVersion,
+                        LatestResultID = latestRes?.ResultID
+                    };
+                }).ToList();
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Internal server error" });
+            }
+        }
     }
 }

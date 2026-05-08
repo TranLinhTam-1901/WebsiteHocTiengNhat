@@ -24,6 +24,8 @@ BEGIN
     -- 2. Reset dữ liệu bao gồm cả các bảng mới bổ sung
     -- Thứ tự bảng trong TRUNCATE không quan trọng khi dùng CASCADE, nhưng liệt kê đủ là cần thiết
     EXECUTE 'TRUNCATE TABLE 
+        "UserAnswerHistories", "Exam_Result_Details", "Exam_Results", "Exam_Questions", "Exams",
+        "ExamTemplateDetails", "ExamTemplates", "User_Skill_Matrices",
         "Answers", "Questions", "Questions_Topics",
         "VocabularyKanjis", "VocabWordTypes", "Vocabularies", 
         "Grammars", "GrammarGroups", "Kanjis", "RadicalVariants", "Radicals", "WordTypes",
@@ -33,6 +35,246 @@ BEGIN
     RESTART IDENTITY CASCADE';
 
     RAISE NOTICE '=== ĐÃ DỌN DẸP SẠCH DỮ LIỆU VÀ RÀNG BUỘC (FK/UNIQUE) ===';
+END $$;
+
+-------------------------------------------------------
+-- 10. BỔ SUNG NGÂN HÀNG CÂU HỎI N5 PHỤC VỤ GENERATE JLPT
+--     (Đảm bảo đủ theo cấu trúc: Vocab 25, Grammar 20, Reading 10, Listening 20)
+-------------------------------------------------------
+DO $$
+DECLARE
+    n5_level_id uuid;
+    base_course_id uuid;
+    base_lesson_id uuid;
+    template_id uuid := 'a5555555-5555-5555-5555-555555555501';
+    need_vocab int := 0;
+    need_grammar int := 0;
+    need_reading int := 0;
+    need_listening int := 0;
+BEGIN
+    INSERT INTO "JLPT_Levels" ("LevelID", "LevelName")
+    SELECT '550e8400-e29b-41d4-a716-446655440000', 'N5'
+    WHERE NOT EXISTS (
+        SELECT 1 FROM "JLPT_Levels" WHERE "LevelName" = 'N5'
+    );
+
+    SELECT "LevelID" INTO n5_level_id
+    FROM "JLPT_Levels"
+    WHERE "LevelName" = 'N5'
+    LIMIT 1;
+
+    IF n5_level_id IS NULL THEN
+        RAISE EXCEPTION 'Không tìm thấy Level N5.';
+    END IF;
+
+    SELECT l."LessonID" INTO base_lesson_id
+    FROM "Lessons" l
+    JOIN "Courses" c ON c."CourseID" = l."CourseID"
+    WHERE c."LevelID" = n5_level_id
+    ORDER BY l."Priority", l."Title"
+    LIMIT 1;
+
+    IF base_lesson_id IS NULL THEN
+        INSERT INTO "Courses" ("CourseID", "CourseName", "Description", "LevelID")
+        SELECT gen_random_uuid(), '[AUTO] N5 Generate Source', 'Course tạm phục vụ seed question N5', n5_level_id
+        WHERE NOT EXISTS (
+            SELECT 1 FROM "Courses" WHERE "CourseName" = '[AUTO] N5 Generate Source'
+        );
+
+        SELECT "CourseID" INTO base_course_id
+        FROM "Courses"
+        WHERE "CourseName" = '[AUTO] N5 Generate Source'
+        LIMIT 1;
+
+        INSERT INTO "Lessons" ("LessonID", "CourseID", "Title", "SkillType", "Difficulty", "Priority", "JLPT_LevelLevelID")
+        SELECT gen_random_uuid(), base_course_id, '[AUTO] N5 Seed Lesson', 0, 1, 1, NULL
+        WHERE NOT EXISTS (
+            SELECT 1 FROM "Lessons"
+            WHERE "CourseID" = base_course_id AND "Title" = '[AUTO] N5 Seed Lesson'
+        );
+
+        SELECT "LessonID" INTO base_lesson_id
+        FROM "Lessons"
+        WHERE "CourseID" = base_course_id AND "Title" = '[AUTO] N5 Seed Lesson'
+        LIMIT 1;
+    END IF;
+
+    -- Tạo template N5 nếu chưa có (để gọi API generate nhất quán với Initialize.cs)
+    INSERT INTO "ExamTemplates" (
+        "TemplateID", "Title", "LevelID", "Duration", "PassingScore",
+        "MinLanguageKnowledgeScore", "MinReadingScore", "MinListeningScore", "TotalMaxScore"
+    )
+    SELECT template_id, 'Cấu trúc JLPT N5 Chuẩn', n5_level_id, 140, 80.00, 38, 0, 19, 180.00
+    WHERE NOT EXISTS (
+        SELECT 1
+        FROM "ExamTemplates"
+        WHERE "LevelID" = n5_level_id AND "Title" = 'Cấu trúc JLPT N5 Chuẩn'
+    );
+
+    IF EXISTS (SELECT 1 FROM "ExamTemplates" WHERE "TemplateID" = template_id) THEN
+        INSERT INTO "ExamTemplateDetails" ("DetailID", "SkillType", "Quantity", "PointPerQuestion", "TemplateID")
+        SELECT gen_random_uuid(), x.skill_type, x.qty, x.ppq, template_id
+        FROM (VALUES
+            (1, 25, 2.0000::decimal),
+            (2, 20, 1.7500::decimal),
+            (4, 10, 3.5000::decimal),
+            (5, 20, 3.0000::decimal)
+        ) x(skill_type, qty, ppq)
+        WHERE NOT EXISTS (
+            SELECT 1
+            FROM "ExamTemplateDetails" etd
+            WHERE etd."TemplateID" = template_id AND etd."SkillType" = x.skill_type
+        );
+    END IF;
+
+    CREATE TEMP TABLE temp_added_questions (
+        "QuestionID" uuid,
+        "SkillType" int
+    ) ON COMMIT DROP;
+
+    SELECT GREATEST(0, 25 - COUNT(*)) INTO need_vocab
+    FROM "Questions" q
+    JOIN "Lessons" l ON l."LessonID" = q."LessonID"
+    JOIN "Courses" c ON c."CourseID" = l."CourseID"
+    WHERE c."LevelID" = n5_level_id AND q."SkillType" = 1;
+
+    SELECT GREATEST(0, 20 - COUNT(*)) INTO need_grammar
+    FROM "Questions" q
+    JOIN "Lessons" l ON l."LessonID" = q."LessonID"
+    JOIN "Courses" c ON c."CourseID" = l."CourseID"
+    WHERE c."LevelID" = n5_level_id AND q."SkillType" = 2;
+
+    SELECT GREATEST(0, 10 - COUNT(*)) INTO need_reading
+    FROM "Questions" q
+    JOIN "Lessons" l ON l."LessonID" = q."LessonID"
+    JOIN "Courses" c ON c."CourseID" = l."CourseID"
+    WHERE c."LevelID" = n5_level_id AND q."SkillType" = 4;
+
+    SELECT GREATEST(0, 20 - COUNT(*)) INTO need_listening
+    FROM "Questions" q
+    JOIN "Lessons" l ON l."LessonID" = q."LessonID"
+    JOIN "Courses" c ON c."CourseID" = l."CourseID"
+    WHERE c."LevelID" = n5_level_id AND q."SkillType" = 5;
+
+    -- Vocabulary
+    WITH ins AS (
+        INSERT INTO "Questions" (
+            "QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status",
+            "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt", "AudioURL"
+        )
+        SELECT
+            gen_random_uuid(),
+            format('[N5-Bonus-Vocab-%s] Chọn nghĩa đúng của từ.', gs),
+            0, 1, 1, 1,
+            base_lesson_id, NULL, NULL, NOW(), NOW(), NULL
+        FROM generate_series(1, need_vocab) gs
+        RETURNING "QuestionID"
+    )
+    INSERT INTO temp_added_questions ("QuestionID", "SkillType")
+    SELECT "QuestionID", 1 FROM ins;
+
+    -- Grammar
+    WITH ins AS (
+        INSERT INTO "Questions" (
+            "QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status",
+            "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt", "AudioURL"
+        )
+        SELECT
+            gen_random_uuid(),
+            format('[N5-Bonus-Grammar-%s] 私___学生です。Chọn trợ từ đúng.', gs),
+            0, 2, 1, 1,
+            base_lesson_id, NULL, NULL, NOW(), NOW(), NULL
+        FROM generate_series(1, need_grammar) gs
+        RETURNING "QuestionID"
+    )
+    INSERT INTO temp_added_questions ("QuestionID", "SkillType")
+    SELECT "QuestionID", 2 FROM ins;
+
+    -- Reading
+    WITH ins AS (
+        INSERT INTO "Questions" (
+            "QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status",
+            "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt", "AudioURL"
+        )
+        SELECT
+            gen_random_uuid(),
+            format('[N5-Bonus-Reading-%s] Đọc câu và chọn đáp án đúng.', gs),
+            0, 4, 1, 1,
+            base_lesson_id, NULL, NULL, NOW(), NOW(), NULL
+        FROM generate_series(1, need_reading) gs
+        RETURNING "QuestionID"
+    )
+    INSERT INTO temp_added_questions ("QuestionID", "SkillType")
+    SELECT "QuestionID", 4 FROM ins;
+
+    -- Listening
+    WITH ins AS (
+        INSERT INTO "Questions" (
+            "QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status",
+            "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt", "AudioURL"
+        )
+        SELECT
+            gen_random_uuid(),
+            format('[N5-Bonus-Listening-%s] Nghe và chọn đáp án đúng.', gs),
+            0, 5, 1, 1,
+            base_lesson_id, NULL, NULL, NOW(), NOW(), ' '
+        FROM generate_series(1, need_listening) gs
+        RETURNING "QuestionID"
+    )
+    INSERT INTO temp_added_questions ("QuestionID", "SkillType")
+    SELECT "QuestionID", 5 FROM ins;
+
+    -- Gắn đáp án cho từng skill
+    INSERT INTO "Answers" ("AnswerID", "QuestionID", "AnswerText", "IsCorrect")
+    SELECT gen_random_uuid(), t."QuestionID", v.answer_text, v.is_correct
+    FROM temp_added_questions t
+    CROSS JOIN LATERAL (
+        VALUES
+            ('Nghĩa đúng', true),
+            ('Nghĩa gần đúng', false),
+            ('Nghĩa đối lập', false),
+            ('Đáp án nhiễu', false)
+    ) v(answer_text, is_correct)
+    WHERE t."SkillType" = 1;
+
+    INSERT INTO "Answers" ("AnswerID", "QuestionID", "AnswerText", "IsCorrect")
+    SELECT gen_random_uuid(), t."QuestionID", v.answer_text, v.is_correct
+    FROM temp_added_questions t
+    CROSS JOIN LATERAL (
+        VALUES
+            ('は', true),
+            ('を', false),
+            ('に', false),
+            ('で', false)
+    ) v(answer_text, is_correct)
+    WHERE t."SkillType" = 2;
+
+    INSERT INTO "Answers" ("AnswerID", "QuestionID", "AnswerText", "IsCorrect")
+    SELECT gen_random_uuid(), t."QuestionID", v.answer_text, v.is_correct
+    FROM temp_added_questions t
+    CROSS JOIN LATERAL (
+        VALUES
+            ('Ý đúng với nội dung', true),
+            ('Ý sai 1', false),
+            ('Ý sai 2', false),
+            ('Ý sai 3', false)
+    ) v(answer_text, is_correct)
+    WHERE t."SkillType" = 4;
+
+    INSERT INTO "Answers" ("AnswerID", "QuestionID", "AnswerText", "IsCorrect")
+    SELECT gen_random_uuid(), t."QuestionID", v.answer_text, v.is_correct
+    FROM temp_added_questions t
+    CROSS JOIN LATERAL (
+        VALUES
+            ('Chào buổi sáng', true),
+            ('Chào buổi tối', false),
+            ('Tạm biệt', false),
+            ('Xin lỗi', false)
+    ) v(answer_text, is_correct)
+    WHERE t."SkillType" = 5;
+
+    RAISE NOTICE 'Bổ sung Question N5 để đủ cấu trúc JLPT: +Vocab %, +Grammar %, +Reading %, +Listening %',
+        need_vocab, need_grammar, need_reading, need_listening;
 END $$;
 
 -------------------------------------------------------

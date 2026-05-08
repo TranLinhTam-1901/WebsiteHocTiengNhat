@@ -4,11 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using QuizzTiengNhat.DTOs.Learner;
 using QuizzTiengNhat.Models;
 using QuizzTiengNhat.Models.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
-using System.Threading.Tasks;
+
 
 namespace QuizzTiengNhat.Controllers.Learners
 {
@@ -298,7 +295,7 @@ namespace QuizzTiengNhat.Controllers.Learners
 
                 var passedResults = await _context.Exam_Results.AsNoTracking()
                     .Where(r => r.UserID == userId && r.Exam.CourseID == courseId)
-                    .Select(r => new { r.ExamID, r.Score, PassingScore = r.Exam.PassingScore })
+                    .Select(r => new { r.ResultID, r.ExamID, r.Score, r.CreatedAt, PassingScore = r.Exam.PassingScore,r.ExamVersion })
                     .ToListAsync();
 
                 var passedExamIds = passedResults
@@ -309,7 +306,7 @@ namespace QuizzTiengNhat.Controllers.Learners
                 var passedExamSet = passedExamIds.ToHashSet();
 
                 var exams = await _context.Exams.AsNoTracking()
-                    .Where(e => e.CourseID == courseId)
+                    .Where(e => e.CourseID == courseId && e.Type == ExamType.LessonPractice)
                     .Select(e => new
                     {
                         e.ExamID,
@@ -319,7 +316,8 @@ namespace QuizzTiengNhat.Controllers.Learners
                         e.TargetSkill,
                         e.LessonID,
                         e.CourseID,
-                        e.Type
+                        e.Type,
+                        e.Version
                     })
                     .ToListAsync();
 
@@ -342,6 +340,11 @@ namespace QuizzTiengNhat.Controllers.Learners
 
                 foreach (var exam in exams)
                 {
+                    var latestRes = passedResults
+                    .Where(r => r.ExamID == exam.ExamID)
+                    .OrderByDescending(r => r.CreatedAt)
+                    .FirstOrDefault();
+
                     timeline.Add(new CourseTimelineItemDTO
                     {
                         ItemID = exam.ExamID,
@@ -350,8 +353,10 @@ namespace QuizzTiengNhat.Controllers.Learners
                         SortOrder = exam.SortOrder,
                         IsCheckpoint = exam.IsCheckpoint,
                         IsCompleted = passedExamSet.Contains(exam.ExamID),
+                        HasNewVersion = latestRes != null && exam.Version > latestRes.ExamVersion,
                         SkillType = exam.TargetSkill,
                         ExamID = exam.ExamID,
+                        LatestResultID = latestRes?.ResultID,
                         LessonID = exam.LessonID,
                         CourseID = exam.CourseID,
                         CourseName = course.CourseName

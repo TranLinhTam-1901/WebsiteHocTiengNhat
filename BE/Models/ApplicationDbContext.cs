@@ -62,6 +62,7 @@ namespace QuizzTiengNhat.Models
         public DbSet<ChatConversation> ChatConversations { get; set; }
         public DbSet<ChatMessage> ChatMessages { get; set; }
         public DbSet<ChatRoundRobinState> ChatRoundRobinStates { get; set; }
+        
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
