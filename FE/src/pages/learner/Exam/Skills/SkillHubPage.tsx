@@ -1,7 +1,7 @@
-import LearnerHeader from '../../../components/layout/learner/LearnerHeader';
+import LearnerHeader from '../../../../components/layout/learner/LearnerHeader';
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { SkillType } from '../../../interfaces/Admin/QuestionBank';
+import { SkillType } from '../../../../interfaces/Admin/QuestionBank';
 
 const SkillHubPage: React.FC = () => {
   const { skillType } = useParams<{ skillType: string }>();

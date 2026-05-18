@@ -6,6 +6,7 @@ import QuestionService from '../../../services/Admin/questionService';
 import {
     CreateQuestionDTO,
     QuestionType,
+    QuestionFormat,
     SourceMaterial,
     AnswerDTO,
     QuestionStatus,
@@ -33,6 +34,7 @@ const QuestionCreatePage: React.FC = () => {
         lessonID: lessonId || '',
         content: '',
         questionType: QuestionType.MultipleChoice,
+        questionFormat: QuestionFormat.StandardChoice,
         difficulty: 1,
         explanation: '',
         status: QuestionStatus.Active,
@@ -137,6 +139,7 @@ const QuestionCreatePage: React.FC = () => {
                         lessonID: data.lessonID || '',
                         content: data.content || '',
                         questionType: data.questionType,
+                        questionFormat: data.questionFormat,
                         difficulty: data.difficulty,
                         explanation: data.explanation || '',
                         equivalentID: data.equivalentID || null,
@@ -182,6 +185,34 @@ const QuestionCreatePage: React.FC = () => {
         fetchTopics();
     }, []);
 
+    const JLPT_SYMBOLS = [
+        { label: '★', value: '★', desc: 'Vị trí cần sắp xếp' },
+        { label: '☆', value: '☆', desc: 'Dấu phụ' },
+
+        { label: '（ ）', value: '（　）', desc: 'Ngoặc Nhật' },
+        { label: '[ ]', value: '[　]', desc: 'Placeholder' },
+        { label: '＿＿', value: '＿＿＿', desc: 'Chỗ trống' },
+
+        { label: '「 」', value: '「」', desc: 'Trích dẫn Nhật' },
+        { label: '『 』', value: '『』', desc: 'Trích dẫn đặc biệt' },
+
+        { label: '・', value: '・', desc: 'Dấu chấm Nhật' },
+        { label: '〜', value: '〜', desc: 'Khoảng / kéo dài' },
+        { label: '→', value: '→', desc: 'Mũi tên' },
+
+        { label: '①', value: '①', desc: 'Đánh số JLPT' },
+        { label: '②', value: '②', desc: 'Đánh số JLPT' },
+        { label: '③', value: '③', desc: 'Đánh số JLPT' },
+        { label: '④', value: '④', desc: 'Đánh số JLPT' }
+    ];
+
+    const insertSymbol = (symbol: string) => {
+        setFormData((prev) => ({
+            ...prev,
+            content: prev.content + symbol
+        }));
+    };
+    
     const handlePickSource = (item: SourceMaterial, type: string) => {
         const getVal = (v: any) => {
             if (!v) return '';
@@ -200,10 +231,12 @@ const QuestionCreatePage: React.FC = () => {
         let autoExplanation = getVal(item.meaning) + displayExample();
         let autoAnswers: AnswerDTO[] = [];
         let autoSkillType = SkillType.Vocabulary;
+        let autoQuestionFormat = QuestionFormat.StandardChoice;
 
         switch (type) {
             case 'Vocabulary':
                 autoSkillType = SkillType.Vocabulary;
+                autoQuestionFormat = QuestionFormat.StandardChoice;
                 autoContent = `Chọn nghĩa đúng của từ: ${getVal(item.word)}`;
                 autoAnswers = [
                     { answerText: getVal(item.meaning) || '', isCorrect: true },
@@ -213,6 +246,7 @@ const QuestionCreatePage: React.FC = () => {
                 break;
             case 'Kanji':
                 autoSkillType = SkillType.Kanji;
+                autoQuestionFormat = QuestionFormat.StandardChoice;
                 autoContent = `Cách đọc Onyomi của chữ Hán "${getVal(item.character)}" là gì?`;
                 autoAnswers = [
                     { answerText: getVal(item.onyomi) || '', isCorrect: true },
@@ -223,6 +257,7 @@ const QuestionCreatePage: React.FC = () => {
 
             case 'Grammar':
                 autoSkillType = SkillType.Grammar;
+                autoQuestionFormat = QuestionFormat.StandardChoice;
                 autoContent = `Hoàn thành cấu trúc ngữ pháp: ${getVal(item.structure) || getVal(item.title) || 'N/A'}`;
                 autoAnswers = [
                     { answerText: getVal(item.meaning) || '', isCorrect: true },
@@ -239,6 +274,7 @@ const QuestionCreatePage: React.FC = () => {
             explanation: autoExplanation,
             sourceID: item.id,
             skillType: autoSkillType,
+            questionFormat: autoQuestionFormat,
             answers: autoAnswers.length > 0 ? autoAnswers : prev.answers,
             topicIds: item.topicID ? [item.topicID] : prev.topicIds
         }));
@@ -518,10 +554,10 @@ const QuestionCreatePage: React.FC = () => {
                                 <div className="flex flex-wrap gap-2.5">
                                     {[
                                         { value: QuestionType.MultipleChoice, label: 'Chọn từ', icon: 'quiz' },
-                                        { value: QuestionType.FillInBlank, label: 'Điền từ', icon: 'text_fields' },
                                         { value: QuestionType.Ordering, label: 'Sắp xếp', icon: 'swap_vert' },
-                                        { value: QuestionType.Synonym, label: 'Đồng nghĩa', icon: 'compare_arrows' },
-                                        { value: QuestionType.Usage, label: 'Cách dùng', icon: 'menu_book' }
+                                        // { value: QuestionType.FillInBlank, label: 'Điền từ', icon: 'text_fields' },
+                                        // { value: QuestionType.Synonym, label: 'Đồng nghĩa', icon: 'compare_arrows' },
+                                        // { value: QuestionType.Usage, label: 'Cách dùng', icon: 'menu_book' }
                                     ].map((type) => (
                                         <button
                                             key={type.value}
@@ -556,6 +592,39 @@ const QuestionCreatePage: React.FC = () => {
                                 </div>
                             </div>
 
+                            <div className="mb-8">
+                                <label className={sectionLabelClass}>Định dạng câu hỏi</label>
+                                <div className="flex flex-wrap gap-2.5">
+                                    {[
+                                       {
+                                            value: QuestionFormat.StandardChoice,
+                                            label: 'Trắc nghiệm thường',
+                                            icon: 'radio_button_checked',
+                                            desc: 'Câu hỏi bình thường'
+                                        },
+                                        {
+                                            value: QuestionFormat.StarSentence,
+                                            label: 'Câu dấu ★',
+                                            icon: 'stars',
+                                            desc: 'JLPT 文の組み立て'
+                                        }
+                                    ].map((format) => (
+                                        <button
+                                            key={format.value}
+                                            type="button"
+                                            onClick={() => setFormData({ ...formData, questionFormat: format.value })}
+                                            title={format.desc}
+                                            className={`${typeChipBase} min-w-[120px] ${
+                                                formData.questionFormat === format.value ? typeChipOn : typeChipOff
+                                            }`}
+                                        >
+                                            <span className="material-symbols-outlined text-[20px]">{format.icon}</span>
+                                            <span className="text-[12px]">{format.label}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
                             <form
                                 onSubmit={(e) => {
                                     e.preventDefault();
@@ -564,6 +633,33 @@ const QuestionCreatePage: React.FC = () => {
                             >
                                 <div className="mb-6">
                                     <label className={fieldLabelClass}>Nội dung câu hỏi</label>
+                                    {/* Toolbar ký tự JLPT */}
+                                    <div className="mb-3">
+                                        <div className="mb-2 flex items-center gap-2">
+                                            <span className="material-symbols-outlined text-[18px] text-primary">
+                                                keyboard
+                                            </span>
+
+                                            <span className="text-xs font-bold uppercase tracking-wider text-[#886373]">
+                                                Ký tự JLPT hỗ trợ
+                                            </span>
+                                        </div>
+
+                                        <div className="flex flex-wrap gap-2">
+                                            {JLPT_SYMBOLS.map((item) => (
+                                                <button
+                                                    key={item.label}
+                                                    type="button"
+                                                    title={item.desc}
+                                                    onClick={() => insertSymbol(item.value)}
+                                                    className="rounded-lg border border-[#f4f0f2] bg-[#fbf9fa] px-3 py-1.5 text-sm font-bold text-[#181114] transition-all hover:border-primary hover:bg-primary/5 hover:text-primary"
+                                                >
+                                                    {item.label}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    
                                     <div className={inputShellClass}>
                                         <textarea
                                             className="min-h-[120px] w-full resize-y border-none bg-transparent p-4 text-base text-[#181114] outline-none placeholder:text-[#886373]/60"

@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { LearnerExamService } from '../../../services/Learner/examService';
 import { ExamDisplayDTO, QuestionDisplayDTO, UserAnswerSelectionDTO } from '../../../interfaces/Learner/Exam';
+import { QuestionType } from '../../../interfaces/Admin/QuestionBank';
+import { toast } from 'react-hot-toast';
 
 const ExamDetailPage = () => {
   const { id, skillType } = useParams<{ id: string; skillType?: string }>();
@@ -15,6 +17,7 @@ const ExamDetailPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const questionStartRef = useRef<Record<string, number>>({});
+
 
   useEffect(() => {
     if (id) {
@@ -79,6 +82,15 @@ const ExamDetailPage = () => {
   const handleSubmit = async () => {
     if (!exam || !id || isSubmitting) return;
 
+    const totalQuestions = exam.questions.length;
+    const isFullyAnswered = answeredCount === totalQuestions;
+    
+    if (!isFullyAnswered) {
+    const remaining = totalQuestions - answeredCount;
+    toast.error(`Bạn còn ${remaining} câu chưa hoàn thành. Vui lòng làm hết bài trước khi nộp!`);
+    return;
+    }
+
     const normalizedAnswers = Object.values(userAnswers)
       .filter((a) => !!a.selectedAnswerID || !!a.textAnswer)
       .map((a) => ({
@@ -86,10 +98,10 @@ const ExamDetailPage = () => {
         responseTime: a.responseTime > 0 ? a.responseTime : getElapsedSeconds(a.questionID),
       }));
 
-    if (normalizedAnswers.length === 0) {
-      alert('Bạn chưa chọn đáp án nào.');
-      return;
-    }
+    if (normalizedAnswers.length < totalQuestions) {
+        toast.error('Hệ thống phát hiện dữ liệu chưa đồng bộ. Vui lòng kiểm tra lại các đáp án.');
+        return;
+    }
 
     const request = {
       examID: id,

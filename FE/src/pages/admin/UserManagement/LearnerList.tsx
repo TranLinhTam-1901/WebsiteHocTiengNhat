@@ -5,7 +5,7 @@ import { RootState, AppDispatch } from '../../../store';
 import { fetchUsers, toggleUserLock, updateUserRole } from '../../../store/admin.slice';
 import { User } from '../../../interfaces/User';
 import  adminService  from '../../../services/Admin/adminService';
-import { ProgressDetailResponse } from '../../../interfaces/Admin/ProgressDetail';
+import { DashboardProgressResponse } from '../../../interfaces/Admin/ProgressDetail';
 
 const ROLE_OPTIONS = [
   { value: 'Learner', label: 'Học viên' },
@@ -38,7 +38,7 @@ const LearnerList: React.FC = () => {
   const [showAdmins, setShowAdmins] = useState(false);
 
   // State quản lý Modal
-  const [selectedProgress, setSelectedProgress] = React.useState<ProgressDetailResponse | null>(null);
+  const [selectedProgress, setSelectedProgress] = React.useState<DashboardProgressResponse | null>(null);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [isFetchingDetail, setIsFetchingDetail] = React.useState(false);
 
@@ -268,7 +268,7 @@ const LearnerList: React.FC = () => {
                         </button>
                         
                         {/* Chú thích nhỏ bên dưới nếu muốn */}
-                        <p className="text-[9px] text-slate-400 mt-1 font-medium italic">Click để tính toán 70/30</p>
+                        {/* <p className="text-[9px] text-slate-400 mt-1 font-medium italic">Click để tính toán 70/30</p> */}
                       </td>
 
                         {/* Cột Mục tiêu (JLPT) */}
@@ -338,75 +338,132 @@ const LearnerList: React.FC = () => {
                   )}
                 </tbody>
               </table>
-              {/* MODAL HIỂN THỊ CHI TIẾT 70/30 */}
-                  {isModalOpen && (
-                    <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-                      <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-300">
-                        <div className="p-6">
-                          <div className="flex justify-between items-center mb-6">
-                            <h3 className="font-black text-xl text-[#181114]">PHÂN TÍCH TIẾN ĐỘ</h3>
-                            <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-red-500 transition-colors">
-                              <span className="material-symbols-outlined">close</span>
-                            </button>
-                          </div>
+            {isModalOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    
+            <div className="bg-white w-full max-w-2xl rounded-2xl p-6 shadow-2xl relative">
 
-                          {isFetchingDetail ? (
-                            <div className="py-20 text-center flex flex-col items-center gap-3">
-                              <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
-                              <p className="text-sm font-bold text-slate-400">AI đang tính toán...</p>
-                            </div>
-                          ) : (
-                            <div className="space-y-6">
-                              {/* Tổng quát */}
-                              <div className="text-center bg-primary/5 p-6 rounded-2xl border border-primary/10">
-                                <div className="text-4xl font-black text-primary mb-1">{selectedProgress?.totalPercent}%</div>
-                                <div className="text-xs font-bold text-[#886373] uppercase tracking-tighter">Hoàn thành lộ trình {selectedProgress?.currentLevelName}</div>
-                              </div>
+              {/* Nút đóng */}
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="absolute top-4 right-4 text-slate-500 hover:text-red-500"
+              >
+                ✕
+              </button>
 
-                              {/* Chi tiết 70/30 */}
-                              <div className="space-y-4">
-                                {/* Course - 70% */}
-                                <div className="p-4 bg-zinc-50 rounded-xl border border-zinc-100">
-                                  <div className="flex justify-between mb-2">
-                                    <span className="text-xs font-bold text-[#181114]">BÀI HỌC (70% Trọng số)</span>
-                                    <span className="text-xs font-bold text-primary">{selectedProgress?.courseProgress.percentage}%</span>
-                                  </div>
-                                  <div className="w-full bg-zinc-200 h-2 rounded-full overflow-hidden">
-                                    <div className="bg-primary h-full" style={{ width: `${selectedProgress?.courseProgress.percentage}%` }}></div>
-                                  </div>
-                                  <p className="text-[10px] text-slate-500 mt-2 italic">
-                                    Đã hoàn thành {selectedProgress?.courseProgress.completed}/{selectedProgress?.courseProgress.total} bài học.
-                                  </p>
-                                </div>
+              <h2 className="text-xl font-bold mb-6">
+                Chi tiết tiến độ học viên
+              </h2>
+             <div className="space-y-4"> 
+                {/* Lesson */}
+                <div className="p-4 bg-zinc-50 rounded-xl border border-zinc-100">
+                  <div className="flex justify-between mb-2">
+                    <span className="text-xs font-bold text-[#181114]">
+                      📚 BÀI HỌC (35%)
+                    </span>
 
-                                {/* Flashcard - 30% */}
-                                <div className="p-4 bg-zinc-50 rounded-xl border border-zinc-100">
-                                  <div className="flex justify-between mb-2">
-                                    <span className="text-xs font-bold text-[#181114]">KỸ NĂNG/FLASHCARD (30% Trọng số)</span>
-                                    <span className="text-xs font-bold text-emerald-500">{selectedProgress?.skillProgress.percentage}%</span>
-                                  </div>
-                                  <div className="w-full bg-zinc-200 h-2 rounded-full overflow-hidden">
-                                    <div className="bg-emerald-500 h-full" style={{ width: `${selectedProgress?.skillProgress.percentage}%` }}></div>
-                                  </div>
-                                  <p className="text-[10px] text-slate-500 mt-2 italic">
-                                    Đã ghi nhớ {selectedProgress?.skillProgress.mastered}/{selectedProgress?.skillProgress.total} từ vựng/kanji.
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                        <div className="p-4 bg-slate-50 text-center border-t border-slate-100">
-                            <button 
-                              onClick={() => setIsModalOpen(false)}
-                              className="w-full py-3 bg-[#181114] text-white rounded-xl font-bold text-sm hover:bg-black transition-colors"
-                            >
-                              XÁC NHẬN
-                            </button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                    <span className="text-xs font-bold text-primary">
+                      {selectedProgress?.courseProgress.percentage}%
+                    </span>
+                  </div>
+
+                  <div className="w-full bg-zinc-200 h-2 rounded-full overflow-hidden">
+                    <div
+                      className="bg-primary h-full"
+                      style={{
+                        width: `${selectedProgress?.courseProgress.percentage}%`
+                      }}
+                    />
+                  </div>
+
+                  <p className="text-[10px] text-slate-500 mt-2 italic">
+                    Hoàn thành {selectedProgress?.courseProgress.completed}/
+                    {selectedProgress?.courseProgress.total} bài học.
+                  </p>
+                </div>
+
+                {/* Exam Pass */}
+                <div className="p-4 bg-zinc-50 rounded-xl border border-zinc-100">
+                  <div className="flex justify-between mb-2">
+                    <span className="text-xs font-bold text-[#181114]">
+                      ✅ Bài thi luyện tập (35%)
+                    </span>
+
+                    <span className="text-xs font-bold text-emerald-600">
+                      {selectedProgress?.examProgress?.passRate}%
+                    </span>
+                  </div>
+
+                  <div className="w-full bg-zinc-200 h-2 rounded-full overflow-hidden">
+                    <div
+                      className="bg-emerald-500 h-full"
+                      style={{
+                        width: `${selectedProgress?.examProgress?.passRate}%`
+                      }}
+                    />
+                  </div>
+
+                  <p className="text-[10px] text-slate-500 mt-2 italic">
+                    Đã vượt qua {selectedProgress?.examProgress?.passedExams}/
+                    {selectedProgress?.examProgress?.totalExams} bài luyện tập.
+                  </p>
+                </div>
+
+                {/* Average Score */}
+                <div className="p-4 bg-zinc-50 rounded-xl border border-zinc-100">
+                  <div className="flex justify-between mb-2">
+                    <span className="text-xs font-bold text-[#181114]">
+                      📊 ĐIỂM TRUNG BÌNH (20%)
+                    </span>
+
+                    <span className="text-xs font-bold text-blue-600">
+                      {selectedProgress?.examProgress?.averageScore}/10
+                    </span>
+                  </div>
+
+                  <div className="w-full bg-zinc-200 h-2 rounded-full overflow-hidden">
+                    <div
+                      className="bg-blue-500 h-full"
+                      style={{
+                       width: `${(selectedProgress?.examProgress?.averageScore || 0) * 10}%`
+                      }}
+                    />
+                  </div>
+
+                  <p className="text-[10px] text-slate-500 mt-2 italic">
+                    Điểm trung bình các bài thi đã làm.
+                  </p>
+                </div>
+
+                {/* Flashcard */}
+                <div className="p-4 bg-zinc-50 rounded-xl border border-zinc-100">
+                  <div className="flex justify-between mb-2">
+                    <span className="text-xs font-bold text-[#181114]">
+                      💎 FLASHCARD (10%)
+                    </span>
+
+                    <span className="text-xs font-bold text-amber-600">
+                      {selectedProgress?.skillProgress.percentage}%
+                    </span>
+                  </div>
+
+                  <div className="w-full bg-zinc-200 h-2 rounded-full overflow-hidden">
+                    <div
+                      className="bg-amber-500 h-full"
+                      style={{
+                        width: `${selectedProgress?.skillProgress.percentage}%`
+                      }}
+                    />
+                  </div>
+
+                  <p className="text-[10px] text-slate-500 mt-2 italic">
+                    Đã ghi nhớ {selectedProgress?.skillProgress.completed}/
+                    {selectedProgress?.skillProgress.total} flashcard.
+                  </p>
+                </div>
+              </div>
+              </div>
+              </div>)}
             </div>
 
             {/* Pagination Footer */}

@@ -14,12 +14,35 @@ const StandardJLPT: React.FC<Props> = ({ data, onChange, levels, onLevelChange }
     const [levelSearch, setLevelSearch] = useState("");
 
     const filteredLevels = levels
-        .filter(lvl => ["N1", "N2", "N3", "N4", "N5"].includes(lvl.levelName.toUpperCase()))
+        .filter(lvl => ["N3", "N4", "N5"].includes(lvl.levelName.toUpperCase()))
         .filter(lvl => lvl.levelName.toLowerCase().includes(levelSearch.toLowerCase()))
         .sort((a, b) => b.levelName.localeCompare(a.levelName));
 
     const selectedLevel = levels.find(l => l.levelID === data.levelID);
 
+    const groupedParts = Object.values(
+        data.parts.reduce((acc, part) => {
+
+            if (!acc[part.skillType]) {
+                acc[part.skillType] = {
+                    skillType: part.skillType,
+                    quantity: 0,
+                    totalScore: 0,
+                    formats: [],
+                    pointPerQuestion: part.pointPerQuestion
+                };
+            }
+            acc[part.skillType].quantity += part.quantity;
+
+            acc[part.skillType].totalScore +=
+                part.quantity * part.pointPerQuestion;
+
+            acc[part.skillType].formats.push(part);
+
+            return acc;
+
+        }, {} as any)
+    );
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
             <section className="bg-white p-8 rounded-2xl border border-[#f4f0f2] shadow-sm space-y-8">
@@ -115,7 +138,7 @@ const StandardJLPT: React.FC<Props> = ({ data, onChange, levels, onLevelChange }
             <section className="bg-white rounded-2xl border border-[#f4f0f2] shadow-sm overflow-hidden animate-in slide-in-from-top-4">
                 <div className="p-6 border-b border-[#f4f0f2] bg-[#fbf9fa] flex justify-between items-center">
                     <h3 className="text-sm font-bold text-[#181114] uppercase tracking-tight">Chi tiết cấu trúc đề thi</h3>
-                    <span className="px-3 py-1 bg-primary/10 text-primary text-[10px] font-bold rounded-full uppercase">Cố định theo Level</span>
+                    {/* <span className="px-3 py-1 bg-primary/10 text-primary text-[10px] font-bold rounded-full uppercase">Cố định theo Level</span> */}
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full">
@@ -123,12 +146,12 @@ const StandardJLPT: React.FC<Props> = ({ data, onChange, levels, onLevelChange }
                             <tr className="text-left text-[10px] text-[#886373] uppercase tracking-[0.15em] bg-[#fbf9fa]/50">
                                 <th className="px-8 py-4 font-bold">Phần thi / Kỹ năng</th>
                                 <th className="px-8 py-4 font-bold text-center">Số lượng câu</th>
-                                <th className="px-8 py-4 font-bold text-center">Điểm / Câu</th>
+                                {/* <th className="px-8 py-4 font-bold text-center">Điểm / Câu</th> */}
                                 <th className="px-8 py-4 font-bold text-right">Tổng điểm phần</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-[#f4f0f2]">
-                            {data.parts.map((part, idx) => {
+                            {groupedParts.map((part: any, idx) => {
                                 const skillLabels: Record<number, string> = {
                                     [SkillType.Vocabulary]: "Từ vựng (Vocabulary)",
                                     [SkillType.Grammar]: "Ngữ pháp (Grammar)",
@@ -149,11 +172,11 @@ const StandardJLPT: React.FC<Props> = ({ data, onChange, levels, onLevelChange }
                                         <td className="px-8 py-5 text-center">
                                             <span className="px-3 py-1 bg-[#fbf9fa] border border-[#f4f0f2] rounded-lg font-bold text-sm">{part.quantity}</span>
                                         </td>
-                                        <td className="px-8 py-5 text-center">
+                                        {/* <td className="px-8 py-5 text-center">
                                             <span className="text-xs font-bold text-[#886373]">~{part.pointPerQuestion}</span>
-                                        </td>
+                                        </td> */}
                                         <td className="px-8 py-5 text-right">
-                                            <span className="font-black text-sm text-[#181114]">{Math.round(part.quantity * part.pointPerQuestion)}</span>
+                                            <span className="font-black text-sm text-[#181114]">{Math.round(part.totalScore)}</span>
                                         </td>
                                     </tr>
                                 );

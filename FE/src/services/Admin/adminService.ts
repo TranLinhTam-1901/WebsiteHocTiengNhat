@@ -1,6 +1,6 @@
 import axiosInstance from "../../utils/axiosInstance";
 import { User, UpdateRoleRequest } from "../../interfaces/User";
-import { ProgressDetailResponse } from '../../interfaces/Admin/ProgressDetail';
+import { DashboardProgressResponse, ProgressDetailResponse } from '../../interfaces/Admin/ProgressDetail';
 
 const adminService = {
   // Lấy danh sách toàn bộ người dùng
@@ -16,7 +16,7 @@ const adminService = {
 
 
   getLearnerProgress: async (learnerId: string) => {
-    const response = await axiosInstance.get<ProgressDetailResponse>(
+    const response = await axiosInstance.get<DashboardProgressResponse>(
       `/admin/management/learner-progress/${learnerId}`
     );
     return response.data;

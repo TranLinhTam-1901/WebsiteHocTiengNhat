@@ -1,8 +1,9 @@
-import { ExamType } from "./QuestionBank";
+import { ExamType, QuestionFormat } from "./QuestionBank";
 import{SkillType} from "./QuestionBank";
 // Cấu hình chi tiết từng phần (Map với ExamPartConfigDTO)
 export interface ExamPartConfig {
     skillType: SkillType;
+    questionFormat? : QuestionFormat;
     quantity: number;
     pointPerQuestion: number;
 }
@@ -63,6 +64,7 @@ export interface ExamListResponse {
     isPublished: boolean;
 }
 
+
 // Interface cho chi tiết 
 export interface ExamDetailResponse {
     examID: string;
@@ -70,6 +72,7 @@ export interface ExamDetailResponse {
     passingScore: number;
     duration?: number;
     examType: ExamType;
+    totalScore: number;
     levelID?: string;
     lessonID?: string;
     courseID?: string;
@@ -83,13 +86,20 @@ export interface ExamDetailResponse {
         listening: number;
     };
     parts?: ExamPartConfig[];
-    questions: {
-        questionID: string;
-        orderIndex: number;
-        content: string;
-        skillType: string;
-        score: number;
-    }[];
+    questions: ExamQuestionDetail[];
+}
+
+export interface ExamQuestionDetail {
+    questionID: string;
+    orderIndex: number;
+    content: string;
+    skillType: string;
+
+    // Reading/Listening cha có thể không có score
+    score?: number;
+    isGroup?: boolean;
+    // Question con
+    subQuestions?: ExamQuestionDetail[];
 }
 
 export interface UpdateExamRequest {

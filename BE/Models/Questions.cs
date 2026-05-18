@@ -23,6 +23,7 @@ namespace QuizzTiengNhat.Models
 
         public string Content { get; set; }
         public QuestionType QuestionType { get; set; } 
+        public QuestionFormat QuestionFormat { get; set; } = QuestionFormat.StandardChoice;
         public SkillType SkillType { get; set; }
         public string? AudioURL { get; set; }
         public string? ImageURL { get; set; }

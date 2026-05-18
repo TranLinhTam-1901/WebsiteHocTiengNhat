@@ -1,3 +1,4 @@
+import { ExamProgress } from '../../interfaces/Learner/Dashboard';
 export interface ProgressDetailResponse {
   totalPercent: number;
   currentLevelName: string;
@@ -11,4 +12,23 @@ export interface ProgressDetailResponse {
     total: number;
     percentage: number;
   };
+}
+
+
+
+export interface ProgressDetail {
+  total: number;
+  completed: number;
+  percentage: number;
+}
+
+export interface DashboardProgressResponse {
+  currentLevelName: string;
+  totalPercent: number;
+
+  courseProgress: ProgressDetail;
+
+  examProgress: ExamProgress;
+
+  skillProgress: ProgressDetail;
 }

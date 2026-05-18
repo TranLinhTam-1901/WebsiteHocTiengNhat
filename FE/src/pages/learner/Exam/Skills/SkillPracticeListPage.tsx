@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import LearnerHeader from '../../../components/layout/learner/LearnerHeader';
-import { SkillPracticeService } from '../../../services/Learner/skillPracticeService';
-import { SkillPracticeExamDTO } from '../../../interfaces/Learner/SkillPractice';
+import LearnerHeader from '../../../../components/layout/learner/LearnerHeader';
+import { SkillPracticeService } from '../../../../services/Learner/skillPracticeService';
+import { SkillPracticeExamDTO } from '../../../../interfaces/Learner/SkillPractice';
 
 const SkillPracticeListPage: React.FC = () => {
     const { skillType } = useParams<{ skillType: string }>(); // Lấy từ URL: vocabulary, grammar...
-    console.log("Giá trị skillType lấy từ URL là:", skillType);
+    // console.log("Giá trị skillType lấy từ URL là:", skillType);
     const navigate = useNavigate();
     
     const [loading, setLoading] = useState(true);
@@ -22,7 +22,7 @@ const SkillPracticeListPage: React.FC = () => {
     };
 
     useEffect(() => {
-        console.log("useEffect đang chạy với skillType:", skillType);
+        // console.log("useEffect đang chạy với skillType:", skillType);
         const fetchExams = async () => {
             setLoading(true);
             try {
@@ -113,30 +113,50 @@ const SkillPracticeListPage: React.FC = () => {
                                     </div>
 
                                     {/* Group Nút bấm */}
-                                    <div className="flex items-center gap-3">
-                                        {/* Nút Xem kết quả cũ - Chỉ hiện khi đã hoàn thành và có ID kết quả */}
-                                        {exam.isCompleted && exam.latestResultID && (
-                                            <button
-                                                type="button"
-                                                onClick={() => handleViewResult(exam.latestResultID!)}
-                                                className="px-5 py-3 rounded-2xl border-2 border-[#f4f0f2] bg-white text-[#6b5a62] text-xs font-black uppercase tracking-wider hover:border-primary/30 hover:text-primary transition-all"
-                                            >
-                                                Kết quả cũ
-                                            </button>
+                                    <div className="flex flex-col items-end gap-2">
+    
+                                        {/* Thông báo nếu chưa đạt */}
+                                        {!exam.isCompleted && exam.latestResultID && (
+                                            <p className="text-xs text-red-400 font-bold text-right max-w-[260px]">
+                                                Bạn chưa đạt yêu cầu. Hãy luyện tập lại.
+                                            </p>
                                         )}
 
-                                        <button 
-                                            onClick={() => handleStartExam(exam.examID)}
-                                            className={`px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center gap-2 transition-all ${
-                                                exam.isCompleted 
-                                                ? 'bg-white border-2 border-[#f4f0f2] text-[#886373] hover:border-primary hover:text-primary' 
-                                                : 'bg-primary text-white shadow-lg shadow-primary/20 hover:scale-105'
-                                            }`}
-                                        >
-                                            {exam.isCompleted ? 'Luyện tập lại' : 'Bắt đầu'}
-                                            <span className="material-symbols-outlined text-sm">arrow_forward</span>
-                                        </button>
+                                        {/* Thông báo đã hoàn thành */}
+                                        {exam.isCompleted && (
+                                            <p className="text-xs text-emerald-600 font-bold">
+                                                Bạn đã hoàn thành bài kiểm tra này.
+                                            </p>
+                                        )}
+
+                                        <div className="flex items-center gap-3">
+
+                                            {/* Luôn cho xem kết quả nếu có result */}
+                                            {exam.latestResultID && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleViewResult(exam.latestResultID!)}
+                                                    className="px-5 py-3 rounded-2xl border-2 border-[#f4f0f2] bg-white text-[#6b5a62] text-xs font-black uppercase tracking-wider hover:border-primary/30 hover:text-primary transition-all"
+                                                >
+                                                    Xem kết quả
+                                                </button>
+                                            )}
+
+                                            <button 
+                                                onClick={() => handleStartExam(exam.examID)}
+                                                className={`px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center gap-2 transition-all ${
+                                                    exam.isCompleted 
+                                                    ? 'bg-white border-2 border-[#f4f0f2] text-[#886373] hover:border-primary hover:text-primary' 
+                                                    : 'bg-primary text-white shadow-lg shadow-primary/20 hover:scale-105'
+                                                }`}
+                                            >
+                                                {exam.isCompleted ? 'Luyện tập lại' : 'Bắt đầu'}
+                                                <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                                            </button>
+                                        </div>
                                     </div>
+
+
                                 </div>
                             ))
                         ) : (

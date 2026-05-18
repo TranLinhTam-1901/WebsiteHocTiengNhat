@@ -33,7 +33,7 @@ public class Exams {
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
     // --- CẤU HÌNH ĐIỂM ---
-    public double TotalMaxScore { get; set; } = 0;
+    public decimal TotalMaxScore { get; set; } = 0;
 
     [Column(TypeName = "decimal(18,2)")]
     public decimal PassingScore { get; set; } // Điểm đỗ tổng
@@ -51,6 +51,8 @@ public class Exams {
     // Thuộc tính để Admin xác nhận đề đã sẵn sàng cho User làm chưa
     public bool IsPublished { get; set; }
     public int Version { get; set; } = 1; // Phiên bản đề thi, tăng khi có chỉnh sửa quan trọng
+
+    public int TemplateVersion { get; set; }
 
     public virtual ICollection<Exam_Questions> ExamQuestions { get; set; }
     public virtual ICollection<Exam_Results> ExamResults { get; set; } = new List<Exam_Results>();

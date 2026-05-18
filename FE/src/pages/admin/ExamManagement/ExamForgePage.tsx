@@ -201,8 +201,22 @@ const ExamForgePage: React.FC = () => {
 
     // Theo dõi thay đổi của 'parts' để cập nhật bảng Tóm tắt (Summary)
     useEffect(() => {
+
+         // CHẶN levelID rỗng
+        if (!formData.levelID) {
+            setSummary({
+                totalQuestions: 0,
+                totalScore: 0
+            });
+            return;
+        }
+
+        // console.log("PARTS SEND", formData.parts);
+        // console.log("LEVEL SEND", formData.levelID);
+
         if (formData.parts.length > 0) {
-            ExamService.getExamSummary(formData.parts).then((res) => {
+            ExamService.getExamSummary(formData.parts, formData.levelID, formData.type).then((res) => {
+                // console.log("SUMMARY RESPONSE", res);
                 const newTotalScore = Math.round(res.totalScore);
                 
                 // 1. Cập nhật summary để hiển thị bảng hồng
@@ -237,8 +251,12 @@ const ExamForgePage: React.FC = () => {
             });
         } else {
             setSummary({ totalQuestions: 0, totalScore: 0 });
+            setFormData(prev => ({
+                ...prev,
+                passingScore: 0
+            }));
         }
-    }, [formData.parts]);
+    }, [formData.parts, formData.levelID, formData.type]);
 
     // Theo dõi 'type' để load dữ liệu bổ sung (Ví dụ View 2 cần list bài học)
     useEffect(() => {

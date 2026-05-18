@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { GenerateExamRequest } from '../../../interfaces/Admin/Exam';
-import { SkillType } from '../../../interfaces/Admin/QuestionBank';
+import { QuestionFormat, SkillType } from '../../../interfaces/Admin/QuestionBank';
 
 interface Props {
     data: GenerateExamRequest;
@@ -20,7 +20,7 @@ const SkillPractice: React.FC<Props> = ({ data, onChange, levels, levelStats, on
         .sort((a, b) => b.levelName.localeCompare(a.levelName));
 
     const selectedLevel = levels.find(l => l.levelID === data.levelID);
-
+   
     const visibleSkillTypes = [
         SkillType.Vocabulary,
         SkillType.Grammar,
@@ -34,18 +34,20 @@ const SkillPractice: React.FC<Props> = ({ data, onChange, levels, levelStats, on
         : [];
 
     const visibleParts = data.parts.filter((part) => visibleSkillTypes.includes(part.skillType));
-
+    
+   
     const handleAddSkill = (stat: any) => {
         if (data.parts.find(p => p.skillType === stat.skillId)) {
             return;
         }
-
+    
         const newPart = {
             skillType: stat.skillId,
+            questionFormat: QuestionFormat.StandardChoice, 
             quantity: 1, 
             pointPerQuestion: 1
         };
-
+        // console.log("ADD PART", newPart);
         onChange({
             ...data,
             parts: [...data.parts, newPart]
@@ -57,6 +59,19 @@ const SkillPractice: React.FC<Props> = ({ data, onChange, levels, levelStats, on
             ...data,
             parts: data.parts.filter(p => p.skillType !== skillType)
         });
+    };
+
+    const getQuantityLabel = (skillType: number) => {
+        switch (skillType) {
+            case SkillType.Reading:
+                return "Đoạn đọc";
+
+            case SkillType.Listening:
+                return "Audio";
+
+            default:
+                return "Câu";
+        }
     };
 
     return (
@@ -190,7 +205,7 @@ const SkillPractice: React.FC<Props> = ({ data, onChange, levels, levelStats, on
                             <thead>
                                 <tr className="text-[10px] text-[#886373] uppercase tracking-[0.15em] bg-[#fbf9fa]/50">
                                     <th className="px-8 py-4 font-bold">Tên kỹ năng</th>
-                                    <th className="px-8 py-4 font-bold text-center">Số lượng câu</th>
+                                    <th className="px-8 py-4 font-bold text-center">Số lượng</th>
                                     <th className="px-8 py-4 font-bold text-center">Điểm / Câu</th>
                                     <th className="px-8 py-4 font-bold text-right">Thao tác</th>
                                 </tr>
@@ -209,7 +224,7 @@ const SkillPractice: React.FC<Props> = ({ data, onChange, levels, levelStats, on
                                                     </div>
                                                     <div>
                                                         <p className="font-bold text-sm text-[#181114]">{stat?.skillName || "Kỹ năng"}</p>
-                                                        <p className="text-[10px] text-[#886373] font-bold uppercase tracking-tight opacity-60">Tối đa: {maxCount} câu</p>
+                                                        <p className="text-[10px] text-[#886373] font-bold uppercase tracking-tight opacity-60">Tối đa: {maxCount} {getQuantityLabel(part.skillType)}</p>
                                                     </div>
                                                 </div>
                                             </td>
@@ -248,7 +263,16 @@ const SkillPractice: React.FC<Props> = ({ data, onChange, levels, levelStats, on
                                                     >
                                                         <span className="material-symbols-outlined text-sm">add</span>
                                                     </button>
+                                                    
                                                 </div>
+                                                {
+                                                    (part.skillType === SkillType.Reading ||
+                                                    part.skillType === SkillType.Listening) && (
+                                                        <p className="text-[10px] text-red-600 italic mt-1">
+                                                            Mỗi nhóm có thể chứa nhiều câu hỏi
+                                                        </p>
+                                                    )
+                                                }
                                             </td>
                                             <td className="px-8 py-5 text-center">
                                                 <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#fbf9fa] border border-[#f4f0f2] rounded-xl font-bold text-xs text-[#886373] shadow-inner">

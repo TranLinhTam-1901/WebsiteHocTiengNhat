@@ -10,8 +10,8 @@ import WeaknessAnalysis from '../pages/learner/Analytics/WeaknessAnalysis';
 // Dashboard
 import LearnerDashboard from '../pages/learner/Dashboard/Home';
 // Skill Learning
-import SkillPracticeListPage from '../pages/learner/Skills/SkillPracticeListPage';
-import SkillHubPage from '../pages/learner/Skills/SkillHubPage';
+import SkillPracticeListPage from '../pages/learner/Exam/Skills/SkillPracticeListPage';
+import SkillHubPage from '../pages/learner/Exam/Skills/SkillHubPage';
 
 // Flashcards
 import DeckListPage from '../pages/learner/Flashcards/DeckListPage';
@@ -49,6 +49,10 @@ import StudyKanjiListPage from '../pages/learner/StudyResource/Kanji/KanjiListPa
 import StudyKanjiDetailPage from '../pages/learner/StudyResource/Kanji/KanjiDetailPage';
 import ExamDetailPage from '../pages/learner/Exam/ExamDetailPage';
 
+import JLPTExamListPage from '../pages/learner/Exam/JLPT/JLPTExamListPage';
+import JLPTExamSummaryPage from '../pages/learner/Exam/JLPT/JLPTExamSummaryPage';
+import JLPTExamTakingPage from '../pages/learner/Exam/JLPT/JLPTExamTakingPage';
+
 export const learnerRoutes: RouteObject = {
   path: '/learner',
   element: <PrivateRoute role="learner"></PrivateRoute>,
@@ -80,6 +84,10 @@ export const learnerRoutes: RouteObject = {
      // Exam(Lesson)
     { path: 'quiz/exam/:id', element: <ExamDetailPage /> },
     { path: 'quiz/result/:resultId', element: <Result /> },
+    // JLPT Mock Test
+    { path: 'exams/jlpt-exams', element: <JLPTExamListPage /> },
+    { path: 'exams/jlpt-exams/:id/summary', element: <JLPTExamSummaryPage /> },
+    { path: 'exams/jlpt-exams/:id/take', element: <JLPTExamTakingPage /> },
     // Skill Learning
     { path: 'skill-learning/:skillType', element: <SkillHubPage /> },
     { path: 'skill-learning/:skillType/practice-list', element: <SkillPracticeListPage /> },
