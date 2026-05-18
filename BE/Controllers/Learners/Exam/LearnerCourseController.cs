@@ -306,7 +306,7 @@ namespace QuizzTiengNhat.Controllers.Learners
                 var passedExamSet = passedExamIds.ToHashSet();
 
                 var exams = await _context.Exams.AsNoTracking()
-                    .Where(e => e.CourseID == courseId && e.Type == ExamType.LessonPractice)
+                    .Where(e => e.CourseID == courseId && e.Type == ExamType.LessonPractice && e.IsPublished)
                     .Select(e => new
                     {
                         e.ExamID,

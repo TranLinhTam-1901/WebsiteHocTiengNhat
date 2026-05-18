@@ -160,6 +160,7 @@ namespace QuizzTiengNhat.Controllers.Admins
                             DisplayOrder = qDto.DisplayOrder > 0 ? qDto.DisplayOrder : i + 1,
                             QuestionType = qDto.QuestionType,
                             SkillType = SkillType.Listening,
+                            QuestionFormat = QuestionFormat.AudioChoice,
                             Status = Status.Published,
                             Answers = qDto.Answers.Select(aDto => new Answers
                             {

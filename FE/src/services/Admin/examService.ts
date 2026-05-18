@@ -28,8 +28,8 @@ const ExamService = {
     },
 
     // 4. Tính toán tóm tắt (Tổng câu, Tổng điểm) dựa trên cấu hình hiện tại
-    getExamSummary: async (parts: ExamPartConfig[]): Promise<ExamSummaryResponse> => {
-        const response = await axiosInstance.post(`/admin/exams/summary`, parts);
+    getExamSummary: async (parts: ExamPartConfig[], levelId: string, examType: number): Promise<ExamSummaryResponse> => {
+        const response = await axiosInstance.post(`/admin/exams/summary?levelId=${levelId}&examType=${examType}`, parts);
         return response.data;
     },
 

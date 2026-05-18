@@ -198,10 +198,10 @@ useEffect(() => {
 
           {/* --- PHẦN 4: KIỂM TRA & KẾT QUẢ --- */}
           <NavItem 
-            to="/learner/exams" 
+            to="/learner/exams/jlpt-exams" 
             icon="assignment" 
             label="Kho đề thi JLPT" 
-            active={location.pathname.startsWith('/learner/exams')} 
+            active={location.pathname.startsWith('/learner/exams/jlpt-exams')} 
           />
           <NavItem 
             to="/learner/history" 
@@ -232,15 +232,14 @@ useEffect(() => {
           <div className="my-4 border-t border-[#f4f0f2]"></div>
         </nav>
 
-       {/* Widget Tiến độ cải tiến - Lấy dữ liệu trực tiếp từ API Tiến trình */}
+       {/* Widget Tiến độ cải tiến - Phương án A: Lesson 35% + Exam 35% + Score 20% + Flashcard 10% */}
         <div className="bg-primary/5 p-4 rounded-xl border border-primary/10 mb-2">
           <p className="text-[10px] font-bold text-primary mb-1 uppercase tracking-widest">
             Tiến độ tổng thể
           </p>
           
-          <div className="flex items-end justify-between mb-2">
+          <div className="flex items-end justify-between mb-3">
             <h4 className="text-lg font-black text-[#181114] leading-none">
-              {/* Sử dụng totalPercent từ API mới */}
               {progressData?.totalPercent ?? 0}%
             </h4>
             <span className="text-[10px] text-[#886373] font-bold">
@@ -255,10 +254,25 @@ useEffect(() => {
             ></div>
           </div>
 
-          {/* Chỗ này Tâm chú ý: progressData có cấu trúc courseProgress.completed */}
-          <p className="text-[9px] text-[#886373] mt-2 font-medium italic leading-tight">
-            Bao gồm {progressData?.courseProgress?.completed ?? 0} bài học và tiến độ Flashcard.
-          </p>
+          {/* Breakdown 35/35/20/10 */}
+          <div className="mt-2 space-y-1.5 text-[9px] text-[#886373] font-medium">
+            <div className="flex justify-between items-center">
+              <span>📚 Bài học (35%)</span>
+              <span className="text-primary font-bold">{progressData?.courseProgress?.percentage ?? 0}%</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span>✅ Luyện tập (35%)</span>
+              <span className="text-emerald-600 font-bold">{progressData?.examProgress?.passRate ?? 0}%</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span>📊 Điểm trung bình (20%)</span>
+              <span className="text-blue-600 font-bold">{progressData?.examProgress?.averageScore ?? 0}/10</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span>💎 Flashcard (10%)</span>
+              <span className="text-amber-600 font-bold">{progressData?.skillProgress?.percentage ?? 0}%</span>
+            </div>
+          </div>
         </div>
 
         {/* Thông tin User & Đăng xuất */}

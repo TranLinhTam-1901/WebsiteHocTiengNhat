@@ -106,7 +106,7 @@ const LearnerDashboard: React.FC = () => {
                   </div>
                   <div className="flex items-center gap-8 pt-4">
                     <button 
-                        onClick={() => navigate('/learner/skill-learning')}
+                        onClick={() => navigate('/learner/courses')}
                         className="px-12 py-5 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-primary/20 hover:scale-105 transition-all active:scale-95"
                     >
                       Bắt đầu bài học mới
@@ -121,14 +121,14 @@ const LearnerDashboard: React.FC = () => {
                 <div className="absolute right-[-10%] top-[-20%] size-96 bg-primary/20 rounded-full blur-[120px] pointer-events-none group-hover:bg-primary/30 transition-all"></div>
               </div>
 
-              {/* Grid 2 Card nhỏ: Phân tích chi tiết (Sử dụng dữ liệu thật từ API) */}
+              {/* Grid 2 Card nhỏ: Phân tích chi tiết (Sử dụng dữ liệu thật từ API - Phương án A) */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="bg-white rounded-[2.5rem] p-10 border-2 border-[#f4f0f2] shadow-sm hover:shadow-2xl transition-all flex flex-col gap-6">
                   <div className="size-14 rounded-3xl bg-rose-50 text-rose-500 flex items-center justify-center border border-rose-100">
                     <span className="material-symbols-outlined text-3xl">menu_book</span>
                   </div>
                   <div>
-                    <h4 className="text-[#181114] font-black uppercase tracking-tight text-lg mb-2">Tiến độ bài học</h4>
+                    <h4 className="text-[#181114] font-black uppercase tracking-tight text-lg mb-2">📚 Bài Học</h4>
                     <p className="text-[#886373] text-sm leading-relaxed font-medium italic">
                         Bạn đã hoàn thành {data?.courseProgress.completed}/{data?.courseProgress.total} bài học. 
                         ({data?.courseProgress.percentage}%)
@@ -137,14 +137,14 @@ const LearnerDashboard: React.FC = () => {
                 </div>
                 
                 <div className="bg-white rounded-[2.5rem] p-10 border-2 border-[#f4f0f2] shadow-sm hover:shadow-2xl transition-all flex flex-col gap-6">
-                  <div className="size-14 rounded-3xl bg-amber-50 text-amber-500 flex items-center justify-center border border-amber-100">
-                    <span className="material-symbols-outlined text-3xl">style</span>
+                  <div className="size-14 rounded-3xl bg-emerald-50 text-emerald-500 flex items-center justify-center border border-emerald-100">
+                    <span className="material-symbols-outlined text-3xl">check_circle</span>
                   </div>
                   <div>
-                    <h4 className="text-[#181114] font-black uppercase tracking-tight text-lg mb-2">Kỹ năng Flashcard</h4>
+                    <h4 className="text-[#181114] font-black uppercase tracking-tight text-lg mb-2">✅ Bài luyện tập vượt Qua</h4>
                     <p className="text-[#886373] text-sm leading-relaxed font-medium italic">
-                        Bạn đã thuộc {data?.skillProgress.completed}/{data?.skillProgress.total} thẻ nhớ.
-                        ({data?.skillProgress.percentage}%)
+                        Bạn đã vượt qua {data?.examProgress?.passedExams}/{data?.examProgress?.totalExams} bài luyện tập. 
+                        ({data?.examProgress?.passRate}%)
                     </p>
                   </div>
                 </div>
@@ -182,6 +182,26 @@ const LearnerDashboard: React.FC = () => {
                   <p className="text-sm text-[#886373] mt-10 font-black uppercase tracking-widest">
                     {data?.totalPercent === 100 ? "Sẵn sàng chinh phục đỉnh cao!" : "Kiên trì là chìa khóa!"}
                   </p>
+
+                  {/* Chi tiết công thức 35/35/20/10 */}
+                  <div className="mt-8 space-y-3 border-t border-[#f4f0f2] pt-6">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-[#886373] font-bold">📚 Bài học</span>
+                      <span className="text-primary font-black">{data?.courseProgress.percentage ?? 0}%</span>
+                    </div>
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-[#886373] font-bold">✅ Bài luyện tập vượt qua</span>
+                      <span className="text-emerald-600 font-black">{data?.examProgress?.passRate ?? 0}%</span>
+                    </div>
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-[#886373] font-bold">📊 Điểm trung bình</span>
+                      <span className="text-blue-600 font-black">{data?.examProgress?.averageScore ?? 0}/10</span>
+                    </div>
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-[#886373] font-bold">💎 Flashcard</span>
+                      <span className="text-amber-600 font-black">{data?.skillProgress.percentage ?? 0}%</span>
+                    </div>
+                  </div>
                 </div>
                 <div className="absolute -bottom-10 -right-10 size-48 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors"></div>
               </div>

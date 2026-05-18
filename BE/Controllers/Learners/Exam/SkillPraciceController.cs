@@ -185,7 +185,7 @@ namespace QuizzTiengNhat.Controllers.Learners
                 if (user?.LevelID == null) return BadRequest(new { message = "User level not found." });
 
                 var query = _context.Exams.AsNoTracking()
-                .Where(e => e.Type == ExamType.SkillPractice && e.LevelID == user.LevelID);
+                .Where(e => e.Type == ExamType.SkillPractice && e.LevelID == user.LevelID && e.IsPublished);
 
                 //CHỈ LỌC THEO SKILL NẾU CÓ TRUYỀN THAM SỐ
                 if (skillType.HasValue)

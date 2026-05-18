@@ -211,18 +211,89 @@ const handleFinish = () => {
                 </span>
               </div>
 
-              <div className="grid md:grid-cols-2 gap-3">
-                <div className="rounded-2xl border border-[#f4f0f2] p-4 bg-[#fbf9fa]">
-                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#886373] mb-1">Bạn chọn</p>
-                  <p className="font-semibold text-[#2a1d22]">{q.selectedAnswerText ?? 'Không trả lời'}</p>
-                </div>
-                <div className="rounded-2xl border border-emerald-100 p-4 bg-emerald-50/50">
-                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-700 mb-1">Đáp án đúng</p>
-                  <p className="font-semibold text-[#2a1d22]">{q.correctAnswerText ?? '-'}</p>
-                </div>
-              </div>
+              <div className="space-y-3 mt-4">
+              {q.answers.map((opt) => (
+                <div
+                  key={opt.answerID}
+                  className={`p-4 rounded-2xl border-2 ${
+                    opt.isCorrect
+                      ? 'border-emerald-500 bg-emerald-50'
+                      : opt.isSelected
+                      ? 'border-rose-400 bg-rose-50'
+                      : 'border-[#f4f0f2]'
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-4">
+                    <p className="font-medium">{opt.answerText}</p>
 
-              {/* <p className="text-xs text-[#7a6a71] mt-3">Thời gian phản hồi: <span className="font-bold">{q.responseTime}s</span></p> */}
+                    <div className="flex gap-2">
+                      {opt.isSelected && (
+                        <span className="text-xs font-black px-2 py-1 rounded-full bg-rose-100 text-rose-700">
+                          Bạn chọn
+                        </span>
+                      )}
+
+                      {opt.isCorrect && (
+                        <span className="text-xs font-black px-2 py-1 rounded-full bg-emerald-100 text-emerald-700">
+                          Đáp án đúng
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                </div>
+              ))}
+            </div>
+
+
+            {(q.subQuestions?.length ?? 0) > 0 && (
+              <div className="mt-6 space-y-6">
+                {q.subQuestions?.map((subQ, subIndex) => (
+                  <div
+                    key={subQ.questionID}
+                    className="border border-[#f4f0f2] rounded-2xl p-5 bg-[#fcfafb]"
+                  >
+                    <p className="font-bold mb-4">
+                      {index + 1}.{subIndex + 1} {subQ.content}
+                    </p>
+
+                    <div className="space-y-3">
+                      {subQ.answers.map((opt) => (
+                        <div
+                          key={opt.answerID}
+                          className={`p-4 rounded-xl border-2 ${
+                            opt.isCorrect
+                              ? 'border-emerald-500 bg-emerald-50'
+                              : opt.isSelected
+                              ? 'border-rose-400 bg-rose-50'
+                              : 'border-[#f4f0f2]'
+                          }`}
+                        >
+                          <div className="flex justify-between items-center">
+                            <p>{opt.answerText}</p>
+
+                            <div className="flex gap-2">
+                              {opt.isSelected && (
+                                <span className="text-xs px-2 py-1 rounded-full bg-rose-100 text-rose-700 font-bold">
+                                  Bạn chọn
+                                </span>
+                              )}
+
+                              {opt.isCorrect && (
+                                <span className="text-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 font-bold">
+                                  Đúng
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
             </article>
           ))}
         </section>

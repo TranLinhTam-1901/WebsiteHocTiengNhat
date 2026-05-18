@@ -8,6 +8,7 @@ public class ExamTemplateDetail {
     public Guid DetailID { get; set; }
     
     public SkillType SkillType { get; set; }
+    public QuestionFormat QuestionFormat { get; set; }
     public int Quantity { get; set; }
 
     [Column(TypeName = "decimal(18,4)")]

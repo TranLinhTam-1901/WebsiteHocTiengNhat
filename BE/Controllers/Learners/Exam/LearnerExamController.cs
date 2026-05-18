@@ -51,7 +51,7 @@ public class LearnerExamController : ControllerBase
         
         var questionIds = examQuestions.Select(eq => eq.Question!.QuestionID).Distinct().ToList();
 
-        // Heuristic lấy đáp án user đã chọn từ UserAnswerHistories (do Exam_Result_Details không lưu SelectedAnswer)
+
         // Lấy bản ghi gần thời điểm nộp bài nhất theo từng QuestionID.
         var from = result.CreatedAt.AddMinutes(-30);
         var to = result.CreatedAt.AddMinutes(10);
@@ -91,10 +91,15 @@ public class LearnerExamController : ControllerBase
                 Content = q.Content,
                 IsCorrect = d?.IsCorrect ?? false,
                 ResponseTime = d?.ResponseTime ?? 0,
-                SelectedAnswerID = h?.SelectedAnswerID,
-                SelectedAnswerText = selectedAnswer?.AnswerText ?? h?.TextAnswer,
-                CorrectAnswerID = correctAnswer?.AnswerID,
-                CorrectAnswerText = correctAnswer?.AnswerText
+                Answers = q.Answers.Select(a => new  AnswerOptionDTO
+                {
+                    AnswerID = a.AnswerID,
+                    AnswerText = a.AnswerText,
+
+                    IsCorrect = a.IsCorrect,
+
+                    IsSelected = h?.SelectedAnswerID == a.AnswerID
+                }).ToList()
             };
         }).ToList();
 
@@ -114,6 +119,7 @@ public class LearnerExamController : ControllerBase
         return Ok(response);
     }
 
+    
    [HttpGet("{id}/questions")]
     public async Task<IActionResult> GetExamQuestions(Guid id)
     {
@@ -150,6 +156,7 @@ public class LearnerExamController : ControllerBase
                     QuestionID = eq.Question.QuestionID,
                     Content = eq.Question.Content,
                     QuestionType = eq.Question.QuestionType,
+                    QuestionFormat = eq.Question.QuestionFormat,
                     ReadingContent = eq.Question.Reading?.Content, // Lấy nội dung bài đọc nếu có
                     AudioURL = eq.Question.AudioURL,
                     // Ánh xạ danh sách đáp án
@@ -407,10 +414,14 @@ public class LearnerExamController : ControllerBase
                 Content = question.Content,
                 IsCorrect = isCorrect,
                 ResponseTime = userAnswer?.ResponseTime ?? 0,
-                SelectedAnswerID = userAnswer?.SelectedAnswerID,
-                SelectedAnswerText = selectedAnswer?.AnswerText ?? userAnswer?.TextAnswer,
-                CorrectAnswerID = correctAnswer?.AnswerID,
-                CorrectAnswerText = correctAnswer?.AnswerText
+                
+                Answers = question.Answers.Select(a => new  AnswerOptionDTO
+                {
+                    AnswerID = a.AnswerID,
+                    AnswerText = a.AnswerText,
+                    IsCorrect = a.IsCorrect,
+                    IsSelected = userAnswer?.SelectedAnswerID == a.AnswerID
+                }).ToList()
             };
         }).ToList();
 
@@ -429,6 +440,306 @@ public class LearnerExamController : ControllerBase
 
         return Ok(response);
     } 
-}
+
+    [HttpGet("jlpt")]
+    public async Task<IActionResult> GetJLPTExams()
+    {
+        var exams = await _context.Exams
+            .Include(e => e.Level)
+            .Include(e => e.ExamQuestions)
+                .ThenInclude(eq => eq.Question)
+            .Where(e => e.Type == ExamType.MockTest && e.TemplateID != null) // Chỉ lấy đề thi thử JLPT có TemplateID
+            .OrderByDescending(e => e.CreatedAt)
+            .Select(e => new ExamListItemDTO
+            {
+                ExamID = e.ExamID,
+                Title = e.Title,
+                LevelName = e.Level!.LevelName,
+                Duration = e.Duration,
+                TotalScore = e.TotalMaxScore,
+                PassingScore = e.PassingScore,
+                Version = e.Version,
+                ExamType = e.Type,
+                ShowResultImmediately = e.ShowResultImmediately,
+
+                TotalQuestions = e.ExamQuestions
+                    .Where(eq =>
+                        eq.Question != null &&
+                        eq.Question.ParentID == null)
+                    .Sum(eq =>
+                        eq.Question!.SubQuestions.Any()
+                            ? eq.Question.SubQuestions.Count
+                            : 1)
+            })
+            .ToListAsync();
+
+        return Ok(exams);
+    }
+    
+    [HttpGet("{id}/summary")]
+    public async Task<IActionResult> GetExamSummary(Guid id)
+    {
+        var exam = await _context.Exams
+            .Include(e => e.Level)
+            .Include(e => e.Template)
+                .ThenInclude(t => t.Details)
+            .Include(e => e.ExamQuestions)
+                .ThenInclude(eq => eq.Question)
+                    .ThenInclude(q => q.SubQuestions)
+            .FirstOrDefaultAsync(e => e.ExamID == id);
+
+        if (exam == null)
+            return NotFound("Đề thi không tồn tại.");
+
+        var examQuestions = exam.ExamQuestions
+            .Where(eq =>
+                eq.Question != null &&
+                eq.Question.ParentID == null)
+            .ToList();
+
+       var totalQuestions = examQuestions.Sum(eq =>
+            eq.Question!.SubQuestions.Any()
+                ? eq.Question.SubQuestions.Count
+                : 1);
+
+        var response = new ExamSummaryDTO
+        {
+            ExamID = exam.ExamID,
+            Title = exam.Title,
+            LevelName = exam.Level!.LevelName,
+            Duration = exam.Duration,
+            TotalScore = exam.TotalMaxScore,
+            PassingScore = exam.PassingScore,
+            TotalQuestions = totalQuestions,
+
+            MinScores = new MinScoreDTO
+            {
+                Language = (int)(exam.Template?.MinLanguageKnowledgeScore ?? 0),
+                Reading = (int)(exam.Template?.MinReadingScore ?? 0),
+                Listening = (int)(exam.Template?.MinListeningScore ?? 0)
+            },
+
+            Sections = examQuestions
+            .GroupBy(eq => eq.Question!.SkillType)
+                .Select(g => new ExamSectionSummaryDTO
+                {
+                    SkillType = g.Key,
+
+                    SkillName = g.Key.ToString(),
+
+                    TotalQuestions = g.Sum(eq =>
+                        eq.Question!.SubQuestions.Any()
+                            ? eq.Question.SubQuestions.Count
+                            : 1),
+
+                    TotalPoints = Math.Round(g.Sum(eq => eq.Score), 2)
+                })
+                .OrderBy(x => x.SkillType)
+                .ToList()
+        };
+
+        return Ok(response);
+    }
+
+   // Get cấu trúc đề JLPT cho màn hình làm bài
+    [HttpGet("{id}/questions/structured")]
+    public async Task<IActionResult> GetExamQuestionsStructured(Guid id)
+    {
+         var exam = await _context.Exams
+        .FirstOrDefaultAsync(e =>
+            e.ExamID == id &&
+            e.Type == ExamType.MockTest);
+
+        if (exam == null)
+            return NotFound("Đề thi không tồn tại.");
+
+        var examQuestions = await _context.Exam_Questions
+            .Include(eq => eq.Question)
+                .ThenInclude(q => q.Answers)
+
+            .Include(eq => eq.Question)
+                .ThenInclude(q => q.SubQuestions)
+                    .ThenInclude(sq => sq.Answers)
+
+            .Include(eq => eq.Question)
+                .ThenInclude(q => q.Reading)
+
+            .Include(eq => eq.Question)
+                .ThenInclude(q => q.Listening)
+
+            .Where(eq =>
+                eq.ExamID == id &&
+                eq.Version == exam.Version)
+            .OrderBy(eq => eq.OrderIndex)
+            .ToListAsync();
+
+        var tree = await BuildExamQuestionTreeV2(examQuestions);
+
+        return Ok(new
+        {
+            exam.ExamID,
+            exam.Title,
+            exam.Duration,
+            exam.Version,
+            Sections = tree
+        });
+    }
+
+    private async Task<List<object>> BuildExamQuestionTreeV2(
+    List<Exam_Questions> examQuestions)
+    {
+        var result = new List<object>();
+
+        // =========================
+        // 1. NORMAL QUESTIONS (Grammar/Vocab/Kanji)
+        // =========================
+        var normalQuestions = examQuestions
+            .Where(x =>
+                x.ReadingID == null &&
+                x.ListeningID == null)
+            .OrderBy(x => x.OrderIndex)
+            .ToList();
+
+        result.AddRange(
+            normalQuestions.Select(x => new
+            {
+                Type = "Normal",
+                x.QuestionID,
+                x.OrderIndex,
+                x.Score,
+
+                SkillType = x.Question.SkillType.ToString(),
+
+                Content = x.Question.Content,
+
+                Options = x.Question.Answers
+                    .Select(a => new
+                    {
+                        a.AnswerID,
+                        a.AnswerText
+                    })
+                    .ToList()
+            })
+        );
+
+        // =========================
+        // 2. READING (PARENT → CHILD)
+        // =========================
+        var readingGroups = examQuestions
+            .Where(x => x.ReadingID != null)
+            .GroupBy(x => x.ReadingID);
+
+        foreach (var group in readingGroups)
+        {
+            var reading = await _context.Readings
+                .AsNoTracking()
+                .FirstOrDefaultAsync(r => r.ReadingID == group.Key);
+
+            if (reading == null) continue;
+
+            var ordered = group.OrderBy(x => x.OrderIndex).ToList();
+
+            result.Add(new
+            {
+                Type = "Reading",
+
+                ReadingID = reading.ReadingID,
+
+                // 🔥 PARENT CONTENT (QUAN TRỌNG)
+                Content = reading.Content,
+                ImageURL = ordered.FirstOrDefault()?.Question?.ImageURL,
+                SkillType = "Reading",
+
+                SubQuestions = ordered.Select(x => new
+                {
+                    x.QuestionID,
+                    x.OrderIndex,
+
+                    Content = x.Question.Content,
+                    ImageURL = x.Question.ImageURL,
+
+                    Options = x.Question.Answers
+                        .Select(a => new
+                        {
+                            a.AnswerID,
+                            a.AnswerText
+                        })
+                        .ToList()
+                }).ToList()
+            });
+        }
+
+        // =========================
+        // 3. LISTENING (PARENT → CHILD)
+        // =========================
+        var listeningGroups = examQuestions
+            .Where(x => x.ListeningID != null)
+            .GroupBy(x => x.ListeningID);
+
+        foreach (var group in listeningGroups)
+        {
+            var listening = await _context.Listenings
+                .AsNoTracking()
+                .FirstOrDefaultAsync(l => l.ListeningID == group.Key);
+
+            if (listening == null) continue;
+
+            var ordered = group.OrderBy(x => x.OrderIndex).ToList();
+
+            result.Add(new
+            {
+                Type = "Listening",
+
+                ListeningID = listening.ListeningID,
+
+                // 🔥 AUDIO + SCRIPT PARENT LEVEL
+                Content = listening.Title,
+                AudioUrl = listening.AudioURL,
+                Script = listening.Script,
+                ImageURL = ordered.FirstOrDefault()?.Question?.ImageURL,
+
+                SkillType = "Listening",
+
+                SubQuestions = ordered.Select(x => new
+                {
+                    x.QuestionID,
+                    x.OrderIndex,
+
+                    Content = x.Question.Content,
+                    ImageURL = x.Question.ImageURL,
+                    Options = x.Question.Answers
+                        .Select(a => new
+                        {
+                            a.AnswerID,
+                            a.AnswerText
+                        })
+                        .ToList()
+                }).ToList()
+            });
+        }
+
+        // =========================
+        // FINAL SORT (IMPORTANT)
+        // =========================
+        return result
+            .OrderBy(x =>
+            {
+                var skill = x.GetType().GetProperty("SkillType")?.GetValue(x)?.ToString();
+
+                return skill switch
+                {
+                    "Grammar" => 1,
+                    "Vocabulary" => 2,
+                    "Kanji" => 3,
+                    "Reading" => 4,
+                    "Listening" => 5,
+                    _ => 99
+                };
+            })
+            .ToList();
+    }
+
+    }
+
 
 }

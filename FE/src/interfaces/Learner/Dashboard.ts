@@ -24,9 +24,17 @@ export interface ProgressDetail {
   percentage: number;
 }
 
+export interface ExamProgress {
+  totalExams: number;
+  passedExams: number;
+  passRate: number;
+  averageScore: number;
+}
+
 export interface DashboardProgressResponse {
   totalPercent: number;
   courseProgress: ProgressDetail;
+  examProgress: ExamProgress; // ← NEW (Phương án A: 35% vượt qua + 20% điểm)
   skillProgress: ProgressDetail;
   currentLevelName: string;
 }

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using QuizzTiengNhat.Models;
@@ -11,9 +12,11 @@ using QuizzTiengNhat.Models;
 namespace QuizzTiengNhat.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260514180615_Updatedb4.5")]
+    partial class Updatedb45
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -30,9 +33,6 @@ namespace QuizzTiengNhat.Migrations
 
                     b.Property<int>("Duration")
                         .HasColumnType("integer");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
 
                     b.Property<Guid>("LevelID")
                         .HasColumnType("uuid");
@@ -55,9 +55,6 @@ namespace QuizzTiengNhat.Migrations
 
                     b.Property<decimal>("TotalMaxScore")
                         .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("Version")
-                        .HasColumnType("integer");
 
                     b.HasKey("TemplateID");
 
@@ -146,15 +143,12 @@ namespace QuizzTiengNhat.Migrations
                     b.Property<Guid?>("TemplateID")
                         .HasColumnType("uuid");
 
-                    b.Property<int>("TemplateVersion")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<decimal>("TotalMaxScore")
-                        .HasColumnType("numeric");
+                    b.Property<double>("TotalMaxScore")
+                        .HasColumnType("double precision");
 
                     b.Property<int>("Type")
                         .HasColumnType("integer");
@@ -532,7 +526,7 @@ namespace QuizzTiengNhat.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<decimal>("Score")
-                        .HasColumnType("decimal(18,10)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("Version")
                         .HasColumnType("integer");

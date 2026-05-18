@@ -7,23 +7,53 @@ namespace QuizzTiengNhat.DTOs.Learner
     public class ExamDisplayDTO
     {
         public Guid ExamID { get; set; }
-        public string Title { get; set; }
+        public string Title { get; set; } = string.Empty;
         public int Duration { get; set; }
          
         public int Version { get; set; } 
         public List<QuestionDisplayDTO> Questions { get; set; } = new List<QuestionDisplayDTO>();
     }
 
+    public class ExamStructuredDTO
+    {
+        public Guid ExamID { get; set; }
+        public string Title { get; set; } = string.Empty;
+        public int Duration { get; set; }
+        public int Version { get; set; }
+        public List<ExamSectionDTO> Sections { get; set; } = new List<ExamSectionDTO>();
+    }
+
+    public class ExamSectionDTO
+    {
+        public SkillType SkillType { get; set; }
+        public string SkillName { get; set; } = string.Empty;
+        public List<JLPTPartDTO> Parts { get; set; } = [];
+    }
+
+    public class JLPTPartDTO
+    {
+        public string PartKey { get; set; } = string.Empty;
+
+        public string PartName { get; set; } = string.Empty;
+
+        public int TotalQuestions { get; set; }
+        public bool HasSharedContent { get; set; }
+        public QuestionFormat QuestionFormat { get; set; }
+
+        public List<QuestionDisplayDTO> Questions { get; set; } = [];
+    }
+
     public class QuestionDisplayDTO
     {
         public Guid QuestionID { get; set; }
-        public string Content { get; set; }
+        public string Content { get; set; } = string.Empty;
         public string? ImageURL { get; set; }
         public string? AudioURL { get; set; }
         public string? MediaTimestamp { get; set; }
         public int? DisplayOrder { get; set; }
         public QuestionType QuestionType { get; set; }
-        
+        public QuestionFormat QuestionFormat { get; set; }
+        public int TotalSubQuestions { get; set; }
         // Nội dung bài đọc/nghe đi kèm
         public string? ReadingContent { get; set; }
         public string? ListeningScript { get; set; }
@@ -35,16 +65,11 @@ namespace QuizzTiengNhat.DTOs.Learner
     public class SubQuestionDTO
     {
         public Guid QuestionID { get; set; }
-        public string Content { get; set; }
+        public string Content { get; set; } = string.Empty;
         public List<AnswerOptionDTO> Options { get; set; } = new List<AnswerOptionDTO>();
     }
 
-    public class AnswerOptionDTO
-    {
-        public Guid AnswerID { get; set; }
-        public string AnswerText { get; set; }
-    }
-
+   
     // DTO nhận dữ liệu nộp bài
     public class SubmitExamRequestDTO
     {
@@ -80,9 +105,91 @@ namespace QuizzTiengNhat.DTOs.Learner
         public string Content { get; set; } = string.Empty;
         public bool IsCorrect { get; set; }
         public int ResponseTime { get; set; }
-        public Guid? SelectedAnswerID { get; set; }
-        public string? SelectedAnswerText { get; set; }
-        public Guid? CorrectAnswerID { get; set; }
-        public string? CorrectAnswerText { get; set; }
+        public List<AnswerOptionDTO> Answers { get; set; } = [];
+
+        // optional cho JLPT
+        public string? Explanation { get; set; }
+
+        public string? AudioUrl { get; set; }
+
+        public string? ImageUrl { get; set; }
+
+        // support reading/listening group
+        public Guid? ParentQuestionID { get; set; }
+
+        public List<ExamReviewQuestionDTO>? SubQuestions { get; set; }
     }
+
+     public class AnswerOptionDTO
+    {
+        public Guid AnswerID { get; set; }
+        public string AnswerText { get; set; } = string.Empty;
+        public bool IsCorrect { get; set; }
+        public bool IsSelected { get; set; }
+    }
+
+    //Dùng cho JLPT, hiển thị điểm liệt từng phần
+    public class ExamListItemDTO
+    {
+        public Guid ExamID { get; set; }
+
+        public string Title { get; set; } = null!;
+
+        public string LevelName { get; set; } = null!;
+
+        public int Duration { get; set; }
+
+        public decimal TotalScore { get; set; }
+
+        public decimal PassingScore { get; set; }
+
+        public int TotalQuestions { get; set; }
+
+        public ExamType ExamType { get; set; }
+
+        public int Version { get; set; }
+
+        public bool ShowResultImmediately { get; set; }
+    }
+
+    public class ExamSummaryDTO
+    {
+        public Guid ExamID { get; set; }
+
+        public string Title { get; set; } = null!;
+        public string LevelName { get; set; } = null!;
+
+        public int Duration { get; set; }
+
+        public int TotalQuestions { get; set; }
+
+        public decimal TotalScore { get; set; }
+
+        public decimal PassingScore { get; set; }
+
+        public MinScoreDTO MinScores { get; set; } = null!;
+
+        public List<ExamSectionSummaryDTO> Sections { get; set; } = [];
+    }
+    public class MinScoreDTO
+    {
+        public int Language { get; set; }
+
+        public int Reading { get; set; }
+
+        public int Listening { get; set; }
+    }
+
+    public class ExamSectionSummaryDTO
+    {
+        public SkillType SkillType { get; set; }
+
+        public string SkillName { get; set; } = null!;
+
+        public int TotalQuestions { get; set; }
+
+        public decimal TotalPoints { get; set; }
+    }
+
+   
 }

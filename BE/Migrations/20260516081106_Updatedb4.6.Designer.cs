@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using QuizzTiengNhat.Models;
@@ -11,9 +12,11 @@ using QuizzTiengNhat.Models;
 namespace QuizzTiengNhat.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260516081106_Updatedb4.6")]
+    partial class Updatedb46
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -153,8 +156,8 @@ namespace QuizzTiengNhat.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<decimal>("TotalMaxScore")
-                        .HasColumnType("numeric");
+                    b.Property<double>("TotalMaxScore")
+                        .HasColumnType("double precision");
 
                     b.Property<int>("Type")
                         .HasColumnType("integer");
@@ -532,7 +535,7 @@ namespace QuizzTiengNhat.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<decimal>("Score")
-                        .HasColumnType("decimal(18,10)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("Version")
                         .HasColumnType("integer");

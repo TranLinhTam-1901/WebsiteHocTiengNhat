@@ -31,7 +31,7 @@ namespace QuizzTiengNhat.Models
 
         // Điểm số của riêng câu hỏi này trong bài thi này 
         // (Ví dụ: Câu đọc hiểu có thể 5 điểm, câu từ vựng 1 điểm)
-        [Column(TypeName = "decimal(18,2)")]
+        [Column(TypeName = "decimal(18,10)")]
         public decimal Score { get; set; } 
 
         public int Version { get; set; } = 1; 
