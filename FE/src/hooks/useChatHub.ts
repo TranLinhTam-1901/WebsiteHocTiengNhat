@@ -2,11 +2,13 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { HubConnectionBuilder, HubConnection, LogLevel } from '@microsoft/signalr';
 import { useSelector } from 'react-redux';
 import type { ChatConversationListItem, ChatMessage } from '../types/chat';
+import { getBrowserSessionId } from '../utils/browserSessionId';
 
 function getChatHubUrl(): string {
   const api = import.meta.env.VITE_API_URL ?? 'http://localhost:5167/api';
   const root = api.replace(/\/api\/?$/, '');
-  return `${root}/chatHub`;
+  const browserId = encodeURIComponent(getBrowserSessionId());
+  return `${root}/chatHub?browserId=${browserId}`;
 }
 
 type Options = {
@@ -51,6 +53,13 @@ export function useChatHub({ enabled, onReceiveMessage, onConversationUpdated }:
       cbConv.current?.(preview);
     });
 
+    connection.on('ForceLogout', (message: string) => {
+      localStorage.removeItem('token');
+      localStorage.removeItem('roles');
+      const encodedMsg = encodeURIComponent(message || 'Tài khoản đã đăng nhập nơi khác.');
+      window.location.replace(`/login?reason=forced&message=${encodedMsg}`);
+    });
+
     connectionRef.current = connection;
 
     let cancelled = false;
@@ -65,6 +74,7 @@ export function useChatHub({ enabled, onReceiveMessage, onConversationUpdated }:
 
     return () => {
       cancelled = true;
+      connection.off('ForceLogout');
       connection.stop();
       if (connectionRef.current === connection) connectionRef.current = null;
       setConnected(false);

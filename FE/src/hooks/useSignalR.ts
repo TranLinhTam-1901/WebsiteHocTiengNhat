@@ -2,6 +2,8 @@ import { useEffect, useRef } from 'react';
 import { HubConnectionBuilder, LogLevel, HubConnection } from '@microsoft/signalr';
 import { useDispatch, useSelector } from 'react-redux'; // Thêm useSelector
 import { setOnlineCount, fetchUsers } from '../store/admin.slice';
+import { resolveBackendOrigin } from '../utils/resolveBackendOrigin';
+import { getBrowserSessionId } from '../utils/browserSessionId';
 
 export const useSignalR = () => {
   const dispatch = useDispatch();
@@ -23,10 +25,13 @@ export const useSignalR = () => {
     // Chặn tạo kết nối trùng lặp
     if (connectionRef.current && connectionRef.current.state !== "Disconnected") return;
 
+    const browserId = encodeURIComponent(getBrowserSessionId());
+    const hubUrl = `${resolveBackendOrigin()}/presenceHub?browserId=${browserId}`;
+
     const connection = new HubConnectionBuilder()
-      .withUrl("https://localhost:7055/presenceHub", {
+      .withUrl(hubUrl, {
         // QUAN TRỌNG: Dùng trực tiếp biến token từ Redux để đảm bảo tính Realtime
-        accessTokenFactory: () => token 
+        accessTokenFactory: () => token,
       })
       .withAutomaticReconnect()
       .configureLogging(LogLevel.None)
@@ -61,7 +66,7 @@ export const useSignalR = () => {
           dispatch(fetchUsers());
         });
 
-      } catch (err: any) {
+      } catch {
         connectionRef.current = null;
       }
     };
