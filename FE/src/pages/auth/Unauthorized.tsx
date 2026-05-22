@@ -1,7 +1,7 @@
 const Unauthorized = () => {
   return (
     <div style={{ padding: 40 }}>
-      <h1>403 - Unauthorized</h1>
+      <h1>403 — Không có quyền truy cập</h1>
       <p>Bạn không có quyền truy cập trang này</p>
     </div>
   );
