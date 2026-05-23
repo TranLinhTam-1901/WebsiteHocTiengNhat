@@ -11,7 +11,8 @@ namespace QuizzTiengNhat.DTOs.Learner
         public int Duration { get; set; }
          
         public int Version { get; set; } 
-        public List<QuestionDisplayDTO> Questions { get; set; } = new List<QuestionDisplayDTO>();
+        // public List<QuestionDisplayDTO> Questions { get; set; } = new List<QuestionDisplayDTO>();
+        public List<ExamTreeItemDTO> Sections { get; set; } = [];
     }
 
     public class ExamStructuredDTO
@@ -62,6 +63,35 @@ namespace QuizzTiengNhat.DTOs.Learner
         public List<SubQuestionDTO> SubQuestions { get; set; } = new List<SubQuestionDTO>();
     }
 
+
+    public class ExamTreeItemDTO
+    {
+        public string Type { get; set; } = string.Empty;
+
+        public Guid QuestionID { get; set; }
+
+        public string SkillType { get; set; } = string.Empty;
+
+        // parent shared content
+        public string? Content { get; set; }
+
+        public string? AudioUrl { get; set; }
+
+        public string? Script { get; set; }
+
+        public string? ImageURL { get; set; }
+
+        public int? OrderIndex { get; set; }
+
+        public decimal? Score { get; set; }
+
+        // dùng cho Normal
+        public List<AnswerOptionDTO> Options { get; set; } = [];
+
+        // dùng cho Reading / Listening
+        public List<QuestionDisplayDTO> SubQuestions { get; set; } = [];
+    }
+
     public class SubQuestionDTO
     {
         public Guid QuestionID { get; set; }
@@ -96,9 +126,59 @@ namespace QuizzTiengNhat.DTOs.Learner
         public int CorrectAnswers { get; set; }
         public int TotalQuestions { get; set; }
         public int TimeSpent { get; set; }
-        public List<ExamReviewQuestionDTO> Questions { get; set; } = new();
+
+        public bool? IsPassed { get; set; }
+        public float? PassingScore { get; set; }
+        public List<ExamResultSectionScoreDTO>? SectionScores { get; set; }
+        public List<ExamReviewTreeItemDTO> Sections { get; set; } = [];
+
     }
 
+    public class ExamResultSectionScoreDTO
+    {
+        public string SectionName { get; set; } = string.Empty;
+
+        public float Score { get; set; }
+
+        public float MinScore { get; set; }
+
+        public int CorrectAnswers { get; set; }
+
+        public int TotalQuestions { get; set; }
+
+        public bool IsPassed { get; set; }
+    }
+    public class ExamReviewTreeItemDTO
+    {
+        public string Type { get; set; } = string.Empty;
+
+        public string SkillType { get; set; } = string.Empty;
+
+        // parent content hoặc normal question content
+        public string? Content { get; set; }
+
+        public string? AudioUrl { get; set; }
+
+        public string? Script { get; set; }
+
+        public string? ImageURL { get; set; }
+
+        public int? OrderIndex { get; set; }
+
+        public decimal? Score { get; set; }
+
+        // dùng cho Normal
+        public Guid? QuestionID { get; set; }
+
+        public bool? IsCorrect { get; set; }
+
+        public int? ResponseTime { get; set; }
+
+        public List<AnswerOptionDTO> Answers { get; set; } = [];
+
+        // dùng cho Reading / Listening
+        public List<ExamReviewQuestionDTO> SubQuestions { get; set; } = [];
+    }
     public class ExamReviewQuestionDTO
     {
         public Guid QuestionID { get; set; }

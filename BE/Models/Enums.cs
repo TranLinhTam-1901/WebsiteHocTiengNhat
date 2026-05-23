@@ -84,4 +84,10 @@ namespace QuizzTiengNhat.Models.Enums
         Exam = 1
     }
 
+    public enum SessionStatus
+    {
+        InProgress = 0, // Đang làm
+        Submitted = 1, // Đã submit
+        Abandoned = 2 // Bỏ dở
+    }
 }

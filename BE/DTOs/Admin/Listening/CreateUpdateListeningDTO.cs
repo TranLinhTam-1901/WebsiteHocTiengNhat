@@ -16,6 +16,9 @@ namespace QuizzTiengNhat.DTOs.Admin.Listening
         [Required(ErrorMessage = "Vui lòng chọn trình độ")]
         public Guid LevelID { get; set; }
 
+        [Required(ErrorMessage = "Vui lòng chọn khóa học")]
+        public Guid CourseID { get; set; }
+
         [MinLength(1, ErrorMessage = "Vui lòng chọn ít nhất một chủ đề")]
         public List<Guid> TopicIDs { get; set; } = new List<Guid>();
 

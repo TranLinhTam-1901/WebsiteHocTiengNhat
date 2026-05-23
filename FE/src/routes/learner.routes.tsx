@@ -52,6 +52,7 @@ import ExamDetailPage from '../pages/learner/Exam/ExamDetailPage';
 import JLPTExamListPage from '../pages/learner/Exam/JLPT/JLPTExamListPage';
 import JLPTExamSummaryPage from '../pages/learner/Exam/JLPT/JLPTExamSummaryPage';
 import JLPTExamTakingPage from '../pages/learner/Exam/JLPT/JLPTExamTakingPage';
+import JLPTResultPage from '../pages/learner/Exam/JLPT/JLPTResultPage';
 
 export const learnerRoutes: RouteObject = {
   path: '/learner',
@@ -88,6 +89,8 @@ export const learnerRoutes: RouteObject = {
     { path: 'exams/jlpt-exams', element: <JLPTExamListPage /> },
     { path: 'exams/jlpt-exams/:id/summary', element: <JLPTExamSummaryPage /> },
     { path: 'exams/jlpt-exams/:id/take', element: <JLPTExamTakingPage /> },
+    { path: 'exams/jlpt-exams/result/:resultId', element: <JLPTResultPage /> },
+
     // Skill Learning
     { path: 'skill-learning/:skillType', element: <SkillHubPage /> },
     { path: 'skill-learning/:skillType/practice-list', element: <SkillPracticeListPage /> },

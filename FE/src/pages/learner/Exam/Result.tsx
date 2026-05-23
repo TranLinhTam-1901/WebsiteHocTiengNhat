@@ -20,6 +20,18 @@ const QuizResult: React.FC = () => {
   const courseId = locationState.courseId;
   const { skillType } = useParams<{ skillType?: string }>();
 
+  const API_BASE_URL = "http://localhost:5167";
+
+  const getMediaUrl = (path?: string | null) => {
+    if (!path) return "";
+
+    if (path.startsWith("http")) {
+      return path;
+    }
+
+    return `${API_BASE_URL}${path}`;
+  };
+
 //   const handleBack = () => {
 //   if (courseId) {
 //     // Nếu có courseId, quay về trang chi tiết lộ trình của khóa học đó
@@ -188,114 +200,179 @@ const handleFinish = () => {
 
         <section className="space-y-4">
           <h2 className="text-xl font-black">Chi tiết đáp án</h2>
-          {result.questions.map((q, index) => (
-            <article
-              key={q.questionID}
-              className={`bg-white rounded-3xl border p-6 ${
-                q.isCorrect ? 'border-emerald-100' : 'border-rose-100'
-              }`}
-            >
-              <div className="flex items-start justify-between gap-4 mb-4">
-                <div className="flex items-start gap-3">
-                  <span className={`size-8 rounded-lg flex items-center justify-center text-xs font-black ${
-                    q.isCorrect ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'
-                  }`}>
-                    {index + 1}
-                  </span>
-                  <p className="font-bold leading-relaxed">{q.content}</p>
-                </div>
-                <span className={`text-xs px-3 py-1 rounded-full font-black uppercase tracking-wider ${
-                  q.isCorrect ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'
-                }`}>
-                  {q.isCorrect ? 'Đúng' : 'Sai'}
-                </span>
-              </div>
-
-              <div className="space-y-3 mt-4">
-              {q.answers.map((opt) => (
-                <div
-                  key={opt.answerID}
-                  className={`p-4 rounded-2xl border-2 ${
-                    opt.isCorrect
-                      ? 'border-emerald-500 bg-emerald-50'
-                      : opt.isSelected
-                      ? 'border-rose-400 bg-rose-50'
-                      : 'border-[#f4f0f2]'
+          {result.sections.map((section, index) => {
+            if (section.type === 'Normal') {
+              return (
+                <article
+                  key={section.questionID}
+                  className={`bg-white rounded-3xl border p-6 ${
+                    section.isCorrect ? 'border-emerald-100' : 'border-rose-100'
                   }`}
                 >
-                  <div className="flex items-center justify-between gap-4">
-                    <p className="font-medium">{opt.answerText}</p>
+                  <div className="flex items-start justify-between gap-4 mb-4">
+                    <div className="flex items-start gap-3">
+                      <span
+                        className={`size-8 rounded-lg flex items-center justify-center text-xs font-black ${
+                          section.isCorrect
+                            ? 'bg-emerald-50 text-emerald-700'
+                            : 'bg-rose-50 text-rose-700'
+                        }`}
+                      >
+                        {index + 1}
+                      </span>
 
-                    <div className="flex gap-2">
-                      {opt.isSelected && (
-                        <span className="text-xs font-black px-2 py-1 rounded-full bg-rose-100 text-rose-700">
-                          Bạn chọn
-                        </span>
-                      )}
-
-                      {opt.isCorrect && (
-                        <span className="text-xs font-black px-2 py-1 rounded-full bg-emerald-100 text-emerald-700">
-                          Đáp án đúng
-                        </span>
-                      )}
+                      <p className="font-bold leading-relaxed">
+                        {section.content}
+                      </p>
                     </div>
+
+                    <span
+                      className={`text-xs px-3 py-1 rounded-full font-black uppercase tracking-wider ${
+                        section.isCorrect
+                          ? 'bg-emerald-50 text-emerald-700'
+                          : 'bg-rose-50 text-rose-700'
+                      }`}
+                    >
+                      {section.isCorrect ? 'Đúng' : 'Sai'}
+                    </span>
                   </div>
 
-                </div>
-              ))}
-            </div>
+                  <div className="space-y-3 mt-4">
+                    {section.answers.map((opt) => (
+                      <div
+                        key={opt.answerID}
+                        className={`p-4 rounded-2xl border-2 ${
+                          opt.isCorrect
+                            ? 'border-emerald-500 bg-emerald-50'
+                            : opt.isSelected
+                            ? 'border-rose-400 bg-rose-50'
+                            : 'border-[#f4f0f2]'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-4">
+                          <p className="font-medium">{opt.answerText}</p>
 
+                          <div className="flex gap-2">
+                            {opt.isSelected && (
+                              <span className="text-xs font-black px-2 py-1 rounded-full bg-rose-100 text-rose-700">
+                                Bạn chọn
+                              </span>
+                            )}
 
-            {(q.subQuestions?.length ?? 0) > 0 && (
-              <div className="mt-6 space-y-6">
-                {q.subQuestions?.map((subQ, subIndex) => (
-                  <div
-                    key={subQ.questionID}
-                    className="border border-[#f4f0f2] rounded-2xl p-5 bg-[#fcfafb]"
-                  >
-                    <p className="font-bold mb-4">
-                      {index + 1}.{subIndex + 1} {subQ.content}
-                    </p>
-
-                    <div className="space-y-3">
-                      {subQ.answers.map((opt) => (
-                        <div
-                          key={opt.answerID}
-                          className={`p-4 rounded-xl border-2 ${
-                            opt.isCorrect
-                              ? 'border-emerald-500 bg-emerald-50'
-                              : opt.isSelected
-                              ? 'border-rose-400 bg-rose-50'
-                              : 'border-[#f4f0f2]'
-                          }`}
-                        >
-                          <div className="flex justify-between items-center">
-                            <p>{opt.answerText}</p>
-
-                            <div className="flex gap-2">
-                              {opt.isSelected && (
-                                <span className="text-xs px-2 py-1 rounded-full bg-rose-100 text-rose-700 font-bold">
-                                  Bạn chọn
-                                </span>
-                              )}
-
-                              {opt.isCorrect && (
-                                <span className="text-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 font-bold">
-                                  Đúng
-                                </span>
-                              )}
-                            </div>
+                            {opt.isCorrect && (
+                              <span className="text-xs font-black px-2 py-1 rounded-full bg-emerald-100 text-emerald-700">
+                                Đáp án đúng
+                              </span>
+                            )}
                           </div>
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            )}
+                </article>
+              );
+            }
 
-            </article>
-          ))}
+            return (
+              <article
+                key={`${section.type}-${index}`}
+                className="bg-white rounded-3xl border border-[#f4f0f2] p-6"
+              >
+                <h3 className="text-sm font-black uppercase tracking-[0.2em] text-primary mb-4">
+                  {section.type}
+                </h3>
+
+                {section.content && (
+                  <div className="mb-6 p-5 rounded-2xl bg-[#fbf9fa] border border-[#f4f0f2] whitespace-pre-wrap leading-relaxed">
+                    {section.content}
+                  </div>
+                )}
+
+                {section.audioUrl && (
+                  <audio controls className="w-full mb-6" src={getMediaUrl(section.audioUrl)} />
+                )}
+
+                {/* {section.imageURL && (
+                  <div className="mb-6">
+                    <img
+                      src={getMediaUrl(section.imageURL)}
+                      alt="Shared"
+                      className="w-full rounded-2xl border border-[#f4f0f2] object-contain max-h-[28rem]"
+                    />
+                  </div>
+                )} */}
+
+                <div className="space-y-6">
+                  {section.subQuestions.map((subQ, subIndex) => (
+                    <div
+                      key={subQ.questionID}
+                      className={`rounded-2xl border p-5 ${
+                        subQ.isCorrect ? 'border-emerald-100' : 'border-rose-100'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-4 mb-4">
+
+                        <p className="font-bold leading-relaxed">
+                          {subIndex + 1}. {subQ.content}
+                        </p>
+                        
+                        {subQ.imageUrl && (
+                          <img
+                            src={getMediaUrl(subQ.imageUrl)}
+                            alt="Question"
+                            className=" mt-4 w-full max-h-[24rem] object-contain rounded-2xl border border-[#f4f0f2]"
+                          />
+                        )}
+
+                        <span
+                          className={`text-xs px-3 py-1 rounded-full font-black uppercase tracking-wider ${
+                            subQ.isCorrect
+                              ? 'bg-emerald-50 text-emerald-700'
+                              : 'bg-rose-50 text-rose-700'
+                          }`}
+                        >
+                          {subQ.isCorrect ? 'Đúng' : 'Sai'}
+                        </span>
+                      </div>
+
+                      <div className="space-y-3">
+                        {subQ.answers.map((opt) => (
+                          <div
+                            key={opt.answerID}
+                            className={`p-4 rounded-xl border-2 ${
+                              opt.isCorrect
+                                ? 'border-emerald-500 bg-emerald-50'
+                                : opt.isSelected
+                                ? 'border-rose-400 bg-rose-50'
+                                : 'border-[#f4f0f2]'
+                            }`}
+                          >
+                            <div className="flex justify-between items-center gap-4">
+                              <p>{opt.answerText}</p>
+
+                              <div className="flex gap-2">
+                                {opt.isSelected && (
+                                  <span className="text-xs px-2 py-1 rounded-full bg-rose-100 text-rose-700 font-bold">
+                                    Bạn chọn
+                                  </span>
+                                )}
+
+                                {opt.isCorrect && (
+                                  <span className="text-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 font-bold">
+                                    Đáp án đúng
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </article>
+            );
+          })}
         </section>
 
         <div className="flex flex-wrap gap-3 justify-end pb-8">

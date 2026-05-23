@@ -99,7 +99,7 @@ const SkillPracticeListPage: React.FC = () => {
                                                     <span className="bg-amber-100 text-amber-600 text-[10px] font-black px-2 py-0.5 rounded-full uppercase">Mới</span>
                                                 )}
                                             </div>
-                                            <div className="flex items-center gap-4 mt-1 text-sm text-[#886373] font-medium">
+                                            {/* <div className="flex items-center gap-4 mt-1 text-sm text-[#886373] font-medium">
                                                 <span className="flex items-center gap-1">
                                                     <span className="material-symbols-outlined text-sm">timer</span>
                                                     {exam.duration} phút
@@ -108,7 +108,7 @@ const SkillPracticeListPage: React.FC = () => {
                                                     <span className="material-symbols-outlined text-sm">emoji_events</span>
                                                     Điểm cao nhất: {exam.bestScore}
                                                 </span>
-                                            </div>
+                                            </div> */}
                                         </div>
                                     </div>
 

@@ -24,6 +24,9 @@ export interface LearnerExamFilters {
 export interface AnswerOptionDTO {
   answerID: string;
   answerText: string;
+
+  isCorrect?: boolean;
+  isSelected?: boolean;
 }
 
 export interface QuestionDisplayDTO {
@@ -42,14 +45,51 @@ export interface QuestionDisplayDTO {
   options: AnswerOptionDTO[];
   subQuestions: QuestionDisplayDTO[];
 
+}
 
+export interface SubQuestionDTO {
+  questionID: string;
+
+  content: string;
+
+  options: AnswerOptionDTO[];
+}
+
+export interface ExamTreeItemDTO {
+  type: string;
+
+  questionID?: string;
+
+  readingID?: string;
+  listeningID?: string;
+
+  orderIndex?: number;
+
+  score?: number;
+
+  skillType: string;
+
+  content: string;
+
+  audioUrl?: string | null;
+
+  script?: string | null;
+
+  imageURL?: string | null;
+
+  options: AnswerOptionDTO[];
+
+  subQuestions: QuestionDisplayDTO[];
 }
 
 export interface ExamDisplayDTO {
   examID: string;
   title: string;
   duration: number;
-  questions: QuestionDisplayDTO[];
+  
+  version: number;
+
+  sections: ExamTreeItemDTO[];
 }
 
 // DTO để nộp bài
@@ -71,17 +111,48 @@ export interface ExamReviewQuestionDTO {
   content: string;
   isCorrect: boolean;
   responseTime: number;
-  answers: ExamReviewAnswerDTO[];
+  answers: AnswerOptionDTO[];
+  explanation?: string | null;
+  audioUrl?: string | null;
+  imageUrl?: string | null;
   subQuestions?: ExamReviewQuestionDTO[];
 }
 
-export interface ExamReviewAnswerDTO {
-  answerID: string;
-  answerText: string;
+export interface ExamReviewTreeItemDTO {
+  type: string;
 
-  isCorrect: boolean;
-  isSelected: boolean;
+  skillType: string;
+
+  content?: string | null;
+
+  audioUrl?: string | null;
+
+  script?: string | null;
+
+  imageURL?: string | null;
+
+  orderIndex?: number | null;
+
+  score?: number | null;
+
+  questionID?: string | null;
+
+  isCorrect?: boolean | null;
+
+  responseTime?: number | null;
+
+  answers: AnswerOptionDTO[];
+
+  subQuestions: ExamReviewQuestionDTO[];
 }
+
+// export interface ExamReviewAnswerDTO {
+//   answerID: string;
+//   answerText: string;
+
+//   isCorrect: boolean;
+//   isSelected: boolean;
+// }
 export interface SubmitExamResultDTO {
   resultID: string;
   examID: string;
@@ -91,9 +162,22 @@ export interface SubmitExamResultDTO {
   correctAnswers: number;
   totalQuestions: number;
   timeSpent: number;
-  questions: ExamReviewQuestionDTO[];
+
+  isPassed?: boolean | null;
+  passingScore?: number | null;
+  sectionScores?: ExamResultSectionScoreDTO[] | null;
+  
+  sections: ExamReviewTreeItemDTO[];
 }
 
+export interface ExamResultSectionScoreDTO {
+  sectionName: string;
+  score: number;
+  minScore: number;
+  correctAnswers: number;
+  totalQuestions: number;
+  isPassed: boolean;
+}
 
 // JLPT MOCK TEST
 

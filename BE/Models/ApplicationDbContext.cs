@@ -54,6 +54,10 @@ namespace QuizzTiengNhat.Models
         public DbSet<Exam_Result_Details> Exam_Result_Details { get; set; }
         public DbSet<User_Skill_Matrix> User_Skill_Matrices { get; set; }
 
+        public DbSet<Exam_Sessions> Exam_Sessions { get; set; }
+
+        public DbSet<Exam_Session_Answers> Exam_Session_Answers { get; set; }
+
         // --- 6. Hệ thống Flashcard & Cá nhân hóa (MỚI) ---
         public DbSet<FlashcardDeck> FlashcardDecks { get; set; }
         public DbSet<FlashcardItem> FlashcardItems { get; set; }

@@ -71,6 +71,7 @@ namespace QuizzTiengNhat.Controllers.Admins
                 speedCategory = l.SpeedCategory,
                 status = l.Status,
                 levelID = l.LevelID,
+                courseID = l.LessonID != Guid.Empty ? _context.Lessons.Where(ls => ls.LessonID == l.LessonID).Select(ls => ls.CourseID).FirstOrDefault() : Guid.Empty,  // NEW: Get courseID from lesson
                 // SỬA: Trả về danh sách IDs để FE binding vào Multi-select
                 topicIDs = l.ListeningTopics.Select(lt => lt.TopicID).ToList(),
                 lessonID = l.LessonID,
@@ -313,8 +314,29 @@ namespace QuizzTiengNhat.Controllers.Admins
         public async Task<IActionResult> GetTopics() =>
             Ok(await _context.Topics.Select(t => new { topicID = t.TopicID, topicName = t.TopicName }).ToListAsync());
 
+        [HttpGet("metadata/courses")]
+        public async Task<IActionResult> GetCourses() =>
+            Ok(await _context.Courses.Select(c => new { courseID = c.CourseID, courseName = c.CourseName }).ToListAsync());
+
         [HttpGet("metadata/lessons")]
-        public async Task<IActionResult> GetLessons() =>
-            Ok(await _context.Lessons.Select(l => new { lessonID = l.LessonID, title = l.Title }).ToListAsync());
+        public async Task<IActionResult> GetLessons([FromQuery] Guid? courseId = null)
+        {
+            var query = _context.Lessons.AsQueryable();
+
+            if (courseId.HasValue && courseId.Value != Guid.Empty)
+            {
+                query = query.Where(l => l.CourseID == courseId.Value);
+            }
+
+            return Ok(await query
+                .OrderBy(l => l.SortOrder)
+                .Select(l => new
+                {
+                    lessonID = l.LessonID,
+                    title = l.Title,
+                    courseID = l.CourseID
+                })
+                .ToListAsync());
+        }
     }
 }
