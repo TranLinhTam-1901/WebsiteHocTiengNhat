@@ -73,35 +73,50 @@ public class LearnerExamController : ControllerBase
             .GroupBy(d => d.QuestionID)
             .ToDictionary(g => g.Key, g => g.First());
 
-        var reviewQuestions = examQuestions.Select(eq =>
+            bool? isPassed = null;
+        float? passingScore = null;
+        List<ExamResultSectionScoreDTO>? sectionScores = null;
+
+        if (exam.Type == ExamType.MockTest)
         {
-            var q = eq.Question!;
-            detailMap.TryGetValue(q.QuestionID, out var d);
-            historyMap.TryGetValue(q.QuestionID, out var h);
+            passingScore = (float)exam.PassingScore;
 
-            var correctAnswer = q.Answers.FirstOrDefault(a => a.IsCorrect);
-            Guid? selectedAnswerId = h?.SelectedAnswerID;
-            var selectedAnswer = selectedAnswerId.HasValue
-                ? q.Answers.FirstOrDefault(a => a.AnswerID == selectedAnswerId.Value)
-                : null;
+            var template = await _context.ExamTemplates
+                .AsNoTracking()
+                .FirstOrDefaultAsync(t => t.TemplateID == exam.TemplateID);
 
-            return new ExamReviewQuestionDTO
+            var templateDetails = await _context.ExamTemplateDetails
+                .AsNoTracking()
+                .Where(td => td.TemplateID == exam.TemplateID)
+                .ToListAsync();
+
+            sectionScores = BuildJLPTSectionScores(
+                result.ResultDetails.ToList(),
+                templateDetails,
+                template
+            );
+
+            isPassed =
+                result.Score >= passingScore &&
+                sectionScores.All(x => x.IsPassed);
+        }
+
+        var answerMap = historyMap.ToDictionary(
+            x => x.Key,
+            x => new UserAnswerSelectionDTO
             {
-                QuestionID = q.QuestionID,
-                Content = q.Content,
-                IsCorrect = d?.IsCorrect ?? false,
-                ResponseTime = d?.ResponseTime ?? 0,
-                Answers = q.Answers.Select(a => new  AnswerOptionDTO
-                {
-                    AnswerID = a.AnswerID,
-                    AnswerText = a.AnswerText,
+                QuestionID = x.Value.QuestionID,
+                SelectedAnswerID = x.Value.SelectedAnswerID,
+                TextAnswer = x.Value.TextAnswer,
+                ResponseTime = x.Value.TimeTaken
+            }
+        );
 
-                    IsCorrect = a.IsCorrect,
-
-                    IsSelected = h?.SelectedAnswerID == a.AnswerID
-                }).ToList()
-            };
-        }).ToList();
+        var reviewSections = await BuildExamReviewTreeV2(
+            examQuestions,
+            answerMap,
+            detailMap
+        );
 
         var response = new SubmitExamResultDTO
         {
@@ -113,76 +128,65 @@ public class LearnerExamController : ControllerBase
             CorrectAnswers = result.ResultDetails.Count(d => d.IsCorrect),
             TotalQuestions = examQuestions.Count,
             TimeSpent = result.TimeSpent,
-            Questions = reviewQuestions
+
+            IsPassed = isPassed,
+            PassingScore = passingScore,
+            SectionScores = sectionScores,
+
+            Sections = reviewSections
+
         };
 
         return Ok(response);
     }
 
-    
    [HttpGet("{id}/questions")]
     public async Task<IActionResult> GetExamQuestions(Guid id)
     {
-        // 1. Tải dữ liệu với các liên kết chính xác theo Model
         var exam = await _context.Exams
-            .Include(e => e.ExamQuestions.OrderBy(eq => eq.OrderIndex))
-                .ThenInclude(eq => eq.Question)
-                    .ThenInclude(q => q.Answers)
-            .Include(e => e.ExamQuestions)
-                .ThenInclude(eq => eq.Question)
-                    .ThenInclude(q => q.SubQuestions) // Tải thêm câu hỏi con
-                        .ThenInclude(sq => sq.Answers)
-            .Include(e => e.ExamQuestions)
-                .ThenInclude(eq => eq.Question)
-                    .ThenInclude(q => q.Reading) // Liên kết bài đọc
             .FirstOrDefaultAsync(e => e.ExamID == id);
 
-        if (exam == null) return NotFound("Đề thi không tồn tại.");
+        if (exam == null)
+            return NotFound("Đề thi không tồn tại.");
 
-        // 2. Lọc và ánh xạ dữ liệu
+        var examQuestions = await _context.Exam_Questions
+            .Include(eq => eq.Question)
+                .ThenInclude(q => q.Answers)
+
+            .Include(eq => eq.Question)
+                .ThenInclude(q => q.SubQuestions)
+                    .ThenInclude(sq => sq.Answers)
+
+            .Include(eq => eq.Question)
+                .ThenInclude(q => q.Reading)
+
+            .Include(eq => eq.Question)
+                .ThenInclude(q => q.Listening)
+
+            .Where(eq =>
+                eq.ExamID == id &&
+                eq.Version == exam.Version &&
+                eq.Question != null &&
+                eq.Question.Status == Status.Published)
+            .OrderBy(eq => eq.OrderIndex)
+            .ToListAsync();
+
+        var tree = await BuildExamQuestionTreeV2(examQuestions);
+
         var response = new ExamDisplayDTO
         {
             ExamID = exam.ExamID,
             Title = exam.Title,
             Duration = exam.Duration,
-            Version = exam.Version, // Lấy version của đề thi
-            Questions = exam.ExamQuestions
-                .Where(eq => eq.Question != null 
-                            && eq.Question.ParentID == null // Chỉ lấy câu hỏi gốc/cha
-                            && eq.Question.Status == Status.Published
-                            && eq.Version == exam.Version) 
-                .Select(eq => new QuestionDisplayDTO 
-                {
-                    QuestionID = eq.Question.QuestionID,
-                    Content = eq.Question.Content,
-                    QuestionType = eq.Question.QuestionType,
-                    QuestionFormat = eq.Question.QuestionFormat,
-                    ReadingContent = eq.Question.Reading?.Content, // Lấy nội dung bài đọc nếu có
-                    AudioURL = eq.Question.AudioURL,
-                    // Ánh xạ danh sách đáp án
-                    Options = eq.Question.Answers.Select(a => new AnswerOptionDTO {
-                        AnswerID = a.AnswerID,
-                        AnswerText = a.AnswerText
-                    }).ToList(),
-                    // Ánh xạ câu hỏi con (SubQuestions)
-                    SubQuestions = eq.Question.SubQuestions
-                        .OrderBy(sq => sq.DisplayOrder)
-                        .Select(sq => new SubQuestionDTO {
-                            QuestionID = sq.QuestionID,
-                            Content = sq.Content,
-                            Options = sq.Answers.Select(sa => new AnswerOptionDTO {
-                                AnswerID = sa.AnswerID,
-                                AnswerText = sa.AnswerText
-                            }).ToList()
-                        }).ToList()
-                })
-                .ToList()
+            Version = exam.Version,
+
+            Sections = tree
         };
 
         return Ok(response);
     }
 
-    private async Task UpdateUserSkillMatrix(string userId, List<Exam_Result_Details> details,Guid? levelId )
+    private async Task UpdateUserSkillMatrixFromPractice(string userId, List<Exam_Result_Details> details,Guid? levelId )
     {
         // Lọc bỏ những bản ghi có SkillType null trước khi group để tránh lỗi Nullable
         var skillGroups = details
@@ -260,6 +264,89 @@ public class LearnerExamController : ControllerBase
         }
     }
 
+    private async Task UpdateUserSkillMatrixFromMockTest(
+    string userId,
+    List<Exam_Result_Details> details,
+    Guid? levelId)
+    {
+        var skillGroups = details
+            .Where(d => d.SkillType.HasValue)
+            .GroupBy(d => d.SkillType.Value);
+
+        foreach (var group in skillGroups)
+        {
+            var skillType = group.Key;
+            var correctInSkill = group.Count(d => d.IsCorrect);
+            var totalInSkill = group.Count();
+
+            if (totalInSkill == 0) continue;
+
+            float performance = (float)correctInSkill / totalInSkill * 100;
+
+            var matrix = await _context.User_Skill_Matrices
+                .FirstOrDefaultAsync(m =>
+                    m.UserID == userId &&
+                    m.SkillType == skillType);
+
+            double avgResponseTime = group.Average(d => d.ResponseTime);
+
+            float timeWeight = avgResponseTime <= 30000
+                ? 1.0f
+                : Math.Max(
+                    0.5f,
+                    1.0f - (float)(avgResponseTime - 30000) / 60000
+                );
+
+            if (matrix == null)
+            {
+                int initialConfidence = performance >= 80
+                    ? (int)(65 * timeWeight)
+                    : performance >= 50
+                        ? 40
+                        : 20;
+
+                _context.User_Skill_Matrices.Add(new User_Skill_Matrix
+                {
+                    UserID = userId,
+                    SkillType = skillType,
+                    LevelID = levelId,
+                    Confidence = initialConfidence,
+                    NeedsReview = initialConfidence < 45,
+                    ProficiencyScore = (int)Math.Round(performance),
+                    LastUpdated = DateTime.UtcNow
+                });
+
+                continue;
+            }
+
+            matrix.ProficiencyScore = (int)Math.Round(
+                matrix.ProficiencyScore * 0.5f +
+                performance * 0.5f
+            );
+
+            float confidenceDelta;
+
+            if (performance >= 80)
+                confidenceDelta = 8 * timeWeight;
+            else if (performance < 50)
+                confidenceDelta = -15;
+            else
+                confidenceDelta = -5;
+
+            matrix.Confidence = Math.Clamp(
+                matrix.Confidence + (int)Math.Round(confidenceDelta),
+                0,
+                100
+            );
+
+            matrix.LastUpdated = DateTime.UtcNow;
+            matrix.NeedsReview = matrix.Confidence < 45;
+
+            if (matrix.LevelID == null)
+                matrix.LevelID = levelId;
+        }
+    }
+    
     [HttpPost("{id}/submit")]
     public async Task<IActionResult> SubmitExam(Guid id, [FromBody] SubmitExamRequestDTO request)
     {
@@ -267,13 +354,46 @@ public class LearnerExamController : ControllerBase
         if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
         var exam = await _context.Exams
-            .Include(e => e.Template)
-            .Include(e => e.ExamQuestions)
+        .Include(e => e.Template)
+        .Include(e => e.ExamQuestions)
             .ThenInclude(eq => eq.Question)
-            .ThenInclude(q => q.Answers)
-            .FirstOrDefaultAsync(e => e.ExamID == id);
+                .ThenInclude(q => q.Answers)
+        .FirstOrDefaultAsync(e => e.ExamID == id);
 
         if (exam == null) return NotFound();
+
+        bool isMockTest = exam.Type == ExamType.MockTest; 
+
+        Exam_Sessions? session = null;
+        List<UserAnswerSelectionDTO> userAnswerSelections;
+
+        if (isMockTest)
+        {
+            session = await _context.Exam_Sessions
+                .Include(x => x.Answers)
+                .FirstOrDefaultAsync(x =>
+                    x.ExamID == id &&
+                    x.UserID == userId &&
+                    x.Status == SessionStatus.InProgress);
+
+            if (session == null)
+                return BadRequest("Không tìm thấy session.");
+
+            userAnswerSelections = session.Answers
+                .Select(x => new UserAnswerSelectionDTO
+                {
+                    QuestionID = x.QuestionID,
+                    SelectedAnswerID = x.SelectedAnswerID,
+                    TextAnswer = x.TextAnswer,
+                    ResponseTime = x.ResponseTime
+                })
+                .ToList();
+        }
+        else
+        {
+            userAnswerSelections = request.Answers ?? new List<UserAnswerSelectionDTO>();
+        }
+
 
         var currentVersionQuestions = exam.ExamQuestions
                 .Where(eq => eq.Version == exam.Version && eq.Question != null)
@@ -281,30 +401,32 @@ public class LearnerExamController : ControllerBase
                 
         int correctCount = 0;
         var resultDetails = new List<Exam_Result_Details>();
-        var answerMap = request.Answers
-            .GroupBy(a => a.QuestionID)
-            .ToDictionary(g => g.Key, g => g.Last());
+        
+        var answerMap = userAnswerSelections
+        .GroupBy(a => a.QuestionID)
+        .ToDictionary(g => g.Key, g => g.Last());
 
-        foreach (var userAns in request.Answers)
+         foreach (var userAns in userAnswerSelections)
         {
             var question = currentVersionQuestions
-                            .Select(eq => eq.Question)
-                            .FirstOrDefault(q => q.QuestionID == userAns.QuestionID);
-            
+                .Select(eq => eq.Question)
+                .FirstOrDefault(q => q.QuestionID == userAns.QuestionID);
+
             if (question == null) continue;
 
             var correctAnswer = question.Answers.FirstOrDefault(a => a.IsCorrect);
             bool isCorrect = false;
 
-            // Logic chấm điểm (Trắc nghiệm & Tự luận)
             if (userAns.SelectedAnswerID.HasValue)
-                isCorrect = (userAns.SelectedAnswerID == correctAnswer?.AnswerID);
+                isCorrect = userAns.SelectedAnswerID == correctAnswer?.AnswerID;
             else if (!string.IsNullOrEmpty(userAns.TextAnswer))
-                isCorrect = correctAnswer?.AnswerText.Trim().Equals(userAns.TextAnswer.Trim(), StringComparison.OrdinalIgnoreCase) ?? false;
+                isCorrect = correctAnswer?.AnswerText.Trim().Equals(
+                    userAns.TextAnswer.Trim(),
+                    StringComparison.OrdinalIgnoreCase
+                ) ?? false;
 
             if (isCorrect) correctCount++;
 
-            // Chuẩn bị dữ liệu chi tiết
             resultDetails.Add(new Exam_Result_Details
             {
                 ResultDetailID = Guid.NewGuid(),
@@ -314,7 +436,6 @@ public class LearnerExamController : ControllerBase
                 SkillType = question.SkillType
             });
 
-            // Ghi vào lịch sử làm bài để AI/Flashcard sử dụng
             _context.UserAnswerHistories.Add(new UserAnswerHistory
             {
                 HistoryID = Guid.NewGuid(),
@@ -327,9 +448,13 @@ public class LearnerExamController : ControllerBase
             });
         }
 
+        
         // Tính tổng điểm
        float finalScore = 0;
-       bool isMockTest = exam.TemplateID != null && exam.Template?.TotalMaxScore == 180;
+
+       bool? isPassed = null;
+       float? passingScore = null;
+       List<ExamResultSectionScoreDTO>? sectionScores = null;
 
        if (isMockTest) 
         {
@@ -339,6 +464,7 @@ public class LearnerExamController : ControllerBase
                 .ToListAsync();
 
             decimal totalWeightedScore = 0;
+            
 
             foreach (var detail in resultDetails.Where(d => d.IsCorrect))
             {
@@ -349,7 +475,19 @@ public class LearnerExamController : ControllerBase
                     totalWeightedScore += pointRule.PointPerQuestion;
                 }
             }
+
             finalScore = (float)totalWeightedScore; 
+            passingScore = (float)exam.PassingScore;
+            sectionScores = BuildJLPTSectionScores(
+                resultDetails,
+                templateDetails,
+                exam.Template
+            );
+
+            isPassed =
+                finalScore >= passingScore &&
+                sectionScores.All(x => x.IsPassed);
+            
         }
         else 
         {
@@ -360,13 +498,12 @@ public class LearnerExamController : ControllerBase
                 : 0;
         }
         
-        var currentVersion = exam.Version;
-
+       
         var examResult = new Exam_Results
         {
             ResultID = Guid.NewGuid(),
             ExamID = id,
-            ExamVersion = currentVersion,
+            ExamVersion = exam.Version,
             UserID = userId,
             Score = finalScore,
             TimeSpent = request.TotalTimeSpent,
@@ -377,53 +514,44 @@ public class LearnerExamController : ControllerBase
         _context.Exam_Results.Add(examResult);
 
         var examLevelId = exam.LevelID;
-        // Cập nhật User_Skill_Matrix 
-        await UpdateUserSkillMatrix(userId, resultDetails, examLevelId);
 
+        // ======================
+        // UPDATE USER MATRIX
+        // ======================
+
+        if (isMockTest)
+        {
+            await UpdateUserSkillMatrixFromMockTest(
+                userId,
+                resultDetails,
+                examLevelId
+            );
+        }
+        else
+        {
+            await UpdateUserSkillMatrixFromPractice(
+                userId,
+                resultDetails,
+                examLevelId
+            );
+        }
+
+        // ======================
+        // UPDATE SESSION
+        // ======================
+
+        if (isMockTest && session != null)
+        {
+            session.Status = SessionStatus.Submitted;
+            session.LastAccessedAt = DateTime.UtcNow;
+        }
+        
         await _context.SaveChangesAsync();
 
-        var orderedQuestions = currentVersionQuestions
-            .OrderBy(eq => eq.OrderIndex)
-            .Select(eq => eq.Question!)
-            .ToList();
-
-        var reviewQuestions = orderedQuestions.Select(question =>
-        {
-            answerMap.TryGetValue(question.QuestionID, out var userAnswer);
-            var correctAnswer = question.Answers.FirstOrDefault(a => a.IsCorrect);
-            var selectedAnswer = userAnswer?.SelectedAnswerID.HasValue == true
-                ? question.Answers.FirstOrDefault(a => a.AnswerID == userAnswer.SelectedAnswerID.Value)
-                : null;
-
-            bool isCorrect = false;
-            if (userAnswer != null)
-            {
-                if (userAnswer.SelectedAnswerID.HasValue)
-                {
-                    isCorrect = userAnswer.SelectedAnswerID == correctAnswer?.AnswerID;
-                }
-                else if (!string.IsNullOrEmpty(userAnswer.TextAnswer))
-                {
-                    isCorrect = correctAnswer?.AnswerText.Trim().Equals(userAnswer.TextAnswer.Trim(), StringComparison.OrdinalIgnoreCase) ?? false;
-                }
-            }
-
-            return new ExamReviewQuestionDTO
-            {
-                QuestionID = question.QuestionID,
-                Content = question.Content,
-                IsCorrect = isCorrect,
-                ResponseTime = userAnswer?.ResponseTime ?? 0,
-                
-                Answers = question.Answers.Select(a => new  AnswerOptionDTO
-                {
-                    AnswerID = a.AnswerID,
-                    AnswerText = a.AnswerText,
-                    IsCorrect = a.IsCorrect,
-                    IsSelected = userAnswer?.SelectedAnswerID == a.AnswerID
-                }).ToList()
-            };
-        }).ToList();
+        var reviewSections = await BuildExamReviewTreeV2(
+            currentVersionQuestions,
+            answerMap
+        );
 
         var response = new SubmitExamResultDTO
         {
@@ -433,13 +561,179 @@ public class LearnerExamController : ControllerBase
             ExamDuration = exam.Duration,
             Score = finalScore,
             CorrectAnswers = correctCount,
-            TotalQuestions = orderedQuestions.Count,
+            TotalQuestions =currentVersionQuestions.Count,
             TimeSpent = request.TotalTimeSpent,
-            Questions = reviewQuestions
+
+            IsPassed = isPassed,
+            PassingScore = passingScore,
+            SectionScores = sectionScores,
+
+            Sections = reviewSections
         };
 
         return Ok(response);
     } 
+
+    private async Task<List<ExamReviewTreeItemDTO>> BuildExamReviewTreeV2(
+    List<Exam_Questions> examQuestions,
+    Dictionary<Guid, UserAnswerSelectionDTO> answerMap,
+    Dictionary<Guid, Exam_Result_Details>? detailMap = null)
+    {
+        var result = new List<ExamReviewTreeItemDTO>();
+
+        bool CalcIsCorrect(Questions question, UserAnswerSelectionDTO? userAnswer)
+        {
+            if (detailMap != null &&
+                detailMap.TryGetValue(question.QuestionID, out var detail))
+            {
+                return detail.IsCorrect;
+            }
+
+            if (userAnswer == null) return false;
+
+            var correctAnswer = question.Answers.FirstOrDefault(a => a.IsCorrect);
+
+            if (userAnswer.SelectedAnswerID.HasValue)
+                return userAnswer.SelectedAnswerID == correctAnswer?.AnswerID;
+
+            if (!string.IsNullOrEmpty(userAnswer.TextAnswer))
+                return correctAnswer?.AnswerText.Trim()
+                    .Equals(userAnswer.TextAnswer.Trim(), StringComparison.OrdinalIgnoreCase) ?? false;
+
+            return false;
+        }
+
+        int GetResponseTime(Questions question, UserAnswerSelectionDTO? userAnswer)
+        {
+            if (detailMap != null &&
+                detailMap.TryGetValue(question.QuestionID, out var detail))
+            {
+                return detail.ResponseTime;
+            }
+
+            return userAnswer?.ResponseTime ?? 0;
+        }
+
+        List<AnswerOptionDTO> BuildAnswers(Questions question, UserAnswerSelectionDTO? userAnswer)
+        {
+            return question.Answers
+            .OrderBy(a => a.AnswerText)
+            .Select(a => new AnswerOptionDTO
+            {
+                AnswerID = a.AnswerID,
+                AnswerText = a.AnswerText,
+                IsCorrect = a.IsCorrect,
+                IsSelected = userAnswer?.SelectedAnswerID == a.AnswerID
+            }).ToList();
+        }
+
+        ExamReviewQuestionDTO BuildSubQuestion(Exam_Questions eq)
+        {
+            var question = eq.Question!;
+            answerMap.TryGetValue(question.QuestionID, out var userAnswer);
+
+            return new ExamReviewQuestionDTO
+            {
+                QuestionID = question.QuestionID,
+                Content = question.Content,
+                IsCorrect = CalcIsCorrect(question, userAnswer),
+                ResponseTime = GetResponseTime(question, userAnswer),
+                ImageUrl = question.ImageURL,
+                Answers = BuildAnswers(question, userAnswer)
+            };
+        }
+
+        var normalQuestions = examQuestions
+            .Where(x => x.ReadingID == null && x.ListeningID == null)
+            .OrderBy(x => x.OrderIndex)
+            .ToList();
+
+        result.AddRange(normalQuestions.Select(x =>
+        {
+            var question = x.Question!;
+            answerMap.TryGetValue(question.QuestionID, out var userAnswer);
+
+            return new ExamReviewTreeItemDTO
+            {
+                Type = "Normal",
+                SkillType = question.SkillType.ToString(),
+                QuestionID = question.QuestionID,
+                Content = question.Content,
+                OrderIndex = x.OrderIndex,
+                Score = x.Score,
+                ImageURL = question.ImageURL,
+                IsCorrect = CalcIsCorrect(question, userAnswer),
+                ResponseTime = GetResponseTime(question, userAnswer),
+                Answers = BuildAnswers(question, userAnswer)
+            };
+        }));
+
+        var readingGroups = examQuestions
+            .Where(x => x.ReadingID != null)
+            .GroupBy(x => x.ReadingID);
+
+        foreach (var group in readingGroups)
+        {
+            var reading = await _context.Readings
+                .AsNoTracking()
+                .FirstOrDefaultAsync(r => r.ReadingID == group.Key);
+
+            if (reading == null) continue;
+
+            var ordered = group.OrderBy(x => x.OrderIndex).ToList();
+
+            result.Add(new ExamReviewTreeItemDTO
+            {
+                Type = "Reading",
+                SkillType = "Reading",
+                Content = reading.Content,
+                OrderIndex = ordered.First().OrderIndex,
+                SubQuestions = ordered.Select(BuildSubQuestion).ToList()
+            });
+        }
+
+        var listeningGroups = examQuestions
+            .Where(x => x.ListeningID != null)
+            .GroupBy(x => x.ListeningID);
+
+        foreach (var group in listeningGroups)
+        {
+            var listening = await _context.Listenings
+                .AsNoTracking()
+                .FirstOrDefaultAsync(l => l.ListeningID == group.Key);
+
+            if (listening == null) continue;
+
+            var ordered = group.OrderBy(x => x.OrderIndex).ToList();
+
+            result.Add(new ExamReviewTreeItemDTO
+            {
+                Type = "Listening",
+                SkillType = "Listening",
+                Content = listening.Title,
+                AudioUrl = listening.AudioURL,
+                Script = listening.Script,
+                OrderIndex = ordered.First().OrderIndex,
+                SubQuestions = ordered.Select(BuildSubQuestion).ToList()
+            });
+        }
+
+        return result
+            .OrderBy(x =>
+            {
+                return x.SkillType switch
+                {
+                    "Grammar" => 1,
+                    "Vocabulary" => 2,
+                    "Kanji" => 3,
+                    "Reading" => 4,
+                    "Listening" => 5,
+                    _ => 99
+                };
+            })
+            .ThenBy(x => x.OrderIndex)
+            .ToList();
+    }
 
     [HttpGet("jlpt")]
     public async Task<IActionResult> GetJLPTExams()
@@ -585,10 +879,10 @@ public class LearnerExamController : ControllerBase
         });
     }
 
-    private async Task<List<object>> BuildExamQuestionTreeV2(
+    private async Task<List<ExamTreeItemDTO>> BuildExamQuestionTreeV2(
     List<Exam_Questions> examQuestions)
     {
-        var result = new List<object>();
+       var result = new List<ExamTreeItemDTO>();
 
         // =========================
         // 1. NORMAL QUESTIONS (Grammar/Vocab/Kanji)
@@ -601,22 +895,28 @@ public class LearnerExamController : ControllerBase
             .ToList();
 
         result.AddRange(
-            normalQuestions.Select(x => new
+            normalQuestions.Select(x => new ExamTreeItemDTO
             {
                 Type = "Normal",
-                x.QuestionID,
-                x.OrderIndex,
-                x.Score,
+
+                QuestionID = x.Question.QuestionID,
 
                 SkillType = x.Question.SkillType.ToString(),
 
                 Content = x.Question.Content,
 
+                OrderIndex = x.OrderIndex,
+
+                Score = x.Score,
+
+                ImageURL = x.Question.ImageURL,
+
                 Options = x.Question.Answers
-                    .Select(a => new
+                    .OrderBy(a => a.AnswerText)
+                    .Select(a => new AnswerOptionDTO
                     {
-                        a.AnswerID,
-                        a.AnswerText
+                        AnswerID = a.AnswerID,
+                        AnswerText = a.AnswerText
                     })
                     .ToList()
             })
@@ -639,33 +939,34 @@ public class LearnerExamController : ControllerBase
 
             var ordered = group.OrderBy(x => x.OrderIndex).ToList();
 
-            result.Add(new
+           result.Add(new ExamTreeItemDTO
             {
                 Type = "Reading",
 
-                ReadingID = reading.ReadingID,
-
-                // 🔥 PARENT CONTENT (QUAN TRỌNG)
-                Content = reading.Content,
-                ImageURL = ordered.FirstOrDefault()?.Question?.ImageURL,
                 SkillType = "Reading",
 
-                SubQuestions = ordered.Select(x => new
-                {
-                    x.QuestionID,
-                    x.OrderIndex,
+                Content = reading.Content,
 
-                    Content = x.Question.Content,
-                    ImageURL = x.Question.ImageURL,
+                SubQuestions = ordered.Select(x =>
+                    new QuestionDisplayDTO
+                    {
+                        QuestionID = x.Question!.QuestionID,
 
-                    Options = x.Question.Answers
-                        .Select(a => new
-                        {
-                            a.AnswerID,
-                            a.AnswerText
-                        })
-                        .ToList()
-                }).ToList()
+                        Content = x.Question.Content,
+
+                        DisplayOrder = x.OrderIndex,
+
+                        ImageURL = x.Question.ImageURL,
+
+                        Options = x.Question.Answers
+                            .OrderBy(a => a.AnswerText)
+                            .Select(a => new AnswerOptionDTO
+                            {
+                                AnswerID = a.AnswerID,
+                                AnswerText = a.AnswerText
+                            })
+                            .ToList()
+                    }).ToList()
             });
         }
 
@@ -686,35 +987,38 @@ public class LearnerExamController : ControllerBase
 
             var ordered = group.OrderBy(x => x.OrderIndex).ToList();
 
-            result.Add(new
+            result.Add(new ExamTreeItemDTO
             {
                 Type = "Listening",
 
-                ListeningID = listening.ListeningID,
-
-                // 🔥 AUDIO + SCRIPT PARENT LEVEL
-                Content = listening.Title,
-                AudioUrl = listening.AudioURL,
-                Script = listening.Script,
-                ImageURL = ordered.FirstOrDefault()?.Question?.ImageURL,
-
                 SkillType = "Listening",
 
-                SubQuestions = ordered.Select(x => new
-                {
-                    x.QuestionID,
-                    x.OrderIndex,
+                Content = listening.Title,
 
-                    Content = x.Question.Content,
-                    ImageURL = x.Question.ImageURL,
-                    Options = x.Question.Answers
-                        .Select(a => new
-                        {
-                            a.AnswerID,
-                            a.AnswerText
-                        })
-                        .ToList()
-                }).ToList()
+                AudioUrl = listening.AudioURL,
+
+                Script = listening.Script,
+
+                SubQuestions = ordered.Select(x =>
+                    new QuestionDisplayDTO
+                    {
+                        QuestionID = x.Question!.QuestionID,
+
+                        Content = x.Question.Content,
+
+                        DisplayOrder = x.OrderIndex,
+
+                        ImageURL = x.Question.ImageURL,
+
+                        Options = x.Question.Answers
+                            .OrderBy(a => a.AnswerText)
+                            .Select(a => new AnswerOptionDTO
+                            {
+                                AnswerID = a.AnswerID,
+                                AnswerText = a.AnswerText
+                            })
+                            .ToList()
+                    }).ToList()
             });
         }
 
@@ -739,7 +1043,86 @@ public class LearnerExamController : ControllerBase
             .ToList();
     }
 
+
+        private List<ExamResultSectionScoreDTO> BuildJLPTSectionScores(
+            List<Exam_Result_Details> resultDetails,
+            List<ExamTemplateDetail> templateDetails,
+            ExamTemplate? template)
+        {
+            var languageSkills = new[]
+            {
+                SkillType.Vocabulary,
+                SkillType.Grammar,
+                SkillType.Kanji
+            };
+
+            return new List<ExamResultSectionScoreDTO>
+            {
+                BuildJLPTSingleSectionScore(
+                    "Language",
+                    resultDetails
+                        .Where(d => d.SkillType.HasValue &&
+                                    languageSkills.Contains(d.SkillType.Value))
+                        .ToList(),
+                    templateDetails
+                        .Where(td => languageSkills.Contains(td.SkillType))
+                        .ToList(),
+                    (float)(template?.MinLanguageKnowledgeScore ?? 0)
+                ),
+
+                BuildJLPTSingleSectionScore(
+                    "Reading",
+                    resultDetails
+                        .Where(d => d.SkillType == SkillType.Reading)
+                        .ToList(),
+                    templateDetails
+                        .Where(td => td.SkillType == SkillType.Reading)
+                        .ToList(),
+                    (float)(template?.MinReadingScore ?? 0)
+                ),
+
+                BuildJLPTSingleSectionScore(
+                    "Listening",
+                    resultDetails
+                        .Where(d => d.SkillType == SkillType.Listening)
+                        .ToList(),
+                    templateDetails
+                        .Where(td => td.SkillType == SkillType.Listening)
+                        .ToList(),
+                    (float)(template?.MinListeningScore ?? 0)
+                )
+            };
+        }
+
+        private ExamResultSectionScoreDTO BuildJLPTSingleSectionScore(
+            string sectionName,
+            List<Exam_Result_Details> details,
+            List<ExamTemplateDetail> templateRules,
+            float minScore)
+        {
+            float score = 0;
+
+            foreach (var detail in details.Where(d => d.IsCorrect))
+            {
+                var rule = templateRules
+                    .FirstOrDefault(r => r.SkillType == detail.SkillType);
+
+                if (rule != null)
+                {
+                    score += (float)rule.PointPerQuestion;
+                }
+            }
+
+            return new ExamResultSectionScoreDTO
+            {
+                SectionName = sectionName,
+                Score = score,
+                MinScore = minScore,
+                CorrectAnswers = details.Count(d => d.IsCorrect),
+                TotalQuestions = details.Count,
+                IsPassed = score >= minScore
+            };
+        }
+
     }
-
-
 }

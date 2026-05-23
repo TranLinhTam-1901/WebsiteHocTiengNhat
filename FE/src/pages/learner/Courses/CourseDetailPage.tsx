@@ -144,7 +144,7 @@ const CourseDetailPage: React.FC = () => {
                           >
                           {item.hasNewVersion ? 'Làm bản mới' : 'Làm bài'}
                           </button>
-                          {item.isCompleted && item.latestResultID && (
+                          {item.latestResultID && (
                             <button
                               type="button"
                               onClick={() => navigate(`/learner/quiz/result/${item.latestResultID}`, { state: { courseId } })}

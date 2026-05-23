@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using QuizzTiengNhat.Models;
@@ -11,9 +12,11 @@ using QuizzTiengNhat.Models;
 namespace QuizzTiengNhat.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260519075229_Updatedb4.9")]
+    partial class Updatedb49
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -92,75 +95,6 @@ namespace QuizzTiengNhat.Migrations
                     b.HasIndex("TemplateID");
 
                     b.ToTable("ExamTemplateDetails");
-                });
-
-            modelBuilder.Entity("Exam_Session_Answers", b =>
-                {
-                    b.Property<Guid>("SessionAnswerID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("QuestionID")
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("ResponseTime")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid?>("SelectedAnswerID")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("SessionID")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("TextAnswer")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("SessionAnswerID");
-
-                    b.HasIndex("SessionID");
-
-                    b.ToTable("Exam_Session_Answers");
-                });
-
-            modelBuilder.Entity("Exam_Sessions", b =>
-                {
-                    b.Property<Guid>("SessionID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("ExamID")
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("ExamVersion")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("ExpiresAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("LastAccessedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("RemainingTime")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("StartedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("UserID")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("SessionID");
-
-                    b.HasIndex("ExamID");
-
-                    b.ToTable("Exam_Sessions");
                 });
 
             modelBuilder.Entity("Exams", b =>
@@ -1668,28 +1602,6 @@ namespace QuizzTiengNhat.Migrations
                     b.Navigation("Template");
                 });
 
-            modelBuilder.Entity("Exam_Session_Answers", b =>
-                {
-                    b.HasOne("Exam_Sessions", "Session")
-                        .WithMany("Answers")
-                        .HasForeignKey("SessionID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Session");
-                });
-
-            modelBuilder.Entity("Exam_Sessions", b =>
-                {
-                    b.HasOne("Exams", "Exam")
-                        .WithMany()
-                        .HasForeignKey("ExamID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Exam");
-                });
-
             modelBuilder.Entity("Exams", b =>
                 {
                     b.HasOne("QuizzTiengNhat.Models.Courses", "Course")
@@ -2396,11 +2308,6 @@ namespace QuizzTiengNhat.Migrations
             modelBuilder.Entity("ExamTemplate", b =>
                 {
                     b.Navigation("Details");
-                });
-
-            modelBuilder.Entity("Exam_Sessions", b =>
-                {
-                    b.Navigation("Answers");
                 });
 
             modelBuilder.Entity("Exams", b =>

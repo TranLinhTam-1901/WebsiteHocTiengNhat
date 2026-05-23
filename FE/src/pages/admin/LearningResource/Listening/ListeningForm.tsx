@@ -16,8 +16,13 @@ const ListenEditor: React.FC = () => {
   const [metadata, setMetadata] = useState({
       levels: [] as any[],
       topics: [] as any[],
+      courses: [] as any[],
       lessons: [] as any[]
   });
+
+  // NEW: State quản lý course selection
+  const [selectedCourseId, setSelectedCourseId] = useState<string>('');
+  const [isCourseMenuOpen, setIsCourseMenuOpen] = useState(false);
 
   // 1. Thêm State để quản lý việc tìm kiếm Topic
   const [topicSearch, setTopicSearch] = useState('');
@@ -32,7 +37,7 @@ const ListenEditor: React.FC = () => {
   const [isVisibilityMenuOpen, setIsVisibilityMenuOpen] = useState(false);
   const [visibility, setVisibility] = useState('Published');
 
-  const [dropUp, setDropUp] = useState({ lesson: false, visibility: false , speed: false});
+  const [dropUp, setDropUp] = useState({ lesson: false, visibility: false , speed: false, course: false });
   const audioRef = React.useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
@@ -128,15 +133,31 @@ const ListenEditor: React.FC = () => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handleOpenDropdown = (type: 'lesson' | 'visibility' | 'speed', e: React.MouseEvent) => {
+  const handleOpenDropdown = (type: 'course' | 'lesson' | 'visibility' | 'speed', e: React.MouseEvent) => {
   const rect = e.currentTarget.getBoundingClientRect();
   const windowHeight = window.innerHeight;
   const isCloseToBottom = windowHeight - rect.bottom < 500;
   
   setDropUp(prev => ({ ...prev, [type]: isCloseToBottom }));
+    if(type === 'course') setIsCourseMenuOpen(!isCourseMenuOpen);
     if(type === 'lesson') setIsLessonMenuOpen(!isLessonMenuOpen);
     if(type === 'visibility') setIsVisibilityMenuOpen(!isVisibilityMenuOpen);
     if(type === 'speed') setIsSpeedMenuOpen(!isSpeedMenuOpen);
+  };
+
+  // NEW: Handler khi user chọn course
+  const handleCourseSelect = async (courseId: string) => {
+    setSelectedCourseId(courseId);
+    setFormData(prev => ({ ...prev, courseID: courseId, lessonID: '' })); // Reset lessonID khi đổi course
+    setIsCourseMenuOpen(false);
+    
+    // Load lessons của course được chọn
+    try {
+      const lessonsOfCourse = await listeningService.getLessons(courseId);
+      setMetadata(prev => ({ ...prev, lessons: lessonsOfCourse }));
+    } catch (error) {
+      console.error("Lỗi khi load lessons của course:", error);
+    }
   };
 
   // 1. Khởi tạo State (Không set cứng ID, để trống để người dùng chọn)
@@ -147,7 +168,8 @@ const ListenEditor: React.FC = () => {
       transcript: '',
       duration: 0,
       speedCategory: '',
-      levelID: '', 
+      levelID: '',
+      courseID: '',    // NEW: Course ID
       topicIDs: [] as string[],
       lessonID: '',
       status: 1,
@@ -198,7 +220,8 @@ const ListenEditor: React.FC = () => {
         duration: Number(formData.duration),
         speedCategory: formData.speedCategory, 
         levelID: formData.levelID,
-       topicIDs: formData.topicIDs,
+        courseID: formData.courseID,  // NEW: Include courseID
+        topicIDs: formData.topicIDs,
         lessonID: formData.lessonID,
         status: statusMap[visibility] ?? 1,
         
@@ -223,6 +246,7 @@ const ListenEditor: React.FC = () => {
 
       // 3. KIỂM TRA TỪNG TRƯỜNG ID
       const isLevelValid = isGuid(payload.levelID);
+      const isCourseValid = isGuid(payload.courseID);  // NEW: Check courseID
       
       // Kiểm tra từng ID trong mảng Topic
       const areTopicsValid = payload.topicIDs.length > 0 && 
@@ -231,9 +255,10 @@ const ListenEditor: React.FC = () => {
       // LessonID có thể để trống (tùy nghiệp vụ), nếu có thì phải là GUID
       const isLessonValid = payload.lessonID ? isGuid(payload.lessonID) : true;
 
-      if (!isLevelValid || !areTopicsValid || !isLessonValid) {
-        alert("Lỗi: Level, Topic (ít nhất 1) hoặc Lesson không đúng định dạng GUID hoặc chưa được chọn!");
+      if (!isLevelValid || !isCourseValid || !areTopicsValid || !isLessonValid) {
+        alert("Lỗi: Level, Khóa học, Topic (ít nhất 1) không đúng định dạng GUID hoặc chưa được chọn!");
         console.log("Check Level:", isLevelValid, payload.levelID);
+        console.log("Check Course:", isCourseValid, payload.courseID);
         console.log("Check Topics:", areTopicsValid, payload.topicIDs);
         console.log("Check Lesson:", isLessonValid, payload.lessonID);
         return;
@@ -271,14 +296,14 @@ const ListenEditor: React.FC = () => {
   useEffect(() => {
     const initPage = async () => {
       try {
-        // 1. Tải toàn bộ Metadata trước
-        const [levels, topics, lessons] = await Promise.all([
+        // 1. Tải toàn bộ Metadata trước (bao gồm courses)
+        const [levels, topics, courses] = await Promise.all([
           listeningService.getLevels(),
           listeningService.getTopics(),
-          listeningService.getLessons()
+          listeningService.getCourses()
         ]);
         
-        setMetadata({ levels, topics, lessons });
+        setMetadata({ levels, topics, courses, lessons: [] });
 
         // 2. Nếu ở chế độ Edit, mới tiến hành lấy chi tiết bài nghe
         if (isEditMode && id) {
@@ -300,6 +325,7 @@ const ListenEditor: React.FC = () => {
             duration: data.duration || 0,
             speedCategory: data.speedCategory?.toString() || '1',
             levelID: data.levelID || '',
+            courseID: data.courseID || '',  // NEW: Set courseID
             topicIDs: data.topicIDs || [],
             lessonID: data.lessonID || '',
             status: data.status ?? 0, 
@@ -311,6 +337,14 @@ const ListenEditor: React.FC = () => {
                 : q.imageURL
             }))
           });
+
+          // Set selectedCourseId để course dropdown show đúng course
+          if (data.courseID) {
+            setSelectedCourseId(data.courseID);
+            // Load lessons của course này
+            const lessonsOfCourse = await listeningService.getLessons(data.courseID);
+            setMetadata(prev => ({ ...prev, lessons: lessonsOfCourse }));
+          }
 
           // SỬA LỖI LOGIC: Dùng biến 'levels' vừa lấy được thay vì dùng 'metadata.levels' 
           // (Vì setMetadata là async, lúc này metadata.levels có thể vẫn đang rỗng)
@@ -749,9 +783,59 @@ const ListenEditor: React.FC = () => {
                 </div>
               </div>
 
+              {/* NEW: 1.5. SECTION COURSE (REQUIRED BEFORE LESSON) */}
+              <div className="pt-5 border-t border-[#f4f0f2]">
+                  <label className="block text-xs font-bold text-[#886373] uppercase tracking-wider mb-2">Khóa học *</label>
+                  <div className="relative">
+                      <button 
+                          onClick={(e) => handleOpenDropdown('course', e)}
+                          className="w-full bg-[#fbf9fa] border border-[#f4f0f2] rounded-xl px-4 py-2.5 text-sm flex items-center justify-between hover:border-primary/30 transition-all outline-none"
+                      >
+                          <span className={selectedCourseId ? "text-[#181114]" : "text-[#886373]/60"}>
+                              {metadata.courses.find(c => c.courseID === selectedCourseId)?.courseName || "-- Chọn khóa học --"}
+                          </span>
+                          <span className={`material-symbols-outlined text-[#886373] transition-transform duration-300 ${isCourseMenuOpen ? 'rotate-180' : ''}`}>
+                              expand_more
+                          </span>
+                      </button>
+
+                      {isCourseMenuOpen && (
+                          <>
+                              <div className="fixed inset-0 z-10" onClick={() => setIsCourseMenuOpen(false)} />
+                              <div className={`absolute left-0 right-0 z-20 bg-white border border-[#f4f0f2] rounded-xl shadow-2xl p-1 animate-in fade-in duration-200 
+                                  ${dropUp.course 
+                                      ? "bottom-full mb-2 slide-in-from-bottom-2"
+                                      : "top-full mt-2 slide-in-from-top-2"
+                                  }`}
+                              >
+                                  <div className="max-h-84 overflow-y-auto custom-scrollbar">
+                                      <button 
+                                          onClick={() => { setSelectedCourseId(''); setFormData(prev => ({ ...prev, courseID: '', lessonID: '' })); setMetadata(prev => ({ ...prev, lessons: [] })); setIsCourseMenuOpen(false); }}
+                                          className="w-full text-left px-3 py-2 text-xs rounded-lg text-red-500 hover:bg-red-50 transition-colors"
+                                      >
+                                          Bỏ chọn khóa học
+                                      </button>
+                                      <div className="h-px bg-[#f4f0f2] my-1" />
+                                      {metadata.courses.map(c => (
+                                          <button 
+                                              key={c.courseID} 
+                                              onClick={() => handleCourseSelect(c.courseID)}
+                                              className={`w-full text-left px-3 py-2 text-sm rounded-lg transition-colors flex items-center justify-between ${selectedCourseId === c.courseID ? 'bg-primary/10 text-primary font-bold' : 'hover:bg-primary/5 hover:text-primary'}`}
+                                          >
+                                              {c.courseName}
+                                              {selectedCourseId === c.courseID && <span className="material-symbols-outlined text-sm">check</span>}
+                                          </button>
+                                      ))}
+                                  </div>
+                              </div>
+                          </>
+                      )}
+                  </div>
+              </div>
+
               {/* 2. SECTION LESSON */}
               <div className="pt-5 border-t border-[#f4f0f2]">
-                  <label className="block text-xs font-bold text-[#886373] uppercase tracking-wider mb-2">Lesson Assign</label>
+                  <label className="block text-xs font-bold text-[#886373] uppercase tracking-wider mb-2">Bài học Assign</label>
                   <div className="relative">
                       <button 
                           onClick={(e) => handleOpenDropdown('lesson', e)}

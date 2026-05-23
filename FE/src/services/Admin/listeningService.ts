@@ -33,7 +33,6 @@ export const listeningService = {
   },
 
   // --- Metadata Helpers ---
-  // Lưu ý: Tận dụng chung metadata từ vựng hoặc đổi sang endpoint listening nếu bạn đã viết trong controller
   getLevels: async () => {
     const response = await axiosInstance.get("admin/listening/metadata/levels");
     return response.data;
@@ -44,8 +43,14 @@ export const listeningService = {
     return response.data;
   },
 
-  getLessons: async () => {
-    const response = await axiosInstance.get("admin/listening/metadata/lessons");
+  getCourses: async () => {
+    const response = await axiosInstance.get("admin/listening/metadata/courses");
+    return response.data;
+  },
+
+  getLessons: async (courseId?: string) => {
+    const params = courseId ? { courseId } : {};
+    const response = await axiosInstance.get("admin/listening/metadata/lessons", { params });
     return response.data;
   }
 };

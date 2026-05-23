@@ -7,13 +7,14 @@ import {
   UserAnswerSelectionDTO,
 } from '../../../../interfaces/Learner/Exam';
 import { LearnerExamService } from '../../../../services/Learner/examService';
-
+import { Exam_Session_Service } from '../../../../services/Learner/exam_SessionService';
 type RealQuestionItem = {
   question: QuestionDisplayDTO;
   parentQuestion: QuestionDisplayDTO;
   part: JLPTPartDTO;
   sectionName: string;
 };
+import { useRef } from 'react';
 
 const JLPTExamTakingPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -30,36 +31,261 @@ const JLPTExamTakingPage: React.FC = () => {
 
   const [timeLeft, setTimeLeft] = useState(0);
 
+  const [sessionId, setSessionId] = useState<string | null>(null);
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [isExamInProgress, setIsExamInProgress] = useState(true);
+
+  const [showExitModal, setShowExitModal] = useState(false);
+
+  const [pendingPath, setPendingPath] = useState<string | null>(null);
+
+  const API_BASE_URL = "http://localhost:5167";
+
+  const getMediaUrl = (path?: string | null) => {
+    if (!path) return "";
+    if (path.startsWith("http")) return path;
+    return `${API_BASE_URL}${path}`;
+  };
   useEffect(() => {
-    const fetchExam = async () => {
-      try {
-        if (!id) return;
+  const fetchExam = async () => {
+    try {
 
-        const data =
-          await LearnerExamService.getExamQuestionsStructured(id);
+      if (!id) return;
 
-        setExam(data);
-        setTimeLeft(data.duration * 60);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
+      const sessionData = await Exam_Session_Service.getOrCreateSession(id);
+      
+    //   if (sessionData.status !== 0) {
 
-    fetchExam();
-  }, [id]);
+    //   alert('Bài thi đã kết thúc.');
 
+    //   navigate('/learner/exams');
+
+    //   return;
+    // }
+
+      setSessionId(sessionData.sessionID);
+
+      setTimeLeft(sessionData.remainingTime);
+
+      // RESTORE ANSWERS
+      const restoredAnswers: Record< string,UserAnswerSelectionDTO > = {};
+
+      (sessionData.answers || []).forEach((a: any) => {
+
+        restoredAnswers[a.questionID] = {
+          questionID: a.questionID,
+
+          selectedAnswerID:
+            a.selectedAnswerID,
+
+          textAnswer:
+            a.textAnswer,
+
+          responseTime:
+            a.responseTime
+        };
+      });
+
+      setUserAnswers(restoredAnswers);
+
+      // LOAD EXAM STRUCTURE
+      // const examData =
+      //   await LearnerExamService
+      //     .getExamQuestionsStructured(id);
+
+      // // RESTORE EXAM
+      // setExam(examData);
+     setExam({
+      examID: sessionData.examID,
+      title: sessionData.title,
+      duration: sessionData.duration,
+      version: sessionData.version,
+      sections: sessionData.exam
+    });
+
+    } catch (error) {
+
+      console.error(error);
+
+    } finally {
+
+      setLoading(false);
+    }
+  };
+
+  fetchExam();
+
+}, [id]);
+
+  
   // TIMER
-  useEffect(() => {
-    if (timeLeft <= 0) return;
+    useEffect(() => {
+
+    if (!sessionId || isSubmitting) return;
 
     const timer = setInterval(() => {
-      setTimeLeft((prev) => prev - 1);
+
+      setTimeLeft(prev => {
+
+        if (prev <= 1) {
+
+          clearInterval(timer);
+
+          handleSubmitExam(true);
+
+          return 0;
+        }
+
+        return prev - 1;
+      });
+
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [timeLeft]);
+
+  }, [sessionId, isSubmitting]);
+
+
+    const answersRef = useRef(userAnswers);
+
+    const isSavingRef = useRef(false);
+
+
+    useEffect(() => {
+    answersRef.current = userAnswers;
+    }, [userAnswers]);
+
+    useEffect(() => {
+    if (!sessionId) return;
+
+    const interval = setInterval(async () => {
+      if (isSavingRef.current) return;
+      try {
+
+        isSavingRef.current = true;
+
+        await Exam_Session_Service.saveProgress({
+
+          sessionID: sessionId,
+
+          answers:
+            Object.values(
+                answersRef.current
+              )
+
+        });
+
+      } catch (error) {
+
+        console.error(
+          'Auto save failed',
+          error
+        );
+      }finally {
+
+        isSavingRef.current = false;
+      }
+
+    }, 15000);
+
+    return () => clearInterval(interval);
+
+  }, [sessionId]);
+
+  
+
+    const openExitModal = (
+      path?: string
+    ) => {
+
+      if (!isExamInProgress) return;
+
+      if (path) {
+
+        setPendingPath(path);
+
+      } else {
+
+        setPendingPath(null);
+      }
+
+      setShowExitModal(true);
+    };
+
+
+    useEffect(() => {
+
+    const handlePopState = () => {
+
+      window.history.pushState(
+        null,
+        '',
+        window.location.href
+      );
+
+      openExitModal();
+    };
+
+    const handleProtectedNavigation = (
+      e: any
+    ) => {
+
+      openExitModal(
+        e.detail.path
+      );
+    };
+
+    // block browser back
+    window.history.pushState(
+      null,
+      '',
+      window.location.href
+    );
+
+    // listeners
+    window.addEventListener(
+      'popstate',
+      handlePopState
+    );
+
+    window.addEventListener(
+      'protected-navigation',
+      handleProtectedNavigation
+    );
+
+    return () => {
+
+      window.removeEventListener(
+        'popstate',
+        handlePopState
+      );
+
+      window.removeEventListener(
+        'protected-navigation',
+        handleProtectedNavigation
+      );
+    };
+
+  }, [isExamInProgress]);
+
+
+  useEffect(() => {
+
+    sessionStorage.setItem(
+      'isExamInProgress',
+      'true'
+    );
+
+    return () => {
+
+      sessionStorage.removeItem(
+        'isExamInProgress'
+      );
+    };
+
+  }, []);
 
   // FLATTEN REAL QUESTIONS
     const realQuestions = useMemo<RealQuestionItem[]>(() => {
@@ -125,30 +351,6 @@ const JLPTExamTakingPage: React.FC = () => {
     return result;
     }, [exam]);
 
-    const getParentContent = (item: any) => {
-    if (item.type === "Reading") {
-        return {
-        text: item.content,
-        audio: null,
-        script: null,
-        };
-    }
-
-    if (item.type === "Listening") {
-        return {
-        text: item.content,
-        audio: item.audioUrl,
-        script: item.script,
-        };
-    }
-
-    return {
-        text: item.content,
-        audio: null,
-        script: null,
-    };
-    };
-
     const currentItem = realQuestions[currentIndex];
 
     const currentQuestion = currentItem?.question;
@@ -174,6 +376,72 @@ const JLPTExamTakingPage: React.FC = () => {
         },
         }));
     };
+
+    const handleSubmitExam = async ( forceSubmit = false) => {
+      
+      if (isSubmitting) return;
+      setIsSubmitting(true);
+
+    try {
+
+        if (!sessionId) {
+            alert("Không tìm thấy session.");
+            return;
+        }
+        
+       if (
+          !forceSubmit &&
+          answeredCount < realQuestions.length
+        ) {
+          alert(
+            `Bạn còn ${
+              realQuestions.length - answeredCount
+            } câu chưa hoàn thành. Vui lòng làm hết bài trước khi nộp.`
+          );
+
+          setIsSubmitting(false);
+
+          return;
+        }
+
+        const duration = Number(exam?.duration ?? 0);
+        const spent = Math.max(
+          0,
+          Math.floor(duration * 60 - timeLeft)
+        );
+
+        const payload = {
+          examID: id!,
+          answers: Object.values(userAnswers),
+          totalTimeSpent: spent
+        };
+
+        console.log("SUBMIT PAYLOAD:", payload);
+
+        const result =
+            await LearnerExamService.submitExam(
+                 id!,
+                 payload
+            );
+        await Exam_Session_Service.resetSession(
+            sessionId
+        );
+        console.log(result);
+        sessionStorage.removeItem(
+          'isExamInProgress'
+        );
+        setIsExamInProgress(false);
+        navigate(`/learner/exams/jlpt-exams/result/${result.resultID}`);
+        
+        
+    } catch (error) {
+
+        console.error(error);
+
+        alert("Nộp bài thất bại.");
+        setIsSubmitting(false);
+    }
+};
 
     if (loading) {
         return (
@@ -208,6 +476,7 @@ const JLPTExamTakingPage: React.FC = () => {
         : 0;
 
   return (
+    <> 
     <div className="h-screen overflow-hidden flex bg-[#fbf9fa] text-[#181114]">
       {/* MAIN */}
       <main className="flex-1 flex flex-col overflow-hidden">
@@ -259,9 +528,9 @@ const JLPTExamTakingPage: React.FC = () => {
                     {parentItem.skillType || parentItem.type}
                   </span>
 
-                  <span className="px-3 py-1 rounded-full bg-[#fbf9fa] border border-[#f4f0f2] text-[#6b5a62] text-xs font-black uppercase tracking-wider">
+                  {/* <span className="px-3 py-1 rounded-full bg-[#fbf9fa] border border-[#f4f0f2] text-[#6b5a62] text-xs font-black uppercase tracking-wider">
                     {currentItem.part.partName}
-                  </span>
+                  </span> */}
 
                   <span className="px-3 py-1 rounded-full bg-[#fbf9fa] border border-[#f4f0f2] text-[#6b5a62] text-xs font-black uppercase tracking-wider">
                     Câu {currentIndex + 1}/
@@ -286,23 +555,40 @@ const JLPTExamTakingPage: React.FC = () => {
               {/* AUDIO */}
               {parentItem.type === "Listening" && parentItem.audioUrl && (
                 <div className="bg-white rounded-[2rem] border border-[#f4f0f2] p-8 shadow-sm">
-                    <div className="flex items-center gap-3 mb-5">
+                  <div className="flex items-center gap-3 mb-5">
                     <span className="material-symbols-outlined text-primary">
-                        volume_up
+                      volume_up
                     </span>
 
                     <p className="text-[11px] uppercase tracking-[0.2em] font-black text-[#886373]">
-                        Listening Audio
+                      Listening Audio
                     </p>
-                    </div>
+                  </div>
 
-                    <audio
+                  <audio
                     controls
                     className="w-full"
-                    src={parentItem.audioUrl}
-                    />
+                     src={getMediaUrl(parentItem.audioUrl)}
+                  />
                 </div>
-                )}
+              )}
+
+              {/* QUESTION IMAGE */}
+              {currentItem.question.imageURL && (
+                <div className="bg-white rounded-[2rem] border border-[#f4f0f2] p-6 shadow-sm">
+                  
+                  <p className="text-[11px] uppercase tracking-[0.2em] font-black text-[#886373] mb-5">
+                    Hình minh họa
+                  </p>
+
+                  <img
+                    src={getMediaUrl(currentItem.question.imageURL)}
+                    alt="Question"
+                    className="w-full max-h-[32rem] object-contain rounded-2xl"
+                  />
+                </div>
+              )}
+              
             </div>
           </section>
 
@@ -405,9 +691,7 @@ const JLPTExamTakingPage: React.FC = () => {
               {/* SUBMIT */}
               <button
                 className="w-full h-14 rounded-full bg-[#181114] text-white font-black hover:opacity-90 transition-all"
-                onClick={() => {
-                  console.log(userAnswers);
-                }}
+                 onClick={() => handleSubmitExam(false)}
               >
                 NỘP BÀI
               </button>
@@ -467,6 +751,65 @@ const JLPTExamTakingPage: React.FC = () => {
         </div>
       </aside>
     </div>
+
+
+{/* EXIT MODAL */}
+    {showExitModal && (
+      <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
+
+        <div className="bg-white rounded-3xl p-8 w-[28rem] shadow-2xl">
+
+          <h2 className="text-xl font-black mb-4">
+            Rời khỏi bài thi?
+          </h2>
+
+          <p className="text-[#6b5a62] leading-relaxed mb-8">
+            Thời gian làm bài vẫn sẽ tiếp tục tính ngay cả khi rời khỏi trang.
+            Tiến trình hiện tại sẽ được lưu tự động.
+          </p>
+
+          <div className="flex gap-3">
+
+            <button
+              onClick={() => {
+              setShowExitModal(false);
+              setPendingPath(null);}}
+              className="flex-1 h-12 rounded-full border border-[#f4f0f2]"
+            >
+              Tiếp tục làm bài
+            </button>
+
+            <button
+              onClick={async () => {
+
+                try {
+
+                  if (sessionId) {
+
+                    await Exam_Session_Service.saveProgress({
+                      sessionID: sessionId,
+                      answers: Object.values(answersRef.current)
+                    });
+                  }
+
+                } catch (error) {
+
+                  console.error(error);
+                }
+
+                setIsExamInProgress(false);
+
+               navigate(pendingPath || '/learner/exams/jlpt-exams');
+              }}
+              className="flex-1 h-12 rounded-full bg-primary text-white font-bold"
+            >
+              Rời khỏi
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+     </>
   );
 };
 
