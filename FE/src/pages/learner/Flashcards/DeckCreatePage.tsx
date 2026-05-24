@@ -57,10 +57,10 @@ const DeckCreatePage: React.FC = () => {
     const [profileLoading, setProfileLoading] = useState(true);
     const [availableCards, setAvailableCards] = useState<AvailableCardRow[]>([]);
     const [selectedEntries, setSelectedEntries] = useState<SelectedEntry[]>([]);
-    // const [loading, setLoading] = useState(false);
-    // const [editLoading, setEditLoading] = useState(false);
-    // const [fetchingCards, setFetchingCards] = useState(false);
-    // const [cardSearch, setCardSearch] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [editLoading, setEditLoading] = useState(false);
+    const [fetchingCards, setFetchingCards] = useState(false);
+    const [cardSearch, setCardSearch] = useState('');
 
     const setContentFilter = useCallback(
         (type: SkillType) => {
@@ -77,14 +77,6 @@ const DeckCreatePage: React.FC = () => {
         if (editDeckId) return;
         setSelectedType(parseFilterSkillType(searchParams.get('filter')));
     }, [searchParams, editDeckId]);
-    const [selectedCardIds, setSelectedCardIds] = useState<string[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [fetchingCards, setFetchingCards] = useState(false);
-    const [cardSearch, setCardSearch] = useState('');
-
-    // useEffect(() => {
-    //     setSelectedType(parseSkillFromUrl());
-    // }, [urlType]);
 
     useEffect(() => {
         const loadProfile = async () => {
@@ -133,6 +125,38 @@ const DeckCreatePage: React.FC = () => {
     //         cancelled = true;
     //     };
     // }, [editDeckId, navigate]);
+
+    useEffect(() => {
+        if (!editDeckId) return;
+        let cancelled = false;
+        (async () => {
+            setEditLoading(true);
+            try {
+                const [decks, items] = await Promise.all([
+                    FlashcardService.getDecks(),
+                    FlashcardService.getDeckItems(editDeckId),
+                ]);
+                if (cancelled) return;
+                const d = decks.find((x) => x.deckID === editDeckId);
+                if (d) {
+                    setName(d.skillName);
+                    setDescription(d.description ?? '');
+                }
+                setSelectedEntries(
+                    items.map((i) => ({ entityId: i.entityID, itemType: Number(i.itemType) as SkillType }))
+                );
+            } catch (e) {
+                console.error(e);
+                window.alert('Không tải được bộ thẻ để sửa.');
+                navigate(deckListReturnPath(new URLSearchParams(window.location.search)));
+            } finally {
+                if (!cancelled) setEditLoading(false);
+            }
+        })();
+        return () => {
+            cancelled = true;
+        };
+    }, [editDeckId, navigate]);
 
     useEffect(() => {
         const fetchAvailableCards = async () => {
@@ -212,12 +236,7 @@ const DeckCreatePage: React.FC = () => {
         }
     };
 
-    const SKILL_LABELS: Record<number, string> = {
-        [SkillType.Vocabulary]: 'vocabulary',
-        [SkillType.Grammar]: 'grammar',
-        [SkillType.Kanji]: 'kanji',
-    };
-
+    
     const buildPayload = (): { name: string; description?: string; items: DeckItemRefDto[] } => ({
         name: name.trim(),
         description: description.trim() || undefined,
@@ -271,13 +290,13 @@ const DeckCreatePage: React.FC = () => {
     const style = getSkillStyle(selectedType);
     const isEdit = Boolean(editDeckId);
 
-    // if (profileLoading || (isEdit && editLoading)) {
-    //     return (
-    //         <div className="flex h-screen items-center justify-center bg-[#fbf9fa]">
-    //             <div className="size-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-    //         </div>
-    //     );
-    // }
+    if (profileLoading || (isEdit && editLoading)) {
+        return (
+            <div className="flex h-screen items-center justify-center bg-[#fbf9fa]">
+                <div className="size-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+            </div>
+        );
+    }
 
     return (
         <div className="flex flex-col h-full bg-background-light font-['Lexend'] text-[#211118]">
@@ -292,7 +311,7 @@ const DeckCreatePage: React.FC = () => {
                             <span className="material-symbols-outlined">arrow_back</span>
                         </button>
                         <div className="flex flex-col">
-                            <h2 className="text-xl font-bold text-[#181114] uppercase">Flashcards</h2>
+                            <h2 className="text-xl font-bold text-[#181114] uppercase">Thẻ ghi nhớ</h2>
                             <nav className="flex text-[10px] text-[#886373] font-medium gap-1 uppercase tracking-wider">
                                 <span>{'Bộ thẻ của tôi'}</span>
                                 <span>/</span>
@@ -428,7 +447,7 @@ const DeckCreatePage: React.FC = () => {
                                                 value={cardSearch}
                                                 onChange={(e) => setCardSearch(e.target.value)}
                                                 className="w-full pl-12 pr-6 py-3 bg-[#fbf9fa] rounded-full border-none shadow-sm focus:ring-2 focus:ring-primary/20 outline-none placeholder:text-slate-400 text-sm font-medium"
-                                                placeholder="Lọc theo từ, kanji, nghĩa..."
+                                                placeholder="Lọc theo từ, chữ Hán, nghĩa..."
                                                 type="text"
                                             />
                                         </div>

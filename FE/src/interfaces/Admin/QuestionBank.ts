@@ -5,6 +5,16 @@ export enum QuestionType {
     Ordering = 2,       // Sắp xếp câu (Dạng bài dấu sao ★ cực kỳ quan trọng)
     Synonym = 3,        // Tìm từ đồng nghĩa (Dạng bài đặc thù JLPT)
     Usage = 4,
+    // TextCompletion = 5, // Hoàn thành văn bản
+    // ListeningComp = 6,  // Nghe hiểu
+    // ReadingComp = 7     // Đọc hiểu
+}
+
+export enum QuestionFormat {
+    StandardChoice = 0,     // Câu hỏi trắc nghiệm thông thường
+    StarSentence = 1,       // Câu hỏi có dấu ★ (文の組み立て - JLPT N1/N2)
+    Passage = 2,            // Đọc đoạn văn (Reading comprehension)
+    AudioChoice = 3         // Câu hỏi nghe (Audio-based multiple choice)
 }
 
 export enum QuestionStatus {
@@ -40,6 +50,7 @@ export interface CreateQuestionDTO {
     lessonID: string;
     content: string;
     questionType: QuestionType;
+    questionFormat: QuestionFormat;
     difficulty: number;
     // audioURL?: string;
     // mediaTimestamp?: number;
@@ -70,6 +81,8 @@ export interface SourceMaterial {
 export interface LessonLookupDTO {
     lessonID: string;
     title: string;
+    courseID?: string;
+    courseName?: string;
     levelValue: string; 
     levelName: string;  
 }
@@ -78,7 +91,8 @@ export interface LessonLookupDTO {
 export interface QuestionListItem {
   questionID: string;
   content: string;
-  questionType: QuestionType; 
+  questionType: QuestionType;
+  questionFormat: QuestionFormat;
   difficulty: number;
   status: QuestionStatus; 
   hasAudio: boolean;
@@ -93,6 +107,7 @@ export interface QuestionDetail {
   questionID?: string; // Optional vì khi tạo mới chưa có ID
   content: string;
   questionType: QuestionType;
+  questionFormat: QuestionFormat;
   difficulty: number;
 //   audioURL?: string;
 //   mediaTimestamp?: number;

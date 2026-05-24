@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FlashcardService } from '../../../services/Learner/flashcardService';
+import { skillRouteSlugToVi } from '../../../utils/skillRouteLabelVi';
 
 interface PracticeResultPageProps {
     sessionData: any[];
@@ -43,7 +44,7 @@ const PracticeResultPage: React.FC<PracticeResultPageProps> = ({ sessionData, sk
             ));
             alert("Đã thêm các câu sai vào kho ôn tập!");
         } catch (error) {
-            console.error("Lỗi khi thêm vào Flashcards:", error);
+            console.error("Lỗi khi thêm vào thẻ ghi nhớ:", error);
             alert("Có lỗi xảy ra khi thêm thẻ.");
         }
     };
@@ -56,7 +57,7 @@ const PracticeResultPage: React.FC<PracticeResultPageProps> = ({ sessionData, sk
                         <span className="material-symbols-outlined text-6xl">emoji_events</span>
                     </div>
                     <h2 className="text-4xl font-black text-[#181114] uppercase tracking-tight">Kết quả luyện tập</h2>
-                    <p className="text-[#886373] font-black uppercase text-xs tracking-[0.3em]">Hoàn thành kỹ năng {skillType}</p>
+                    <p className="text-[#886373] font-black uppercase text-xs tracking-[0.3em]">Hoàn thành kỹ năng: {skillRouteSlugToVi(skillType)}</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -123,7 +124,7 @@ const PracticeResultPage: React.FC<PracticeResultPageProps> = ({ sessionData, sk
                                     className="px-8 py-4 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl shadow-primary/20 hover:scale-[1.02] active:scale-95 disabled:opacity-40 disabled:hover:scale-100 transition-all flex items-center justify-center gap-3"
                                 >
                                     <span className="material-symbols-outlined text-[18px]">style</span>
-                                    Thêm câu sai vào Flashcards
+                                    Thêm câu sai vào thẻ ghi nhớ
                                 </button>
                                 <button 
                                     onClick={() => navigate(`/learner/skill-learning`)}

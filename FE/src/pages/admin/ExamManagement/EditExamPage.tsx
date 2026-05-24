@@ -1,9 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ExamService from '../../../services/Admin/examService';
-import { UpdateExamRequest } from '../../../interfaces/Admin/Exam';
+import { GenerateExamRequest, UpdateExamRequest, ExamPartConfig, ExamDetailResponse } from '../../../interfaces/Admin/Exam';
+import { ExamType, SkillType } from '../../../interfaces/Admin/QuestionBank';
 import AdminHeader from '../../../components/layout/admin/AdminHeader';
+import StandardJLPT from '../../../components/Admin/Exam/StandardJLPT';
+import LessonPractice from '../../../components/Admin/Exam/LessonPractice';
+import SkillPractice from '../../../components/Admin/Exam/SkillPractice';
 import { toast } from 'react-hot-toast';
+
+interface EditExamFormData extends GenerateExamRequest {
+    examType?: ExamType;
+    levelName?: string;
+    lessonTitle?: string;
+}
+
 const EditExamPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
@@ -11,30 +22,56 @@ const EditExamPage: React.FC = () => {
     const [isSaving, setIsSaving] = useState(false);
 
     // State quản lý form
-    const [formData, setFormData] = useState<UpdateExamRequest>({
+    const [formData, setFormData] = useState<EditExamFormData>({
         title: '',
         duration: 0,
+        levelID: '',
+        lessonID: null,
+        type: ExamType.StandardJLPT,
+        showResultImmediately: false,
         passingScore: 0,
         minLanguageKnowledgeScore: 0,
         minReadingScore: 0,
         minListeningScore: 0,
-        showResultImmediately: false
+        parts: []
     });
+
+    const [levels, setLevels] = useState<{ levelID: string, levelName: string }[]>([]);
+    const [lessons, setLessons] = useState<{ lessonID: string, title: string }[]>([]);
+    const [lessonDataFull, setLessonDataFull] = useState<any[]>([]);
+    const [courses, setCourses] = useState<{ courseID: string, courseName: string }[]>([]);
+    const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
+    const [levelStats, setLevelStats] = useState<any[]>([]);
 
     useEffect(() => {
         const loadExamData = async () => {
             if (id) {
                 try {
-                    const res = await ExamService.getExamDetails(id);
+                    const res: ExamDetailResponse = await ExamService.getExamDetails(id);
                     setFormData({
                         title: res.title,
                         duration: res.duration || 0,
+                        levelID: res.levelID || '',
+                        lessonID: res.lessonID || null,
+                        type: res.examType,
+                        showResultImmediately: res.showResultImmediately || false,
                         passingScore: res.passingScore,
                         minLanguageKnowledgeScore: res.minScores?.language || 0,
                         minReadingScore: res.minScores?.reading || 0,
                         minListeningScore: res.minScores?.listening || 0,
-                        showResultImmediately: res.showResultImmediately || false
+                        parts: res.parts || [],
+                        examType: res.examType,
+                        levelName: res.levelName,
+                        lessonTitle: res.lessonTitle
                     });
+                    if (res.levelID) {
+                        const courseData = await ExamService.getCoursesByLevel(res.levelID);
+                        setCourses(courseData);
+                    }
+                    if (res.levelID && res.examType === ExamType.SkillPractice) {
+                        const stats = await ExamService.getStatsBySkill(res.levelID);
+                        setLevelStats(stats);
+                    }
                 } catch (error) {
                     console.error("Lỗi khi tải dữ liệu đề thi:", error);
                 } finally {
@@ -44,6 +81,118 @@ const EditExamPage: React.FC = () => {
         };
         loadExamData();
     }, [id]);
+
+    useEffect(() => {
+        const fetchLevels = async () => {
+            try {
+                const data = await ExamService.getLevelsLookup();
+                setLevels(data);
+            } catch (error) {
+                console.error('Lỗi load levels:', error);
+            }
+        };
+        fetchLevels();
+    }, []);
+
+    const handleLevelChange = async (levelId: string) => {
+        try {
+            if (!levelId) {
+                setFormData(prev => ({
+                    ...prev,
+                    levelID: '',
+                    lessonID: null,
+                    title: '',
+                    duration: 0,
+                    parts: []
+                }));
+                setCourses([]);
+                setLessons([]);
+                setLessonDataFull([]);
+                return;
+            }
+
+            setFormData(prev => ({ ...prev, levelID: levelId, lessonID: null }));
+            setSelectedCourseId(null);
+
+            const courseData = await ExamService.getCoursesByLevel(levelId);
+            setCourses(courseData);
+
+            const lessonsWithStats = await ExamService.getLessonsByFilter(levelId);
+            setLessonDataFull(lessonsWithStats);
+            setLessons(lessonsWithStats.map((l: any) => ({ lessonID: l.lessonID, title: l.title })));
+
+            if (formData.type === ExamType.SkillPractice) {
+                const stats = await ExamService.getStatsBySkill(levelId);
+                setLevelStats(stats);
+            }
+        } catch (error) {
+            console.error('Lỗi khi đổi level:', error);
+            toast.error('Lỗi khi cập nhật trình độ');
+        }
+    };
+
+    const handleCourseChange = async (courseId: string) => {
+        setSelectedCourseId(courseId || null);
+        setFormData(prev => ({ ...prev, lessonID: null }));
+
+        try {
+            const filteredLessons = await ExamService.getLessonsByFilter(formData.levelID, courseId || undefined);
+            setLessonDataFull(filteredLessons);
+            setLessons(filteredLessons.map((l: any) => ({ lessonID: l.lessonID, title: l.title })));
+        } catch (error) {
+            toast.error('Lỗi khi lọc bài học theo khóa học');
+        }
+    };
+
+    const handleSkillLevelChange = async (levelId: string) => {
+        setFormData(prev => ({ ...prev, levelID: levelId, parts: [] }));
+        if (!levelId) {
+            setLevelStats([]);
+            return;
+        }
+        try {
+            const stats = await ExamService.getStatsBySkill(levelId);
+            setLevelStats(stats);
+        } catch (error) {
+            toast.error('Không thể tải thống kê kỹ năng');
+        }
+    };
+
+    const renderActiveView = () => {
+        const baseProps = {
+            data: formData as GenerateExamRequest,
+            onChange: (data: GenerateExamRequest) => setFormData(data),
+            levels
+        };
+
+        switch (formData.type) {
+            case ExamType.StandardJLPT:
+                return <StandardJLPT {...baseProps} onLevelChange={handleLevelChange} />;
+            case ExamType.LessonPractice:
+                return (
+                    <LessonPractice
+                        {...baseProps}
+                        lessons={lessons}
+                        lessonDataFull={lessonDataFull}
+                        onLevelChange={handleLevelChange}
+                        courses={courses}
+                        selectedCourseId={selectedCourseId}
+                        onCourseChange={handleCourseChange}
+                        isEditMode={true}
+                    />
+                );
+            case ExamType.SkillPractice:
+                return (
+                    <SkillPractice
+                        {...baseProps}
+                        levelStats={levelStats}
+                        onLevelChange={handleSkillLevelChange}
+                    />
+                );
+            default:
+                return null;
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -167,6 +316,52 @@ const EditExamPage: React.FC = () => {
                             </div>
                         </div>
 
+                        {/* Phần 1.5: Thông tin đề thi hiện tại */}
+                        <div className="bg-white rounded-3xl border border-[#f4f0f2] shadow-sm overflow-hidden">
+                            <div className="p-6 border-b border-[#f4f0f2] bg-[#fbf9fa]">
+                                <h3 className="text-sm font-bold text-[#181114] uppercase tracking-wider flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-primary text-lg">description</span>
+                                    Thông tin đề thi hiện tại
+                                </h3>
+                            </div>
+                            <div className="p-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-bold text-[#886373] uppercase tracking-wider">Loại đề thi</label>
+                                    <div className="px-4 py-3 bg-[#fbf9fa] border border-[#f4f0f2] rounded-2xl font-bold text-[#181114]">
+                                        {formData.examType !== undefined ? ExamType[formData.examType] : 'N/A'}
+                                    </div>
+                                </div>
+                                {formData.levelName && (
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-bold text-[#886373] uppercase tracking-wider">Cấp độ</label>
+                                        <div className="px-4 py-3 bg-[#fbf9fa] border border-[#f4f0f2] rounded-2xl font-bold text-[#181114]">
+                                            {formData.levelName}
+                                        </div>
+                                    </div>
+                                )}
+                                {formData.lessonTitle && (
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-bold text-[#886373] uppercase tracking-wider">Bài học</label>
+                                        <div className="px-4 py-3 bg-[#fbf9fa] border border-[#f4f0f2] rounded-2xl font-bold text-[#181114]">
+                                            {formData.lessonTitle}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="bg-white rounded-3xl border border-[#f4f0f2] shadow-sm overflow-hidden">
+                            <div className="p-6 border-b border-[#f4f0f2] bg-[#fbf9fa]">
+                                <h3 className="text-sm font-bold text-[#181114] uppercase tracking-wider flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-primary text-lg">settings</span>
+                                    Chỉnh sửa cấu trúc đề giống tạo đề
+                                </h3>
+                            </div>
+                            <div className="p-6">
+                                {renderActiveView()}
+                            </div>
+                        </div>
+
                         {/* Phần 2: Điểm liệt & Hiển thị */}
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                             <div className="lg:col-span-2 bg-white rounded-3xl border border-[#f4f0f2] shadow-sm overflow-hidden">
@@ -212,6 +407,59 @@ const EditExamPage: React.FC = () => {
                                 </button>
                             </div>
                         </div>
+
+                        {/* Phần 2.5: Cấu trúc phần thi */}
+                        {formData.parts && formData.parts.length > 0 && (
+                            <div className="bg-white rounded-3xl border border-[#f4f0f2] shadow-sm overflow-hidden">
+                                <div className="p-6 border-b border-[#f4f0f2] bg-[#fbf9fa]">
+                                    <h3 className="text-sm font-bold text-[#181114] uppercase tracking-wider flex items-center gap-2">
+                                        <span className="material-symbols-outlined text-primary text-lg">view_list</span>
+                                        Cấu trúc phần thi
+                                    </h3>
+                                </div>
+                                <div className="p-8 space-y-4">
+                                    {formData.parts.map((part, idx) => (
+                                        <div key={idx} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end p-4 bg-[#fbf9fa] rounded-3xl border border-[#f4f0f2]">
+                                            <div className="space-y-2">
+                                                <div className="text-xs font-bold text-[#886373] uppercase tracking-wider">Kỹ năng</div>
+                                                <div className="text-sm font-bold text-[#181114]">{SkillType[part.skillType]}</div>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-bold text-[#886373] uppercase tracking-wider">Số lượng câu</label>
+                                                <input
+                                                    type="number"
+                                                    min={0}
+                                                    value={part.quantity}
+                                                    onChange={e => {
+                                                        const qty = Math.max(0, Number(e.target.value));
+                                                        const updatedParts = [...(formData.parts || [])];
+                                                        updatedParts[idx] = { ...updatedParts[idx], quantity: qty };
+                                                        setFormData({ ...formData, parts: updatedParts });
+                                                    }}
+                                                    className="w-full px-4 py-3 bg-white border border-[#f4f0f2] rounded-xl text-sm font-bold outline-none"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-bold text-[#886373] uppercase tracking-wider">Điểm / câu</label>
+                                                <input
+                                                    type="number"
+                                                    min={0}
+                                                    step={0.5}
+                                                    value={part.pointPerQuestion}
+                                                    onChange={e => {
+                                                        const score = Math.max(0, Number(e.target.value));
+                                                        const updatedParts = [...(formData.parts || [])];
+                                                        updatedParts[idx] = { ...updatedParts[idx], pointPerQuestion: score };
+                                                        setFormData({ ...formData, parts: updatedParts });
+                                                    }}
+                                                    className="w-full px-4 py-3 bg-white border border-[#f4f0f2] rounded-xl text-sm font-bold outline-none"
+                                                />
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
 
                         {/* Lưu ý bảo mật */}
                         <div className="flex items-center gap-4 p-5 bg-amber-50 rounded-2xl border border-amber-100">
