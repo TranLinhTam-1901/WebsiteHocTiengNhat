@@ -77,7 +77,7 @@ namespace QuizzTiengNhat.Controllers.Admins
                             title = l.Title,
                             skillType = l.SkillType,
                             difficulty = l.Difficulty,
-                            priority = l.Priority
+                            priority = l.SortOrder
                         }).ToList()
                     }
                 });
