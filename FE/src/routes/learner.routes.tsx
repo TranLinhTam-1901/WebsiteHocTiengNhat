@@ -12,6 +12,7 @@ import LearnerDashboard from '../pages/learner/Dashboard/Home';
 // Skill Learning
 import SkillPracticeListPage from '../pages/learner/Exam/Skills/SkillPracticeListPage';
 import SkillHubPage from '../pages/learner/Exam/Skills/SkillHubPage';
+import LearnerProfile from '../pages/learner/Profile/LearnerProfile';
 // Flashcards
 import DeckListPage from '../pages/learner/Flashcards/DeckListPage';
 import FlashcardReviewPage from '../pages/learner/Flashcards/FlashcardReviewPage';
@@ -40,6 +41,7 @@ import ExamDetailPage from '../pages/learner/Exam/ExamDetailPage';
 import JLPTExamListPage from '../pages/learner/Exam/JLPT/JLPTExamListPage';
 import JLPTExamSummaryPage from '../pages/learner/Exam/JLPT/JLPTExamSummaryPage';
 import JLPTExamTakingPage from '../pages/learner/Exam/JLPT/JLPTExamTakingPage';
+import JLPTResultPage from '../pages/learner/Exam/JLPT/JLPTResultPage';
 
 export const learnerRoutes: RouteObject = {
   path: '/learner',
@@ -53,6 +55,7 @@ export const learnerRoutes: RouteObject = {
     { path: 'courses', element: <CourseListPage /> },
     { path: 'courses/:courseId', element: <CourseDetailPage /> },
     { path: 'lessons/:lessonId/learn', element: <LessonLearnPage /> },
+    { path: 'profile', element: <LearnerProfile /> },
     { path: 'leaderboard', element: <Leaderboard /> },
     { path: 'analytics/statistics', element: <LearningStatistics /> },
     { path: 'analytics/weakness', element: <WeaknessAnalysis /> },
@@ -64,6 +67,10 @@ export const learnerRoutes: RouteObject = {
     { path: 'exams/jlpt-exams', element: <JLPTExamListPage /> },
     { path: 'exams/jlpt-exams/:id/summary', element: <JLPTExamSummaryPage /> },
     { path: 'exams/jlpt-exams/:id/take', element: <JLPTExamTakingPage /> },
+    { path: 'exams/jlpt-exams/result/:resultId', element: <JLPTResultPage /> },
+    { path: 'exams/history', element: <ExamHistory /> },
+
+
     // Skill Learning
     { path: 'skill-learning/:skillType', element: <SkillHubPage /> },
     { path: 'skill-learning/:skillType/practice-list', element: <SkillPracticeListPage /> },
