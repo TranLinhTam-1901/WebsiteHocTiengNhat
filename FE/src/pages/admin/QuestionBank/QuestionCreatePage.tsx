@@ -1,22 +1,40 @@
-import React, { useState, useEffect } from 'react'; // Đảm bảo có useEffect ở đây
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import SourcePanel from '../../../components/Admin/QuestionEditor/SourcePanel';
+import SourcePanel, { SOURCE_PANEL_TYPES } from '../../../components/Admin/QuestionEditor/SourcePanel';
 import AnswerEditor from '../../../components/Admin/QuestionEditor/AnswerEditor';
-import QuestionService from '../../../services/Admin/QuestionService';
-import { CreateQuestionDTO, QuestionType, SourceMaterial, AnswerDTO, Topics, QuestionStatus } from '../../../interfaces/Admin/QuestionBank';
-import { QUESTION_TYPE_OPTIONS, DIFFICULTY_OPTIONS, QUESTION_TYPE_LABELS } from '../../../constants/admin/questionOptions';
+import QuestionService from '../../../services/Admin/questionService';
+import {
+    CreateQuestionDTO,
+    QuestionType,
+    QuestionFormat,
+    SourceMaterial,
+    AnswerDTO,
+    QuestionStatus,
+    SkillType,
+    LessonLookupDTO
+} from '../../../interfaces/Admin/QuestionBank';
+import { TopicItem } from '../../../interfaces/Admin/Topic';
+import { DIFFICULTY_OPTIONS, QUESTION_TYPE_LABELS, SKILL_TYPE_OPTIONS } from '../../../constants/admin/questionOptions';
+import { toast } from 'react-hot-toast';
+import AdminHeader from '../../../components/layout/admin/AdminHeader';
+
+const sectionLabelClass = 'mb-3 block text-xs font-bold uppercase tracking-wider text-[#886373]';
+const fieldLabelClass = 'mb-2.5 block text-sm font-bold text-[#181114]';
+const inputShellClass =
+    'overflow-hidden rounded-xl border border-[#f4f0f2] bg-white transition-all focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20';
+
+type QuestionVisibility = 'Published' | 'Draft' | 'Archived';
 
 const QuestionCreatePage: React.FC = () => {
-    // --- 1. HOOKS (Luôn để trên cùng) ---
-    const { lessonId } = useParams<{ lessonId: string }>();
+    const { id, lessonId } = useParams<{ id?: string; lessonId: string }>();
     const navigate = useNavigate();
-    
+    const isEditMode = !!id;
 
-    // --- 2. STATE ---
     const [formData, setFormData] = useState<CreateQuestionDTO>({
-        lessonID: lessonId || '', 
+        lessonID: lessonId || '',
         content: '',
         questionType: QuestionType.MultipleChoice,
+        questionFormat: QuestionFormat.StandardChoice,
         difficulty: 1,
         explanation: '',
         status: QuestionStatus.Active,
@@ -26,495 +44,1008 @@ const QuestionCreatePage: React.FC = () => {
             { answerText: '', isCorrect: false }
         ],
         sourceID: null,
-        audioURL: '',
-        mediaTimestamp: 0
+        skillType: SkillType.Vocabulary
     });
-    const [topics, setTopicsLookup] = useState<Topics[]>([]);
-    const handleAddTag = (id: string) => { if(!formData.topicIds.includes(id)) setFormData({...formData, topicIds: [...formData.topicIds, id]}) };
-    const handleRemoveTag = (id: string) => { setFormData({...formData, topicIds: formData.topicIds.filter(x => x !== id)}) };
-   
-    
+
+    const [visibility, setVisibility] = useState<QuestionVisibility>('Published');
+    const [lessons, setLessons] = useState<LessonLookupDTO[]>([]);
+    const [selectedCourseId, setSelectedCourseId] = useState('');
+    const [saving, setSaving] = useState(false);
+
+    const [topicSearch, setTopicSearch] = useState('');
+    const [isTopicMenuOpen, setIsTopicMenuOpen] = useState(false);
+    const [isLessonMenuOpen, setIsLessonMenuOpen] = useState(false);
+    const [isVisibilityMenuOpen, setIsVisibilityMenuOpen] = useState(false);
+    const [isSourceLevelMenuOpen, setIsSourceLevelMenuOpen] = useState(false);
+    const [isSourceTypeMenuOpen, setIsSourceTypeMenuOpen] = useState(false);
+    const [dropUp, setDropUp] = useState({ lesson: false, visibility: false, sourceLevel: false, sourceType: false });
+
+    const [sourceFilterLevel, setSourceFilterLevel] = useState('');
+    const [sourceMaterialType, setSourceMaterialType] = useState('Vocabulary');
+    const [sourceLibrarySearch, setSourceLibrarySearch] = useState('');
+
+    const handleOpenDropdown = (type: 'lesson' | 'visibility' | 'sourceLevel' | 'sourceType', e: React.MouseEvent) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const windowHeight = window.innerHeight;
+        const isCloseToBottom = windowHeight - rect.bottom < 400;
+        setDropUp((prev) => ({ ...prev, [type]: isCloseToBottom }));
+        if (type === 'lesson') setIsLessonMenuOpen(!isLessonMenuOpen);
+        if (type === 'visibility') setIsVisibilityMenuOpen(!isVisibilityMenuOpen);
+        if (type === 'sourceLevel') setIsSourceLevelMenuOpen(!isSourceLevelMenuOpen);
+        if (type === 'sourceType') setIsSourceTypeMenuOpen(!isSourceTypeMenuOpen);
+    };
+
+    const applyLessonSelection = (lid: string, levelName: string) => {
+        const matched = DIFFICULTY_OPTIONS.find((opt) => opt.label === levelName);
+        setFormData((prev) => ({
+            ...prev,
+            lessonID: lid,
+            difficulty: matched ? matched.value : prev.difficulty
+        }));
+    };
+
+    const availableCourses = lessons
+        .filter((l) => !sourceFilterLevel || l.levelName === sourceFilterLevel)
+        .reduce((acc: { courseID: string; courseName: string }[], lesson) => {
+            if (!lesson.courseID) return acc;
+            if (!acc.some((c) => c.courseID === lesson.courseID)) {
+                acc.push({ courseID: lesson.courseID, courseName: lesson.courseName || '' });
+            }
+            return acc;
+        }, []);
+
+    const filteredLessons = lessons.filter(
+        (l) => (!sourceFilterLevel || l.levelName === sourceFilterLevel) && (!selectedCourseId || l.courseID === selectedCourseId)
+    );
+
+    useEffect(() => {
+        if (formData.lessonID && !filteredLessons.some((l) => l.lessonID === formData.lessonID)) {
+            setFormData((prev) => ({ ...prev, lessonID: '' }));
+        }
+    }, [filteredLessons, formData.lessonID]);
+
+    useEffect(() => {
+        if (
+            formData.lessonID &&
+            !lessons.some((l) => l.lessonID === formData.lessonID && (!sourceFilterLevel || l.levelName === sourceFilterLevel))
+        ) {
+            setFormData((prev) => ({ ...prev, lessonID: '' }));
+        }
+    }, [sourceFilterLevel, lessons, formData.lessonID]);
+
+    useEffect(() => {
+        setSelectedCourseId('');
+    }, [sourceFilterLevel]);
+
+    useEffect(() => {
+        const loadLessons = async () => {
+            try {
+                const data = await QuestionService.getLessonsLookup();
+                setLessons(data || []);
+            } catch (error) {
+                console.error('Lỗi load lessons:', error);
+            }
+        };
+        loadLessons();
+    }, []);
+
+    useEffect(() => {
+        const loadQuestionData = async () => {
+            if (isEditMode && id) {
+                try {
+                    const data = await QuestionService.getQuestionDetail(id);
+
+                    setFormData({
+                        lessonID: data.lessonID || '',
+                        content: data.content || '',
+                        questionType: data.questionType,
+                        questionFormat: data.questionFormat,
+                        difficulty: data.difficulty,
+                        explanation: data.explanation || '',
+                        equivalentID: data.equivalentID || null,
+                        sourceID: data.sourceID || null,
+                        status: data.status,
+                        topicIds: (data as any).questionTopics
+                            ? (data as any).questionTopics.map((qt: any) => qt.topicID)
+                            : (data.topicIds || []),
+                        answers: data.answers || []
+                    });
+
+                    setVisibility(
+                        data.status === QuestionStatus.Draft
+                            ? 'Draft'
+                            : data.status === QuestionStatus.Archived
+                              ? 'Archived'
+                              : 'Published'
+                    );
+
+                    if (data.equivalentID) {
+                        const eqText = (data as any).equivalentContent ?? data.equivalentID;
+                        setSelectedEquivalentContent(eqText);
+                    }
+                } catch (error) {
+                    console.error('Lỗi khi tải chi tiết câu hỏi:', error);
+                }
+            }
+        };
+        loadQuestionData();
+    }, [id, isEditMode]);
+
+    const [topics, setTopicsLookup] = useState<TopicItem[]>([]);
+
     useEffect(() => {
         const fetchTopics = async () => {
             try {
                 const data = await QuestionService.getTopicsLookup();
-                setTopicsLookup(data); // Đổ dữ liệu vào state 'topics'
+                setTopicsLookup(data);
             } catch (error) {
-                console.error("Không thể load danh sách Topic", error);
+                console.error('Không thể load danh sách Topic', error);
             }
         };
         fetchTopics();
     }, []);
-    // --- 4. HANDLERS (Logic xử lý) ---
+
+    const JLPT_SYMBOLS = [
+        { label: '★', value: '★', desc: 'Vị trí cần sắp xếp' },
+        { label: '☆', value: '☆', desc: 'Dấu phụ' },
+
+        { label: '（ ）', value: '（　）', desc: 'Ngoặc Nhật' },
+        { label: '[ ]', value: '[　]', desc: 'Placeholder' },
+        { label: '＿＿', value: '＿＿＿', desc: 'Chỗ trống' },
+
+        { label: '「 」', value: '「」', desc: 'Trích dẫn Nhật' },
+        { label: '『 』', value: '『』', desc: 'Trích dẫn đặc biệt' },
+
+        { label: '・', value: '・', desc: 'Dấu chấm Nhật' },
+        { label: '〜', value: '〜', desc: 'Khoảng / kéo dài' },
+        { label: '→', value: '→', desc: 'Mũi tên' },
+
+        { label: '①', value: '①', desc: 'Đánh số JLPT' },
+        { label: '②', value: '②', desc: 'Đánh số JLPT' },
+        { label: '③', value: '③', desc: 'Đánh số JLPT' },
+        { label: '④', value: '④', desc: 'Đánh số JLPT' }
+    ];
+
+    const insertSymbol = (symbol: string) => {
+        setFormData((prev) => ({
+            ...prev,
+            content: prev.content + symbol
+        }));
+    };
+    
     const handlePickSource = (item: SourceMaterial, type: string) => {
+        const getVal = (v: any) => {
+            if (!v) return '';
+            if (typeof v === 'string') return v;
+            return v.content || v.translation || v.meaning || v.title || '';
+        };
+
+        const displayExample = () => {
+            if (!item.example) return '';
+            if (typeof item.example === 'string') return item.example;
+            const ex = item.example as any;
+            return ex.content ? `\n\nVí dụ: ${ex.content}${ex.translation ? ` (${ex.translation})` : ''}` : '';
+        };
+
         let autoContent = '';
+        let autoExplanation = getVal(item.meaning) + displayExample();
         let autoAnswers: AnswerDTO[] = [];
+        let autoSkillType = SkillType.Vocabulary;
+        let autoQuestionFormat = QuestionFormat.StandardChoice;
 
         switch (type) {
             case 'Vocabulary':
-                autoContent = `Chọn nghĩa đúng của từ: ${item.word}`;
+                autoSkillType = SkillType.Vocabulary;
+                autoQuestionFormat = QuestionFormat.StandardChoice;
+                autoContent = `Chọn nghĩa đúng của từ: ${getVal(item.word)}`;
                 autoAnswers = [
-                    { answerText: item.meaning || '', isCorrect: true },
+                    { answerText: getVal(item.meaning) || '', isCorrect: true },
                     { answerText: 'Nghĩa giả 1', isCorrect: false },
-                    { answerText: 'Nghĩa giả 2', isCorrect: false },
+                    { answerText: 'Nghĩa giả 2', isCorrect: false }
                 ];
                 break;
             case 'Kanji':
-                autoContent = `Cách đọc Onyomi của chữ Hán "${item.character}" là gì?`;
+                autoSkillType = SkillType.Kanji;
+                autoQuestionFormat = QuestionFormat.StandardChoice;
+                autoContent = `Cách đọc Onyomi của chữ Hán "${getVal(item.character)}" là gì?`;
+                autoAnswers = [
+                    { answerText: getVal(item.onyomi) || '', isCorrect: true },
+                    { answerText: 'Đáp án sai 1', isCorrect: false },
+                    { answerText: 'Đáp án sai 2', isCorrect: false }
+                ];
+                break;
+
+            case 'Grammar':
+                autoSkillType = SkillType.Grammar;
+                autoQuestionFormat = QuestionFormat.StandardChoice;
+                autoContent = `Hoàn thành cấu trúc ngữ pháp: ${getVal(item.structure) || getVal(item.title) || 'N/A'}`;
+                autoAnswers = [
+                    { answerText: getVal(item.meaning) || '', isCorrect: true },
+                    { answerText: 'Đáp án sai 1', isCorrect: false },
+                    { answerText: 'Đáp án sai 2', isCorrect: false },
+                    { answerText: 'Đáp án sai 3', isCorrect: false }
+                ];
                 break;
         }
 
-        setFormData(prev => ({
+        setFormData((prev) => ({
             ...prev,
             content: autoContent,
+            explanation: autoExplanation,
             sourceID: item.id,
-            audioURL: item.audioURL || '',
-            mediaTimestamp: (item as any).mediaTimestamp || 0,
+            skillType: autoSkillType,
+            questionFormat: autoQuestionFormat,
             answers: autoAnswers.length > 0 ? autoAnswers : prev.answers,
             topicIds: item.topicID ? [item.topicID] : prev.topicIds
         }));
     };
 
-    const processSubmit = async (status: QuestionStatus) => {
-    // Validate cơ bản cho cả 2 trường hợp
-    if (!formData.lessonID) {
-        alert("Vui lòng chọn bài học trước khi lưu!");
-        return;
-    }
-
-    // Validate nâng cao khi chọn "Tạo chính thức" (Active)
-    if (status === QuestionStatus.Active) {
-        const hasCorrect = formData.answers.some(a => a.isCorrect);
-        if (!hasCorrect) {
-            alert("Câu hỏi chính thức phải có ít nhất một đáp án đúng!");
-            return;
-        }
-        if (!formData.content.trim()) {
-            alert("Nội dung câu hỏi không được để trống!");
-            return;
-        }
-    }
-
-    try {
-        // Gộp status trực tiếp vào payload để gửi đi
-        const payload = { ...formData, status,mediaTimestamp: String(formData.mediaTimestamp || "0") }as any;;
-        
-        await QuestionService.createQuestion(payload);
-        
-        const message = status === QuestionStatus.Draft 
-            ? "✨ Đã lưu bản nháp thành công!" 
-            : "🚀 Đã tạo câu hỏi chính thức thành công!";
-        
-        alert(message);
-        navigate(-1);
-    } catch (error: any) {
-        const errorMsg = error.response?.data?.detail || "Không thể lưu câu hỏi";
-        alert("Lỗi: " + errorMsg);
-    }
+    const statusFromVisibility = (v: QuestionVisibility): QuestionStatus => {
+        if (v === 'Draft') return QuestionStatus.Draft;
+        if (v === 'Archived') return QuestionStatus.Archived;
+        return QuestionStatus.Active;
     };
 
-    // 2. Hàm xử lý sự kiện Submit của Form (dành cho nút chính thức)
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        processSubmit(QuestionStatus.Active);
-    };
+    const handleSave = async () => {
+        const status = statusFromVisibility(visibility);
 
-  
+        if (!formData.lessonID) {
+            toast.error('Vui lòng chọn bài học!');
+            return;
+        }
 
-// Câu hỏi tương đương
-    // --- STATE CHO CÂU HỎI TƯƠNG ĐƯƠNG ---
-const [searchTerm, setSearchTerm] = useState('');
-const [suggestions, setSuggestions] = useState<any[]>([]); // Khởi tạo là mảng rỗng
-const [isSearching, setIsSearching] = useState(false);
-const [selectedEquivalentContent, setSelectedEquivalentContent] = useState<string | null>(null);
+        if (status === QuestionStatus.Active) {
+            const hasCorrect = formData.answers.some((a) => a.isCorrect);
+            if (!hasCorrect) {
+                toast.error('Câu hỏi đang hoạt động phải có ít nhất một đáp án đúng!');
+                return;
+            }
+            if (!formData.content.trim()) {
+                toast.error('Nội dung câu hỏi không được để trống!');
+                return;
+            }
+        }
 
-// --- LOGIC SEARCH VỚI DEBOUNCE ---
-useEffect(() => {
-    // Nếu ô nhập trống thì xóa gợi ý ngay
-    if (!searchTerm.trim()) {
-        setSuggestions([]);
-        return;
-    }
-
-    const delayDebounceFn = setTimeout(async () => {
-        setIsSearching(true);
+        setSaving(true);
         try {
-            const data = await QuestionService.searchEquivalent(searchTerm);
-            // Đảm bảo data luôn là mảng để không bị lỗi .map()
-            setSuggestions(Array.isArray(data) ? data : []);
-        } catch (error) {
-            console.error("Lỗi API Search:", error);
-            setSuggestions([]);
+            const payload = { ...formData, status } as any;
+
+            let message = '';
+            if (isEditMode && id) {
+                await QuestionService.updateQuestion(id, payload);
+                message = '🚀 Đã cập nhật câu hỏi thành công!';
+            } else {
+                await QuestionService.createQuestion(payload);
+                message = '🚀 Đã lưu câu hỏi thành công!';
+            }
+
+            toast.success(message);
+            setTimeout(() => navigate(-1), 1500);
+        } catch (error: any) {
+            const errorMsg = error.response?.data?.detail || 'Không thể lưu câu hỏi';
+            toast.error('Lỗi: ' + errorMsg);
         } finally {
-            setIsSearching(false);
+            setSaving(false);
         }
-    }, 600); // Đợi người dùng ngừng gõ 0.6s
+    };
 
-    return () => clearTimeout(delayDebounceFn);
-}, [searchTerm]);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [suggestions, setSuggestions] = useState<any[]>([]);
+    const [isSearching, setIsSearching] = useState(false);
+    const [selectedEquivalentContent, setSelectedEquivalentContent] = useState<string | null>(null);
 
-const handleSelectEquivalent = (q: any) => {
-    setFormData({ ...formData, equivalentID: q.questionID});
-    setSelectedEquivalentContent(q.content); // Lưu lại nội dung để hiển thị cho Admin xem
-    setSuggestions([]);
-    setSearchTerm('');
-};
+    useEffect(() => {
+        if (!searchTerm.trim()) {
+            setSuggestions([]);
+            return;
+        }
 
+        const delayDebounceFn = setTimeout(async () => {
+            setIsSearching(true);
+            try {
+                const data = await QuestionService.searchEquivalent(searchTerm);
+                setSuggestions(Array.isArray(data) ? data : []);
+            } catch (error) {
+                console.error('Lỗi API Search:', error);
+                setSuggestions([]);
+            } finally {
+                setIsSearching(false);
+            }
+        }, 600);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [searchTerm]);
+
+    const handleSelectEquivalent = (q: any) => {
+        setFormData({ ...formData, equivalentID: q.questionID });
+        setSelectedEquivalentContent(q.content);
+        setSuggestions([]);
+        setSearchTerm('');
+    };
+
+    const typeChipBase =
+        'flex flex-1 flex-col items-center gap-1 rounded-xl border-2 p-3 text-[13px] font-bold transition-all cursor-pointer';
+    const typeChipOn = 'border-primary bg-primary/10 text-primary shadow-sm';
+    const typeChipOff = 'border-[#f4f0f2] bg-white text-[#886373] hover:border-primary/30 hover:bg-[#fbf9fa]';
+
+    const selectedLessonLabel =
+        lessons.find((l) => l.lessonID === formData.lessonID)?.title || '-- Chọn bài học --';
 
     return (
-    <div style={{ 
-        display: 'flex', 
-        height: '100vh', 
-        width: '100%', 
-        backgroundColor: '#F4F7FE', 
-        overflow: 'hidden' 
-    }}>
-        
-        {/* CỘT 1: MATERIAL LIBRARY - Tăng nhẹ width để thoải mái hơn */}
-        <div style={{ 
-            width: '380px',
-            minWidth: '380px', 
-            borderRight: '1px solid #E8E8E8', 
-            backgroundColor: '#FFF', 
-            display: 'flex', 
-            flexDirection: 'column',
-            height: '100%',
-            boxShadow: '4px 0 10px rgba(0,0,0,0.03)'
-        }}>
-            <div style={{ padding: '24px 15px', flexShrink: 0 }}>
-                <h3 style={{ margin: '0 0 15px 0', fontSize: '18px', color: '#2D3748' }}>
-                    <span style={{ marginRight: '8px' }}>📕</span> Material Library
-                </h3>
-                {/* SourcePanel bây giờ tự lo phần Select bài học & Level */}
-                <SourcePanel 
-                    currentLessonId={formData.lessonID}
-                    onPick={handlePickSource} 
-                    onLessonChange={(id, levelName) => {
-                        const matched = DIFFICULTY_OPTIONS.find(opt => opt.label === levelName);
-                        setFormData(prev => ({
-                            ...prev,
-                            lessonID: id,
-                            difficulty: matched ? matched.value : 1
-                        }));
-                    }}
-                />
-            </div>
-        </div>
-
-        {/* CỘT 2: QUESTION EDITOR - Nền hồng nhẹ, cuộn độc lập */}
-        <div style={{ 
-            flex: 1, 
-            overflowY: 'auto', // Chỉ cuộn ở đây
-            backgroundColor: '#FFF8F9', // Nền hồng nhẹ theo yêu cầu
-            padding: '40px 20px',
-            scrollbarWidth: 'thin', // Dành cho Firefox để thanh cuộn nhỏ lại
-            msOverflowStyle: 'none'
-        }}>
-            <style>{`
-            div::-webkit-scrollbar { width: 6px; }
-            div::-webkit-scrollbar-thumb { background: #E2E8F0; borderRadius: 10px; }
-        `}</style>
-        
-            <div style={{ maxWidth: '850px  ', margin: '0 auto' }}>
-                {/* Thanh thông báo template */}
-                {formData.sourceID && (
-                    <div style={{ background: '#FFF1F3', padding: '12px 20px', borderRadius: '12px', color: '#FF6B81', marginBottom: '25px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid #FFD1D8' }}>                       
-                     <span style={{ fontSize: '14px' }}>✨ Nội dung đã được tự động điền từ phôi.</span>
-                        <button onClick={() => setFormData({...formData, sourceID: null})} style={{ background: 'none', border: 'none', color: '#FF6B81', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>Xóa phôi</button>                    
+        <div className="flex h-full min-h-0 min-w-[380px] flex-col overflow-hidden bg-background-light">
+            <AdminHeader>
+                <div className={isEditMode ? 'flex items-center gap-241' : 'flex items-center gap-254'}>
+                    <div className="flex min-w-0 items-center gap-4">
+                        <button
+                            type="button"
+                            onClick={() => navigate(-1)}
+                            className="flex size-10 shrink-0 items-center justify-center rounded-full border border-[#f4f0f2] text-[#886373] transition-colors hover:bg-[#f4f0f2] active:scale-95"
+                            aria-label="Quay lại"
+                        >
+                            <span className="material-symbols-outlined text-[22px]">arrow_back</span>
+                        </button>
+                        <div className="flex min-w-0 flex-col text-left">
+                            <h2 className="text-xl font-bold uppercase tracking-tight text-[#181114]">
+                                {isEditMode ? 'Chỉnh sửa câu hỏi' : 'Thêm câu hỏi'}
+                            </h2>
+                            <nav className="flex flex-wrap gap-1 text-[10px] font-medium uppercase tracking-wider text-[#886373]">
+                                <span>Ngân hàng câu hỏi</span>
+                                <span>/</span>
+                                <span className="font-bold text-primary">{isEditMode ? 'Chỉnh sửa' : 'Thêm mới'}</span>
+                            </nav>
+                        </div>
                     </div>
-                )}
-                {/* CHỌN LOẠI CÂU HỎI (QUESTION TYPE) */}
-                <div style={{ marginBottom: '30px' }}>
-                    <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '12px', color: '#4A5568' }}>
-                        Dạng câu hỏi
-                    </label>
-                    <div style={{ display: 'flex', gap: '10px' }}>
-                        {[
-                            { value: QuestionType.MultipleChoice, label: 'Chọn từ', icon: '📝' },
-                            { value: QuestionType.FillInBlank, label: 'Điền từ', icon: '⌨️' },
-                            { value: QuestionType.Ordering, label: 'Sắp xếp câu', icon: '🧩' },
-                            { value: QuestionType.Synonym, label: 'Từ đồng nghĩa', icon: '🔄' },
-                            { value: QuestionType.Usage, label: 'Cách dùng', icon: '📖' }
-                            
-                        ].map((type) => (
-                            <button
-                                key={type.value}
-                                type="button"
-                                onClick={() => setFormData({ ...formData, questionType: type.value })}
-                                style={{
-                                    flex: 1,
-                                    padding: '12px',
-                                    borderRadius: '12px',
-                                    border: '2px solid',
-                                    borderColor: formData.questionType === type.value ? '#FF6B81' : '#E2E8F0',
-                                    backgroundColor: formData.questionType === type.value ? '#FFF1F3' : '#FFF',
-                                    color: formData.questionType === type.value ? '#FF6B81' : '#64748B',
-                                    cursor: 'pointer',
-                                    fontWeight: 'bold',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    alignItems: 'center',
-                                    gap: '5px',
-                                    transition: 'all 0.2s'
-                                }}
-                            >
-                                <span style={{ fontSize: '20px' }}>{type.icon}</span>
-                                {type.label}
-                            </button>
-                        ))}
+
+                    <div className="flex shrink-0 items-center gap-3">
+                        <button
+                            type="button"
+                            onClick={handleSave}
+                            disabled={saving}
+                            className="flex items-center gap-2 rounded-full bg-primary px-5 py-2 text-sm font-bold text-white shadow-lg shadow-primary/20 transition-all hover:bg-primary-dark active:scale-95 disabled:opacity-50"
+                        >
+                            <span className="material-symbols-outlined text-sm">{saving ? 'sync' : 'save'}</span>
+                            {saving ? 'Đang lưu...' : isEditMode ? 'Cập nhật câu hỏi' : 'Lưu câu hỏi'}
+                        </button>
                     </div>
                 </div>
+            </AdminHeader>
 
-                <form onSubmit={handleSubmit}>
-                    {/* Rich Text Editor giả lập */}
-                    <div style={{ marginBottom: '25px' }}>
-                        <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '10px', color: '#4A5568' }}>Nội dung câu hỏi (Rich Text)</label>
-                        <div style={{ border: '1px solid #FFD1D8', borderRadius: '12px', backgroundColor: '#fff', overflow: 'hidden' }}>
-                            <div style={{ padding: '10px', borderBottom: '1px solid #F0F0F0', display: 'flex', gap: '15px' }}>
-                                {/* Bạn có thể tích hợp thư viện Quill hoặc CKEditor ở đây */}
-                                <button type="button" style={{ border: 'none', background: 'none', cursor: 'pointer' }}><b>B</b></button>
-                                <button type="button" style={{ border: 'none', background: 'none', cursor: 'pointer' }}><i>I</i></button>
-                                <button type="button" style={{ border: 'none', background: 'none', cursor: 'pointer' }}>🖼️</button>
+            <div className="custom-scrollbar min-h-0 flex-1 overflow-y-auto p-8">
+                <style
+                    dangerouslySetInnerHTML={{
+                        __html: `
+                .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: #e8e0e4; border-radius: 10px; }
+              `
+                    }}
+                />
+
+                <div className="mx-auto flex max-w-[1600px] flex-col gap-8">
+                    {/* Hàng trên: thư viện phôi — full width, bố cục ngang */}
+                    <div className="rounded-2xl border border-[#f4f0f2] bg-white p-6 shadow-sm sm:p-8">
+                        <div className="mb-5 flex flex-col items-start gap-4 border-b border-[#f4f0f2] pb-5 md:flex-row md:items-center md:justify-between lg:gap-3">
+                            <div className="flex min-w-0 shrink-0 items-center gap-2">
+                                <span className="material-symbols-outlined shrink-0 text-primary">menu_book</span>
+                                <h3 className="text-lg font-bold tracking-tight text-[#181114]">Thư viện tài liệu</h3>
                             </div>
-                            <textarea 
-                                style={{ width: '100%', minHeight: '120px', padding: '15px', border: 'none', outline: 'none', fontSize: '16px' }}
-                                value={formData.content}
-                                onChange={(e) => setFormData({...formData, content: e.target.value})}
-                                placeholder="Nhập nội dung câu hỏi..."
+
+                            <div className="flex w-full min-w-0 flex-wrap items-center justify-end gap-2 sm:gap-3 md:w-auto">
+                                <div className="relative">
+                                    <button
+                                        type="button"
+                                        onClick={(e) => handleOpenDropdown('sourceLevel', e)}
+                                        className="flex h-10 min-w-34 items-center justify-between gap-2 rounded-full border border-[#f4f0f2] bg-[#fbf9fa] px-4 text-sm font-bold uppercase tracking-wide text-[#181114] transition-all hover:border-primary/30"
+                                    >
+                                        <span>{sourceFilterLevel || 'Tất cả JLPT'}</span>
+                                        <span className={`material-symbols-outlined text-[18px] text-[#886373] transition-transform ${isSourceLevelMenuOpen ? 'rotate-180' : ''}`}>expand_more</span>
+                                    </button>
+                                    {isSourceLevelMenuOpen && (
+                                        <>
+                                            <div className="fixed inset-0 z-10" onClick={() => setIsSourceLevelMenuOpen(false)} />
+                                            <div className={`absolute right-0 z-20 mt-2 w-40 rounded-xl border border-[#f4f0f2] bg-white p-1 shadow-xl animate-in fade-in slide-in-from-top-2 duration-200 ${dropUp.sourceLevel ? 'bottom-full mb-2' : 'top-full mt-2'}`}>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => { setSourceFilterLevel(''); setIsSourceLevelMenuOpen(false); }}
+                                                    className={`w-full rounded-lg px-3 py-2 text-left text-xs font-medium transition-colors ${sourceFilterLevel === '' ? 'bg-primary/10 text-primary font-bold' : 'hover:bg-primary/5 hover:text-primary'}`}
+                                                >
+                                                    Tất cả JLPT
+                                                </button>
+                                                {DIFFICULTY_OPTIONS.map((opt) => (
+                                                    <button
+                                                        key={opt.value}
+                                                        type="button"
+                                                        onClick={() => { setSourceFilterLevel(opt.label); setIsSourceLevelMenuOpen(false); }}
+                                                        className={`w-full rounded-lg px-3 py-2 text-left text-xs font-medium transition-colors ${sourceFilterLevel === opt.label ? 'bg-primary/10 text-primary font-bold' : 'hover:bg-primary/5 hover:text-primary'}`}
+                                                    >
+                                                        {opt.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+
+                                <div className="relative">
+                                    <button
+                                        type="button"
+                                        onClick={(e) => handleOpenDropdown('sourceType', e)}
+                                        className="flex h-10 min-w-36 items-center justify-between gap-2 rounded-full border border-[#f4f0f2] bg-[#fbf9fa] px-4 text-sm font-bold text-[#181114] transition-all hover:border-primary/30"
+                                    >
+                                        <span>{SOURCE_PANEL_TYPES.find(opt => opt.value === sourceMaterialType)?.label || 'Loại phôi'}</span>
+                                        <span className={`material-symbols-outlined text-[18px] text-[#886373] transition-transform ${isSourceTypeMenuOpen ? 'rotate-180' : ''}`}>expand_more</span>
+                                    </button>
+                                    {isSourceTypeMenuOpen && (
+                                        <>
+                                            <div className="fixed inset-0 z-10" onClick={() => setIsSourceTypeMenuOpen(false)} />
+                                            <div className={`absolute right-0 z-20 mt-2 w-44 rounded-xl border border-[#f4f0f2] bg-white p-1 shadow-xl animate-in fade-in slide-in-from-top-2 duration-200 ${dropUp.sourceType ? 'bottom-full mb-2' : 'top-full mt-2'}`}>
+                                                {SOURCE_PANEL_TYPES.map((opt) => (
+                                                    <button
+                                                        key={opt.value}
+                                                        type="button"
+                                                        onClick={() => { setSourceMaterialType(opt.value); setIsSourceTypeMenuOpen(false); }}
+                                                        className={`w-full rounded-lg px-3 py-2 text-left text-xs font-medium transition-colors ${sourceMaterialType === opt.value ? 'bg-primary/10 text-primary font-bold' : 'hover:bg-primary/5 hover:text-primary'}`}
+                                                    >
+                                                        {opt.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+
+                                <div className="relative">
+                                    <span className="material-symbols-outlined pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[18px] text-[#886373]">
+                                        search
+                                    </span>
+                                    <input
+                                        type="search"
+                                        placeholder="Tìm phôi..."
+                                        value={sourceLibrarySearch}
+                                        onChange={(e) => setSourceLibrarySearch(e.target.value)}
+                                        className="h-10 w-full rounded-full border border-[#f4f0f2] bg-[#fbf9fa] pl-10 pr-4 text-sm font-medium text-[#181114] outline-none transition-all placeholder:text-[#886373]/55 focus:border-primary focus:ring-2 focus:ring-primary/15"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="min-h-[220px] lg:min-h-[260px]">
+                            <SourcePanel
+                                hideLessonSelect
+                                currentLessonId={formData.lessonID}
+                                filterLevel={sourceFilterLevel}
+                                filterType={sourceMaterialType}
+                                searchQuery={sourceLibrarySearch}
+                                onPick={handlePickSource}
+                                onLessonChange={(lid, levelName) => applyLessonSelection(lid, levelName)}
                             />
                         </div>
                     </div>
 
-                    {/* Cấu trúc hiển thị Topic Tags mới */}
-                   <div className="tag-management">                  
-                    <div style={{ marginBottom: '25px' }}>
-                        <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '10px', color: '#4A5568' }}>
-                            🏷️ Chủ đề (Topic Tags)
-                        </label>
-                        
-                        <div style={{ 
-                            background: '#FFF', 
-                            border: '1px solid #FFD1D8', 
-                            borderRadius: '12px', 
-                            padding: '15px',
-                            minHeight: '60px'
-                        }}>
-                            {/* 1. Khu vực các nhãn đã chọn (Active Tags) */}
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: formData.topicIds.length > 0 ? '15px' : '0' }}>
-                                {formData.topicIds.length === 0 && (
-                                    <span style={{ color: '#A0AEC0', fontSize: '14px', fontStyle: 'italic' }}>Chưa chọn chủ đề nào...</span>
-                                )}
-                                {formData.topicIds.map(id => {
-                                    const topic = topics.find(t => t.topicID === id);
-                                    return (
-                                        <span key={id} style={{ 
-                                            background: '#FF6B81', 
-                                            color: '#FFF', 
-                                            padding: '6px 12px', 
-                                            borderRadius: '20px', 
-                                            fontSize: '13px',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '6px',
-                                            fontWeight: '500',
-                                            boxShadow: '0 2px 4px rgba(255, 107, 129, 0.2)'
-                                        }}>
-                                            {topic ? topic.topicName : "..."}
-                                            <button 
-                                                type="button"
-                                                onClick={() => handleRemoveTag(id)} 
-                                                style={{ 
-                                                    border: 'none', 
-                                                    background: 'rgba(255,255,255,0.2)', 
-                                                    color: '#FFF', 
-                                                    cursor: 'pointer',
-                                                    borderRadius: '50%',
-                                                    width: '18px',
-                                                    height: '18px',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    fontSize: '14px'
-                                                }}
-                                            >
-                                                ×
-                                            </button>
-                                        </span>
-                                    );
-                                })}
-                            </div>
-
-                            {/* Ngăn cách nhẹ */}
-                            {formData.topicIds.length > 0 && <hr style={{ border: 'none', borderTop: '1px solid #FFF1F3', margin: '10px 0' }} />}
-
-                            {/* 2. Khu vực Gợi ý (Topic Bank) */}
-                            <div style={{ marginTop: '10px' }}>
-                                <p style={{ fontSize: '12px', color: '#718096', marginBottom: '8px', fontWeight: '500' }}>
-                                    Gợi ý chủ đề:
-                                </p>
-                                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                                    {topics
-                                        .filter(t => !formData.topicIds.includes(t.topicID)) // Chỉ hiện những cái chưa chọn
-                                        .map(t => (
-                                            <button 
-                                                key={t.topicID} 
-                                                type="button"
-                                                onClick={() => handleAddTag(t.topicID)}
-                                                style={{ 
-                                                    border: '1px dashed #FFD1D8', 
-                                                    background: '#FFF8F9', 
-                                                    color: '#FF6B81',
-                                                    padding: '5px 12px',
-                                                    borderRadius: '20px', 
-                                                    cursor: 'pointer',
-                                                    fontSize: '12px',
-                                                    transition: 'all 0.2s',
-                                                    fontWeight: '500'
-                                                }}
-                                                onMouseOver={(e) => {
-                                                    e.currentTarget.style.background = '#FF6B81';
-                                                    e.currentTarget.style.color = '#FFF';
-                                                    e.currentTarget.style.borderStyle = 'solid';
-                                                }}
-                                                onMouseOut={(e) => {
-                                                    e.currentTarget.style.background = '#FFF8F9';
-                                                    e.currentTarget.style.color = '#FF6B81';
-                                                    e.currentTarget.style.borderStyle = 'dashed';
-                                                }}
-                                            >
-                                                + {t.topicName}
-                                            </button>
-                                        ))}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-            
-                </div>
-
-                    <div style={{ display: 'flex', gap: '20px', marginBottom: '30px' }}>
-                        <div style={{ flex: 1 }}>
-                            <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>
-                                Độ khó: <span style={{color:'#FF6B81'}}>{DIFFICULTY_OPTIONS.find(opt => opt.value === formData.difficulty)?.label || 'N5'}</span></label>
-                            <div style={{ display: 'flex', gap: '5px', fontSize: '24px', color: '#FF6B81' }}>
-                                {[1,2,3].map(s => (
-                                    <span key={s} onClick={() => setFormData({...formData, difficulty: s})} style={{ cursor: 'pointer' }}>{s <= formData.difficulty ? '★' : '☆'}</span>
-                                ))}
-                            </div>
-                        </div>
-
-                       {/* Câu hỏi tương đương */}
-                       <div style={{ flex: 1, position: 'relative' }}>
-                            <label style={{ fontWeight: 'bold', display: 'block', marginBottom: '8px', color: '#4A5568' }}>
-                                🔗 Câu hỏi tương đương {isSearching && <span style={{ fontSize: '12px', color: '#FF6B81' }}>(Đang tìm...)</span>}
-                            </label>
-                            
-                            {/* Khu vực hiển thị kết quả đã chọn */}
-                            {formData.equivalentID ? (
-                                <div style={{ 
-                                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                                    padding: '10px', background: '#F0FFF4', border: '1px solid #C6F6D5', borderRadius: '8px' 
-                                }}>
-                                    <span style={{ fontSize: '13px', color: '#2F855A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                        ✅ Đã liên kết: {selectedEquivalentContent}
-                                    </span>
-                                    <button 
+                    <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+                    {/* Cột trái: dạng câu hỏi + biên tập */}
+                    <div className="space-y-8 lg:col-span-2">
+                        <div className="rounded-2xl border border-[#f4f0f2] bg-white p-8 shadow-sm">
+                            {formData.sourceID && (
+                                <div className="mb-8 flex items-center justify-between rounded-xl border border-primary/20 bg-primary/5 px-5 py-3.5 text-primary">
+                                    <span className="text-sm font-medium">Nội dung đã được điền tự động từ phôi.</span>
+                                    <button
                                         type="button"
-                                        onClick={() => { setFormData({...formData, equivalentID: null}); setSelectedEquivalentContent(null); }}
-                                        style={{ background: 'none', border: 'none', color: '#E53E3E', cursor: 'pointer', fontWeight: 'bold' }}
-                                    >✕</button>
+                                        onClick={() =>
+                                            setFormData({
+                                                ...formData,
+                                                sourceID: null,
+                                                content: '',
+                                                explanation: '',
+                                                answers: [
+                                                    { answerText: '', isCorrect: true },
+                                                    { answerText: '', isCorrect: false }
+                                                ]
+                                            })
+                                        }
+                                        className="text-sm font-bold text-primary underline-offset-2 hover:underline"
+                                    >
+                                        Xóa phôi
+                                    </button>
                                 </div>
-                            ) : (
-                                /* Ô input tìm kiếm */
-                                <input 
-                                    style={{ width: '100%', padding: '10px', border: '1px solid #DDD', borderRadius: '8px', fontSize: '14px' }} 
-                                    placeholder="Tìm theo nội dung câu hỏi đã có..." 
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
+                            )}
+
+                            <div className="mb-8">
+                                <label className={sectionLabelClass}>Dạng câu hỏi</label>
+                                <div className="flex flex-wrap gap-2.5">
+                                    {[
+                                        { value: QuestionType.MultipleChoice, label: 'Chọn từ', icon: 'quiz' },
+                                        { value: QuestionType.Ordering, label: 'Sắp xếp', icon: 'swap_vert' },
+                                        // { value: QuestionType.FillInBlank, label: 'Điền từ', icon: 'text_fields' },
+                                        // { value: QuestionType.Synonym, label: 'Đồng nghĩa', icon: 'compare_arrows' },
+                                        // { value: QuestionType.Usage, label: 'Cách dùng', icon: 'menu_book' }
+                                    ].map((type) => (
+                                        <button
+                                            key={type.value}
+                                            type="button"
+                                            onClick={() => setFormData({ ...formData, questionType: type.value })}
+                                            className={`${typeChipBase} min-w-[100px] ${
+                                                formData.questionType === type.value ? typeChipOn : typeChipOff
+                                            }`}
+                                        >
+                                            <span className="material-symbols-outlined text-[22px]">{type.icon}</span>
+                                            {type.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="mb-8">
+                                <label className={sectionLabelClass}>Loại kĩ năng</label>
+                                <div className="grid grid-cols-3 gap-2 sm:grid-cols-7">
+                                    {SKILL_TYPE_OPTIONS.filter((skill) => skill.value >= 1 && skill.value <= 3).map((skill) => (
+                                        <button
+                                            key={skill.value}
+                                            type="button"
+                                            onClick={() => setFormData({ ...formData, skillType: skill.value })}
+                                            className={`rounded-xl border-2 p-2 text-center text-[12px] font-bold transition-all ${
+                                                Number(formData.skillType) === skill.value ? typeChipOn : typeChipOff
+                                            }`}
+                                        >
+                                            {skill.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="mb-8">
+                                <label className={sectionLabelClass}>Định dạng câu hỏi</label>
+                                <div className="flex flex-wrap gap-2.5">
+                                    {[
+                                       {
+                                            value: QuestionFormat.StandardChoice,
+                                            label: 'Trắc nghiệm thường',
+                                            icon: 'radio_button_checked',
+                                            desc: 'Câu hỏi bình thường'
+                                        },
+                                        {
+                                            value: QuestionFormat.StarSentence,
+                                            label: 'Câu dấu ★',
+                                            icon: 'stars',
+                                            desc: 'JLPT 文の組み立て'
+                                        }
+                                    ].map((format) => (
+                                        <button
+                                            key={format.value}
+                                            type="button"
+                                            onClick={() => setFormData({ ...formData, questionFormat: format.value })}
+                                            title={format.desc}
+                                            className={`${typeChipBase} min-w-[120px] ${
+                                                formData.questionFormat === format.value ? typeChipOn : typeChipOff
+                                            }`}
+                                        >
+                                            <span className="material-symbols-outlined text-[20px]">{format.icon}</span>
+                                            <span className="text-[12px]">{format.label}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <form
+                                onSubmit={(e) => {
+                                    e.preventDefault();
+                                    handleSave();
+                                }}
+                            >
+                                <div className="mb-6">
+                                    <label className={fieldLabelClass}>Nội dung câu hỏi</label>
+                                    {/* Toolbar ký tự JLPT */}
+                                    <div className="mb-3">
+                                        <div className="mb-2 flex items-center gap-2">
+                                            <span className="material-symbols-outlined text-[18px] text-primary">
+                                                keyboard
+                                            </span>
+
+                                            <span className="text-xs font-bold uppercase tracking-wider text-[#886373]">
+                                                Ký tự JLPT hỗ trợ
+                                            </span>
+                                        </div>
+
+                                        <div className="flex flex-wrap gap-2">
+                                            {JLPT_SYMBOLS.map((item) => (
+                                                <button
+                                                    key={item.label}
+                                                    type="button"
+                                                    title={item.desc}
+                                                    onClick={() => insertSymbol(item.value)}
+                                                    className="rounded-lg border border-[#f4f0f2] bg-[#fbf9fa] px-3 py-1.5 text-sm font-bold text-[#181114] transition-all hover:border-primary hover:bg-primary/5 hover:text-primary"
+                                                >
+                                                    {item.label}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    
+                                    <div className={inputShellClass}>
+                                        <textarea
+                                            className="min-h-[120px] w-full resize-y border-none bg-transparent p-4 text-base text-[#181114] outline-none placeholder:text-[#886373]/60"
+                                            value={formData.content}
+                                            onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                                            placeholder="Nhập nội dung câu hỏi..."
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="mb-6">
+                                    <label className={fieldLabelClass}>Lời giải chi tiết</label>
+                                    <div className={inputShellClass}>
+                                        <textarea
+                                            className="min-h-[100px] w-full resize-y border-none bg-transparent p-4 text-[15px] text-[#181114] outline-none placeholder:text-[#886373]/60"
+                                            value={formData.explanation}
+                                            onChange={(e) => setFormData({ ...formData, explanation: e.target.value })}
+                                            placeholder="Giải thích đáp án hoặc kiến thức mở rộng..."
+                                        />
+                                        <div className="border-t border-[#f4f0f2] bg-[#fbf9fa] px-4 py-2 text-[11px] font-medium text-[#886373]">
+                                            {formData.sourceID
+                                                ? 'Đã lấy gợi ý từ nghĩa của phôi.'
+                                                : 'Gợi ý: giải thích ngữ pháp hoặc từ vựng liên quan.'}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="mb-8 flex flex-col gap-6 sm:flex-row sm:gap-8">
+                                    <div className="flex-1">
+                                        <label className={fieldLabelClass}>
+                                            Độ khó (JLPT){' '}
+                                            <span className="text-primary">
+                                                {DIFFICULTY_OPTIONS.find((opt) => opt.value === formData.difficulty)?.label ||
+                                                    'N5'}
+                                            </span>
+                                        </label>
+                                        <div className="flex gap-1 text-2xl text-primary">
+                                            {[1, 2, 3].map((s) => (
+                                                <button
+                                                    key={s}
+                                                    type="button"
+                                                    onClick={() => setFormData({ ...formData, difficulty: s })}
+                                                    className="cursor-pointer rounded p-0.5 transition-transform hover:scale-110"
+                                                >
+                                                    {s <= formData.difficulty ? '★' : '☆'}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="relative flex-1">
+                                        <label className={fieldLabelClass}>
+                                            Câu hỏi tương đương
+                                            {isSearching && (
+                                                <span className="ml-2 text-xs font-normal normal-case text-primary">
+                                                    (Đang tìm...)
+                                                </span>
+                                            )}
+                                        </label>
+
+                                        {formData.equivalentID ? (
+                                            <div className="flex items-center justify-between rounded-xl border border-emerald-100 bg-emerald-50/80 px-3 py-2.5">
+                                                <span className="truncate text-[13px] font-medium text-emerald-800">
+                                                    Đã liên kết: {selectedEquivalentContent}
+                                                </span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setFormData({ ...formData, equivalentID: null });
+                                                        setSelectedEquivalentContent(null);
+                                                    }}
+                                                    className="shrink-0 font-bold text-red-500 hover:text-red-600"
+                                                >
+                                                    ✕
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <input
+                                                className="w-full rounded-xl border border-[#f4f0f2] bg-white px-4 py-2.5 text-sm text-[#181114] outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
+                                                placeholder="Tìm theo nội dung câu hỏi đã có..."
+                                                value={searchTerm}
+                                                onChange={(e) => setSearchTerm(e.target.value)}
+                                            />
+                                        )}
+
+                                        {suggestions.length > 0 && (
+                                            <div className="absolute left-0 right-0 top-full z-50 mt-2 max-h-[220px] overflow-y-auto rounded-xl border border-[#f4f0f2] bg-white shadow-[0_20px_50px_rgba(0,0,0,0.12)]">
+                                                {suggestions.map((item) => (
+                                                    <div
+                                                        key={item.questionID}
+                                                        role="button"
+                                                        tabIndex={0}
+                                                        onClick={() => handleSelectEquivalent(item)}
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                                e.preventDefault();
+                                                                handleSelectEquivalent(item);
+                                                            }
+                                                        }}
+                                                        className="cursor-pointer border-b border-[#f4f0f2] p-3 transition-colors last:border-b-0 hover:bg-primary/5"
+                                                    >
+                                                        <div className="mb-1 flex justify-between gap-2">
+                                                            <span className="rounded-md bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase text-primary">
+                                                                {QUESTION_TYPE_LABELS[item.questionType as QuestionType] || 'N/A'}
+                                                            </span>
+                                                            <span className="text-[10px] text-[#886373]">
+                                                                #...{item.questionID.slice(-6)}
+                                                            </span>
+                                                        </div>
+                                                        <div className="line-clamp-2 text-sm font-medium leading-snug text-[#181114]">
+                                                            {item.content}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <AnswerEditor
+                                    answers={formData.answers}
+                                    setAnswers={(newAns) => setFormData({ ...formData, answers: newAns })}
                                 />
-                            )}
-
-                            {/* Dropdown gợi ý */}
-                            {suggestions.length > 0 && (
-                                <div style={{ 
-                                    position: 'absolute', top: '100%', left: 0, right: 0, 
-                                    backgroundColor: '#FFF', border: '1px solid #E2E8F0', borderRadius: '8px',
-                                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', zIndex: 100, marginTop: '4px',
-                                    maxHeight: '200px', overflowY: 'auto'
-                                }}>
-                                    {suggestions.map((item: any) => (
-    <div 
-        key={item.questionID} 
-        onClick={() => handleSelectEquivalent(item)}
-        style={{ 
-            padding: '12px 15px', 
-            cursor: 'pointer', 
-            borderBottom: '1px solid #F1F5F9',
-            transition: 'all 0.2s'
-        }}
-        onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#FFF5F7'}
-        onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#fff'}
-    >
-        {/* Hàng 1: Loại câu hỏi và Badge trạng thái */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-            <span style={{ 
-                fontSize: '11px', 
-                fontWeight: 'bold', 
-                textTransform: 'uppercase',
-                color: '#FF6B81',
-                backgroundColor: '#FFF1F3',
-                padding: '2px 6px',
-                borderRadius: '4px'
-            }}>
-                {QUESTION_TYPE_LABELS[item.questionType as QuestionType] || "N/A"}
-            </span>
-            <span style={{ fontSize: '11px', color: '#94A3B8' }}>#...{item.questionID.slice(-6)}</span>
-        </div>
-
-        {/* Hàng 2: Nội dung câu hỏi chính */}
-        <div style={{ 
-            color: '#1E293B', 
-            fontSize: '14px', 
-            fontWeight: '500',
-            lineHeight: '1.4',
-            display: '-webkit-box',
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden'
-        }}>
-            {item.content}
-        </div>
-    </div>
-))}
-                                </div>
-                            )}
+                            </form>
                         </div>
-
                     </div>
 
-                    <AnswerEditor 
-                        answers={formData.answers} 
-                        setAnswers={(newAns) => setFormData({...formData, answers: newAns})} 
-                    />
+                    {/* Cột phải: gán chủ đề, trạng thái, bài học */}
+                    <div className="flex flex-col gap-8 lg:col-span-1">
+                        <div className="rounded-2xl border border-[#f4f0f2] bg-white p-8 shadow-sm">
+                            <div>
+                                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-[#886373]">
+                                    Gán chủ đề
+                                </label>
+                                <div className="relative">
+                                    <div className="relative">
+                                        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[#886373]">
+                                            search
+                                        </span>
+                                        <input
+                                            type="text"
+                                            placeholder="Tìm và chọn chủ đề..."
+                                            value={topicSearch}
+                                            onChange={(e) => {
+                                                setTopicSearch(e.target.value);
+                                                setIsTopicMenuOpen(true);
+                                            }}
+                                            onFocus={() => setIsTopicMenuOpen(true)}
+                                            className="w-full rounded-xl border border-[#f4f0f2] bg-[#fbf9fa] py-2.5 pl-9 pr-4 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/10"
+                                        />
+                                    </div>
 
-                    {/* Nút hành động cố định ở cuối form */}
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '15px', marginTop: '40px', paddingBottom: '40px' }}>
+                                    {isTopicMenuOpen && (
+                                        <>
+                                            <div className="fixed inset-0 z-10" onClick={() => setIsTopicMenuOpen(false)} />
+                                            <div className="absolute left-0 right-0 z-20 mt-2 max-h-48 overflow-y-auto rounded-xl border border-[#f4f0f2] bg-white p-1 shadow-xl custom-scrollbar animate-in fade-in slide-in-from-top-2 duration-200">
+                                                {topics
+                                                    .filter(
+                                                        (t) =>
+                                                            t.topicName.toLowerCase().includes(topicSearch.toLowerCase()) &&
+                                                            !formData.topicIds.includes(t.topicID)
+                                                    )
+                                                    .map((t) => (
+                                                        <button
+                                                            key={t.topicID}
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setFormData({
+                                                                    ...formData,
+                                                                    topicIds: [...formData.topicIds, t.topicID]
+                                                                });
+                                                                setTopicSearch('');
+                                                                setIsTopicMenuOpen(false);
+                                                            }}
+                                                            className="group flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-primary/5 hover:text-primary"
+                                                        >
+                                                            {t.topicName}
+                                                            <span className="material-symbols-outlined text-xs opacity-0 transition-opacity group-hover:opacity-100">
+                                                                add
+                                                            </span>
+                                                        </button>
+                                                    ))}
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
 
-                        <button type="button" onClick={() => processSubmit(QuestionStatus.Draft)}
-                        style={{ padding: '12px 25px', borderRadius: '10px', border: 'none', background: '#E2E8F0', fontWeight: 'bold', cursor: 'pointer' }}>Lưu nháp</button>
-                        <button type="submit" style={{ padding: '12px 40px', borderRadius: '10px', border: 'none', background: '#FF6B81', color: '#fff', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 12px rgba(255, 107, 129, 0.3)' }}>
-                           <span>➤</span> Tạo câu hỏi chính thức
-                        </button>
+                                <div className="mt-3 flex min-h-8 flex-wrap gap-2">
+                                    {formData.topicIds.map((tid) => (
+                                        <div key={tid} className="group relative inline-flex animate-in zoom-in duration-200">
+                                            <div className="flex items-center rounded-full border border-primary/20 bg-primary/5 py-1.5 pl-3 pr-8 text-[11px] font-bold text-primary">
+                                                <span className="material-symbols-outlined mr-1.5 text-[14px] text-primary/60">
+                                                    label
+                                                </span>
+                                                {topics.find((x) => x.topicID === tid)?.topicName || '...'}
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setFormData({
+                                                        ...formData,
+                                                        topicIds: formData.topicIds.filter((x) => x !== tid)
+                                                    })
+                                                }
+                                                className="absolute right-1 top-1/2 flex size-5 -translate-y-1/2 items-center justify-center rounded-full bg-primary/20 text-primary transition-all hover:bg-primary hover:text-white group-hover:scale-100 scale-75"
+                                            >
+                                                <span className="material-symbols-outlined text-[14px]">close</span>
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
 
+                            <div className="mt-6 border-t border-[#f4f0f2] pt-6">
+                                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-[#886373]">
+                                    Trạng thái
+                                </label>
+                                <div className="relative">
+                                    <button
+                                        type="button"
+                                        onClick={(e) => handleOpenDropdown('visibility', e)}
+                                        className="flex w-full items-center justify-between rounded-xl border border-[#f4f0f2] bg-[#fbf9fa] px-4 py-2.5 text-sm outline-none transition-all hover:border-primary/30"
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            <span
+                                                className={`size-2 rounded-full ${
+                                                    visibility === 'Published'
+                                                        ? 'bg-green-500'
+                                                        : visibility === 'Draft'
+                                                          ? 'bg-amber-500'
+                                                          : 'bg-red-500'
+                                                }`}
+                                            />
+                                            <span className="font-bold text-[#181114]">
+                                                {visibility === 'Published'
+                                                    ? 'Hoạt động'
+                                                    : visibility === 'Draft'
+                                                      ? 'Bản nháp'
+                                                      : 'Lưu trữ'}
+                                            </span>
+                                        </div>
+                                        <span
+                                            className={`material-symbols-outlined text-[#886373] transition-transform duration-300 ${isVisibilityMenuOpen ? 'rotate-180' : ''}`}
+                                        >
+                                            expand_more
+                                        </span>
+                                    </button>
 
+                                    {isVisibilityMenuOpen && (
+                                        <>
+                                            <div className="fixed inset-0 z-10" onClick={() => setIsVisibilityMenuOpen(false)} />
+                                            <div
+                                                className={`absolute left-0 right-0 z-20 rounded-xl border border-[#f4f0f2] bg-white p-1 shadow-xl animate-in fade-in duration-200 ${
+                                                    dropUp.visibility
+                                                        ? 'bottom-full mb-2 slide-in-from-bottom-2'
+                                                        : 'top-full mt-2 slide-in-from-top-2'
+                                                }`}
+                                            >
+                                                {(
+                                                    [
+                                                        { key: 'Published' as const, label: 'Hoạt động', dot: 'bg-green-500' },
+                                                        { key: 'Draft' as const, label: 'Bản nháp', dot: 'bg-amber-500' },
+                                                        { key: 'Archived' as const, label: 'Lưu trữ', dot: 'bg-red-500' }
+                                                    ] as const
+                                                ).map((opt) => (
+                                                    <button
+                                                        key={opt.key}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setVisibility(opt.key);
+                                                            setIsVisibilityMenuOpen(false);
+                                                        }}
+                                                        className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-primary/5 hover:text-primary"
+                                                    >
+                                                        <span className={`size-1.5 rounded-full ${opt.dot}`} />
+                                                        {opt.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="mt-6 border-t border-[#f4f0f2] pt-6 space-y-4">
+                                <div>
+                                    <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-[#886373]">
+                                        Khóa học
+                                    </label>
+                                    <select
+                                        value={selectedCourseId}
+                                        onChange={(e) => {
+                                            setSelectedCourseId(e.target.value);
+                                            setFormData((prev) => ({ ...prev, lessonID: '' }));
+                                        }}
+                                        className="w-full rounded-xl border border-[#f4f0f2] bg-[#fbf9fa] px-4 py-2.5 text-sm text-[#181114] outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
+                                    >
+                                        <option value="">Chọn khóa học</option>
+                                        {availableCourses.map((course) => (
+                                            <option key={course.courseID} value={course.courseID}>
+                                                {course.courseName}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-[#886373]">
+                                        Bài học
+                                    </label>
+                                    <div className="relative">
+                                        <button
+                                            type="button"
+                                            onClick={(e) => handleOpenDropdown('lesson', e)}
+                                            className="flex w-full items-center justify-between rounded-xl border border-[#f4f0f2] bg-[#fbf9fa] px-4 py-2.5 text-sm outline-none transition-all hover:border-primary/30"
+                                        >
+                                            <span className={formData.lessonID ? 'font-medium text-[#181114]' : 'text-[#886373]/60'}>
+                                                {selectedLessonLabel}
+                                            </span>
+                                            <span
+                                                className={`material-symbols-outlined text-[#886373] transition-transform duration-300 ${isLessonMenuOpen ? 'rotate-180' : ''}`}
+                                            >
+                                                expand_more
+                                            </span>
+                                        </button>
+
+                                        {isLessonMenuOpen && (
+                                            <>
+                                                <div className="fixed inset-0 z-10" onClick={() => setIsLessonMenuOpen(false)} />
+                                                <div
+                                                    className={`absolute left-0 right-0 z-20 rounded-xl border border-[#f4f0f2] bg-white p-1 shadow-2xl animate-in fade-in duration-200 ${
+                                                        dropUp.lesson
+                                                            ? 'bottom-full mb-2 slide-in-from-bottom-2'
+                                                            : 'top-full mt-2 slide-in-from-top-2'
+                                                    }`}
+                                                >
+                                                    <div className="custom-scrollbar max-h-72 overflow-y-auto">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                applyLessonSelection('', '');
+                                                                setIsLessonMenuOpen(false);
+                                                            }}
+                                                            className="w-full rounded-lg px-3 py-2 text-left text-xs text-red-500 transition-colors hover:bg-red-50"
+                                                        >
+                                                            Không chọn bài học
+                                                        </button>
+                                                        <div className="my-1 h-px bg-[#f4f0f2]" />
+                                                        {filteredLessons.map((l) => (
+                                                            <button
+                                                                key={l.lessonID}
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    applyLessonSelection(l.lessonID, l.levelName || '');
+                                                                    setSelectedCourseId(l.courseID || '');
+                                                                    setIsLessonMenuOpen(false);
+                                                                }}
+                                                                className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition-colors ${
+                                                                    formData.lessonID === l.lessonID
+                                                                        ? 'bg-primary/10 font-bold text-primary'
+                                                                        : 'hover:bg-primary/5 hover:text-primary'
+                                                                }`}
+                                                            >
+                                                                <div className="min-w-0">
+                                                                    <div className="truncate">{l.title}</div>
+                                                                    <div className="text-[10px] text-[#886373]">{l.courseName}</div>
+                                                                </div>
+                                                                {formData.lessonID === l.lessonID && (
+                                                                    <span className="material-symbols-outlined text-sm">check</span>
+                                                                )}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-
-                </form>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-);
+    );
 };
 
 export default QuestionCreatePage;

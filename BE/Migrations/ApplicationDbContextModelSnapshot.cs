@@ -22,6 +22,231 @@ namespace QuizzTiengNhat.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("ExamTemplate", b =>
+                {
+                    b.Property<Guid>("TemplateID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Duration")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("LevelID")
+                        .HasColumnType("uuid");
+
+                    b.Property<double>("MinLanguageKnowledgeScore")
+                        .HasColumnType("double precision");
+
+                    b.Property<double?>("MinListeningScore")
+                        .HasColumnType("double precision");
+
+                    b.Property<double?>("MinReadingScore")
+                        .HasColumnType("double precision");
+
+                    b.Property<decimal>("PassingScore")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<decimal>("TotalMaxScore")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("integer");
+
+                    b.HasKey("TemplateID");
+
+                    b.HasIndex("LevelID");
+
+                    b.ToTable("ExamTemplates");
+                });
+
+            modelBuilder.Entity("ExamTemplateDetail", b =>
+                {
+                    b.Property<Guid>("DetailID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("PointPerQuestion")
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("QuestionFormat")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SkillType")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("TemplateID")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("DetailID");
+
+                    b.HasIndex("TemplateID");
+
+                    b.ToTable("ExamTemplateDetails");
+                });
+
+            modelBuilder.Entity("Exam_Session_Answers", b =>
+                {
+                    b.Property<Guid>("SessionAnswerID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("QuestionID")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("ResponseTime")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("SelectedAnswerID")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("SessionID")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("TextAnswer")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("SessionAnswerID");
+
+                    b.HasIndex("SessionID");
+
+                    b.ToTable("Exam_Session_Answers");
+                });
+
+            modelBuilder.Entity("Exam_Sessions", b =>
+                {
+                    b.Property<Guid>("SessionID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ExamID")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("ExamVersion")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("LastAccessedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("RemainingTime")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("StartedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("UserID")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("SessionID");
+
+                    b.HasIndex("ExamID");
+
+                    b.ToTable("Exam_Sessions");
+                });
+
+            modelBuilder.Entity("Exams", b =>
+                {
+                    b.Property<Guid>("ExamID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("CourseID")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Duration")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsCheckpoint")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsPublished")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid?>("LessonID")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("LevelID")
+                        .HasColumnType("uuid");
+
+                    b.Property<double>("MinLanguageKnowledgeScore")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("MinListeningScore")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("MinReadingScore")
+                        .HasColumnType("double precision");
+
+                    b.Property<decimal>("PassingScore")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("ShowResultImmediately")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("Priority");
+
+                    b.Property<int?>("TargetSkill")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("TemplateID")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("TemplateVersion")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<decimal>("TotalMaxScore")
+                        .HasColumnType("numeric");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("integer");
+
+                    b.HasKey("ExamID");
+
+                    b.HasIndex("CourseID");
+
+                    b.HasIndex("LessonID");
+
+                    b.HasIndex("LevelID");
+
+                    b.HasIndex("TemplateID");
+
+                    b.ToTable("Exams");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
                     b.Property<string>("Id")
@@ -185,6 +410,9 @@ namespace QuizzTiengNhat.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("integer");
 
+                    b.Property<string>("AvatarUrl")
+                        .HasColumnType("text");
+
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("text");
@@ -199,6 +427,9 @@ namespace QuizzTiengNhat.Migrations
                     b.Property<string>("FullName")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<Guid?>("JLPT_LevelLevelID")
+                        .HasColumnType("uuid");
 
                     b.Property<Guid?>("LevelID")
                         .HasColumnType("uuid");
@@ -238,6 +469,8 @@ namespace QuizzTiengNhat.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("JLPT_LevelLevelID");
+
                     b.HasIndex("LevelID");
 
                     b.HasIndex("NormalizedEmail")
@@ -248,6 +481,81 @@ namespace QuizzTiengNhat.Migrations
                         .HasDatabaseName("UserNameIndex");
 
                     b.ToTable("AspNetUsers", (string)null);
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.ChatConversation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AssignedAdminId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("LastMessageAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LearnerId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssignedAdminId");
+
+                    b.HasIndex("LearnerId");
+
+                    b.ToTable("ChatConversations");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.ChatMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasMaxLength(8000)
+                        .HasColumnType("character varying(8000)");
+
+                    b.Property<Guid>("ConversationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("SenderId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("SentAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConversationId");
+
+                    b.HasIndex("SenderId");
+
+                    b.ToTable("ChatMessages");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.ChatRoundRobinState", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("LastAssignedIndex")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ChatRoundRobinStates");
                 });
 
             modelBuilder.Entity("QuizzTiengNhat.Models.Courses", b =>
@@ -274,6 +582,107 @@ namespace QuizzTiengNhat.Migrations
                     b.ToTable("Courses");
                 });
 
+            modelBuilder.Entity("QuizzTiengNhat.Models.Exam_Questions", b =>
+                {
+                    b.Property<Guid>("ExamQuestionID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ExamID")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("ListeningID")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("OrderIndex")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("QuestionID")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("ReadingID")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Score")
+                        .HasColumnType("decimal(18,10)");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("integer");
+
+                    b.HasKey("ExamQuestionID");
+
+                    b.HasIndex("ExamID");
+
+                    b.HasIndex("ListeningID");
+
+                    b.HasIndex("QuestionID");
+
+                    b.HasIndex("ReadingID");
+
+                    b.ToTable("Exam_Questions");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.Exam_Result_Details", b =>
+                {
+                    b.Property<Guid>("ResultDetailID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("ExamQuestionID")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("ExamsExamID")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsCorrect")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid?>("ListeningID")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("QuestionID")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("ReadingID")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("ResponseTime")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("ResultID")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("SelectedAnswerID")
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("SkillType")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("TextAnswer")
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("TopicID")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("ResultDetailID");
+
+                    b.HasIndex("ExamQuestionID");
+
+                    b.HasIndex("ExamsExamID");
+
+                    b.HasIndex("ListeningID");
+
+                    b.HasIndex("QuestionID");
+
+                    b.HasIndex("ReadingID");
+
+                    b.HasIndex("ResultID");
+
+                    b.HasIndex("TopicID");
+
+                    b.ToTable("Exam_Result_Details");
+                });
+
             modelBuilder.Entity("QuizzTiengNhat.Models.Exam_Results", b =>
                 {
                     b.Property<Guid>("ResultID")
@@ -285,6 +694,9 @@ namespace QuizzTiengNhat.Migrations
 
                     b.Property<Guid>("ExamID")
                         .HasColumnType("uuid");
+
+                    b.Property<int>("ExamVersion")
+                        .HasColumnType("integer");
 
                     b.Property<float>("Score")
                         .HasColumnType("real");
@@ -298,9 +710,187 @@ namespace QuizzTiengNhat.Migrations
 
                     b.HasKey("ResultID");
 
+                    b.HasIndex("ExamID");
+
                     b.HasIndex("UserID");
 
                     b.ToTable("Exam_Results");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.Examples", b =>
+                {
+                    b.Property<Guid>("ExampleID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AudioURL")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("GrammarID")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Translation")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("VocabID")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("ExampleID");
+
+                    b.HasIndex("GrammarID");
+
+                    b.HasIndex("VocabID");
+
+                    b.ToTable("Examples");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.FlashcardDeck", b =>
+                {
+                    b.Property<Guid>("DeckID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("ActiveStudyCursor")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ActiveStudyMode")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ActiveStudyQueueJson")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("ActiveStudyUpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeckSyncKey")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsUserCustomDeck")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid?>("LevelID")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("SkillType")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("UserID")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("DeckID");
+
+                    b.HasIndex("LevelID");
+
+                    b.HasIndex("UserID");
+
+                    b.HasIndex("UserID", "DeckSyncKey")
+                        .IsUnique()
+                        .HasFilter("\"DeckSyncKey\" IS NOT NULL");
+
+                    b.ToTable("FlashcardDecks");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.FlashcardItem", b =>
+                {
+                    b.Property<Guid>("ItemID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("DeckID")
+                        .HasColumnType("uuid");
+
+                    b.Property<double>("EF")
+                        .HasColumnType("double precision");
+
+                    b.Property<Guid>("EntityID")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Interval")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsMastered")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("ItemType")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("LastReviewQuality")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("LastReviewed")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("LastTimeTakenSeconds")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("NextReview")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Repetitions")
+                        .HasColumnType("integer");
+
+                    b.HasKey("ItemID");
+
+                    b.HasIndex("DeckID");
+
+                    b.HasIndex("EntityID");
+
+                    b.ToTable("FlashcardItems");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.GrammarGroups", b =>
+                {
+                    b.Property<Guid>("GrammarGroupID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<string>("GroupName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("GrammarGroupID");
+
+                    b.ToTable("GrammarGroups");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.GrammarTopics", b =>
+                {
+                    b.Property<Guid>("GrammarID")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TopicID")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("GrammarID", "TopicID");
+
+                    b.HasIndex("TopicID");
+
+                    b.ToTable("GrammarTopics");
                 });
 
             modelBuilder.Entity("QuizzTiengNhat.Models.Grammars", b =>
@@ -309,20 +899,21 @@ namespace QuizzTiengNhat.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Example")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("ExampleMeaning")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Explanation")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid?>("JLPT_LevelLevelID")
+                    b.Property<int>("Formality")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("GrammarGroupID")
                         .HasColumnType("uuid");
+
+                    b.Property<int>("GrammarType")
+                        .HasColumnType("integer");
 
                     b.Property<Guid>("LessonID")
                         .HasColumnType("uuid");
@@ -334,6 +925,11 @@ namespace QuizzTiengNhat.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int>("Status")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1);
+
                     b.Property<string>("Structure")
                         .IsRequired()
                         .HasColumnType("text");
@@ -342,18 +938,19 @@ namespace QuizzTiengNhat.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid>("TopicID")
-                        .HasColumnType("uuid");
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UsageNote")
+                        .HasColumnType("text");
 
                     b.HasKey("GrammarID");
 
-                    b.HasIndex("JLPT_LevelLevelID");
+                    b.HasIndex("GrammarGroupID");
 
                     b.HasIndex("LessonID");
 
                     b.HasIndex("LevelID");
-
-                    b.HasIndex("TopicID");
 
                     b.ToTable("Grammars");
                 });
@@ -383,6 +980,9 @@ namespace QuizzTiengNhat.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("Kunyomi")
                         .IsRequired()
                         .HasColumnType("text");
@@ -397,25 +997,49 @@ namespace QuizzTiengNhat.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("Mnemonics")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("text");
+
                     b.Property<string>("Onyomi")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Radical")
-                        .IsRequired()
+                    b.Property<int>("Popularity")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("RadicalID")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("SearchVector")
                         .HasColumnType("text");
+
+                    b.Property<int>("Status")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1);
 
                     b.Property<int>("StrokeCount")
                         .HasColumnType("integer");
 
+                    b.Property<string>("StrokeGif")
+                        .HasColumnType("text");
+
                     b.Property<Guid>("TopicID")
                         .HasColumnType("uuid");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("KanjiID");
 
                     b.HasIndex("LessonID");
 
                     b.HasIndex("LevelID");
+
+                    b.HasIndex("RadicalID");
 
                     b.HasIndex("TopicID");
 
@@ -437,12 +1061,12 @@ namespace QuizzTiengNhat.Migrations
                     b.Property<Guid?>("JLPT_LevelLevelID")
                         .HasColumnType("uuid");
 
-                    b.Property<int>("Priority")
+                    b.Property<int>("SkillType")
                         .HasColumnType("integer");
 
-                    b.Property<string>("SkillType")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("Priority");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -472,6 +1096,21 @@ namespace QuizzTiengNhat.Migrations
                     b.ToTable("Lessons_Topics");
                 });
 
+            modelBuilder.Entity("QuizzTiengNhat.Models.ListeningTopics", b =>
+                {
+                    b.Property<Guid>("ListeningID")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TopicID")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("ListeningID", "TopicID");
+
+                    b.HasIndex("TopicID");
+
+                    b.ToTable("ListeningTopics");
+                });
+
             modelBuilder.Entity("QuizzTiengNhat.Models.Listenings", b =>
                 {
                     b.Property<Guid>("ListeningID")
@@ -482,6 +1121,12 @@ namespace QuizzTiengNhat.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Duration")
+                        .HasColumnType("integer");
+
                     b.Property<Guid>("LessonID")
                         .HasColumnType("uuid");
 
@@ -489,27 +1134,29 @@ namespace QuizzTiengNhat.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("Script")
-                        .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<string>("SpeedCategory")
+                        .HasColumnType("text");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid>("TopicID")
-                        .HasColumnType("uuid");
-
                     b.Property<string>("Transcript")
-                        .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("ListeningID");
 
                     b.HasIndex("LessonID");
 
                     b.HasIndex("LevelID");
-
-                    b.HasIndex("TopicID");
 
                     b.ToTable("Listenings");
                 });
@@ -556,21 +1203,28 @@ namespace QuizzTiengNhat.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("AudioURL")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Content")
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<int>("Difficulty")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("DisplayOrder")
                         .HasColumnType("integer");
 
                     b.Property<Guid?>("EquivalentID")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Explanation")
-                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ImageURL")
                         .HasColumnType("text");
 
                     b.Property<Guid?>("JLPT_LevelLevelID")
@@ -579,29 +1233,37 @@ namespace QuizzTiengNhat.Migrations
                     b.Property<Guid>("LessonID")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("ListeningsListeningID")
+                    b.Property<Guid?>("ListeningID")
                         .HasColumnType("uuid");
 
                     b.Property<string>("MediaTimestamp")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<Guid?>("ParentID")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("QuestionType")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("QuestionFormat")
+                        .HasColumnType("integer");
 
-                    b.Property<Guid?>("ReadingsReadingID")
+                    b.Property<int>("QuestionType")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("ReadingID")
                         .HasColumnType("uuid");
+
+                    b.Property<int>("SkillType")
+                        .HasColumnType("integer");
 
                     b.Property<Guid?>("SourceID")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("Status")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1);
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("QuestionID");
 
@@ -609,11 +1271,11 @@ namespace QuizzTiengNhat.Migrations
 
                     b.HasIndex("LessonID");
 
-                    b.HasIndex("ListeningsListeningID");
+                    b.HasIndex("ListeningID");
 
                     b.HasIndex("ParentID");
 
-                    b.HasIndex("ReadingsReadingID");
+                    b.HasIndex("ReadingID");
 
                     b.ToTable("Questions");
                 });
@@ -633,6 +1295,85 @@ namespace QuizzTiengNhat.Migrations
                     b.ToTable("Questions_Topics");
                 });
 
+            modelBuilder.Entity("QuizzTiengNhat.Models.RadicalVariants", b =>
+                {
+                    b.Property<Guid>("VariantID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Character")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Meaning")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<Guid>("RadicalID")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("StrokeCount")
+                        .HasColumnType("integer");
+
+                    b.HasKey("VariantID");
+
+                    b.HasIndex("RadicalID");
+
+                    b.ToTable("RadicalVariants");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.Radicals", b =>
+                {
+                    b.Property<Guid>("RadicalID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Character")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Meaning")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int>("StrokeCount")
+                        .HasColumnType("integer");
+
+                    b.HasKey("RadicalID");
+
+                    b.ToTable("Radicals");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.ReadingTopics", b =>
+                {
+                    b.Property<Guid>("ReadingID")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TopicID")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("ReadingID", "TopicID");
+
+                    b.HasIndex("TopicID");
+
+                    b.ToTable("ReadingTopics");
+                });
+
             modelBuilder.Entity("QuizzTiengNhat.Models.Readings", b =>
                 {
                     b.Property<Guid>("ReadingID")
@@ -643,30 +1384,40 @@ namespace QuizzTiengNhat.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("EstimatedTime")
+                        .HasColumnType("integer");
+
                     b.Property<Guid>("LessonID")
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("LevelID")
                         .HasColumnType("uuid");
 
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid>("TopicID")
-                        .HasColumnType("uuid");
-
                     b.Property<string>("Translation")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("WordCount")
+                        .HasColumnType("integer");
 
                     b.HasKey("ReadingID");
 
                     b.HasIndex("LessonID");
 
                     b.HasIndex("LevelID");
-
-                    b.HasIndex("TopicID");
 
                     b.ToTable("Readings");
                 });
@@ -690,6 +1441,244 @@ namespace QuizzTiengNhat.Migrations
                     b.ToTable("Topics");
                 });
 
+            modelBuilder.Entity("QuizzTiengNhat.Models.TutorAiConversation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Live2dModelId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("Title")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("UserId", "UpdatedAt");
+
+                    b.HasIndex("UserId", "Live2dModelId", "UpdatedAt");
+
+                    b.ToTable("TutorAiConversations");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.TutorAiMessage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ClientMessageId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<int>("ConversationId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Expression")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("JapaneseSpeech")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PlainContent")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("VietnameseText")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConversationId");
+
+                    b.HasIndex("ConversationId", "ClientMessageId")
+                        .IsUnique();
+
+                    b.ToTable("TutorAiMessages");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.TutorAiMessageAudio", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("DurationMs")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("MessageId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("PublicUrl")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<int>("SpeakerId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MessageId")
+                        .IsUnique();
+
+                    b.ToTable("TutorAiMessageAudios");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.UserAnswerHistory", b =>
+                {
+                    b.Property<Guid>("HistoryID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("AnsweredAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsCorrect")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("QuestionID")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("SelectedAnswerID")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("TextAnswer")
+                        .HasColumnType("text");
+
+                    b.Property<int>("TimeTaken")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("UserID")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("HistoryID");
+
+                    b.HasIndex("QuestionID");
+
+                    b.HasIndex("UserID");
+
+                    b.ToTable("UserAnswerHistories");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.UserInterest", b =>
+                {
+                    b.Property<string>("UserID")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("TopicID")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("InteractionCount")
+                        .HasColumnType("integer");
+
+                    b.HasKey("UserID", "TopicID");
+
+                    b.HasIndex("TopicID");
+
+                    b.ToTable("UserInterests");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.User_Skill_Matrix", b =>
+                {
+                    b.Property<Guid>("MatrixID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Confidence")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("LastUpdated")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("LevelID")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("NeedsReview")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("ProficiencyScore")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SkillType")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("UserID")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("MatrixID");
+
+                    b.HasIndex("LevelID");
+
+                    b.HasIndex("UserID", "SkillType")
+                        .IsUnique();
+
+                    b.ToTable("User_Skill_Matrices");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.VocabTopics", b =>
+                {
+                    b.Property<Guid>("VocabID")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TopicID")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("VocabID", "TopicID");
+
+                    b.HasIndex("TopicID");
+
+                    b.ToTable("VocabTopics");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.VocabWordTypes", b =>
+                {
+                    b.Property<Guid>("VocabID")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("WordTypeID")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("VocabID", "WordTypeID");
+
+                    b.HasIndex("WordTypeID");
+
+                    b.ToTable("VocabWordTypes");
+                });
+
             modelBuilder.Entity("QuizzTiengNhat.Models.Vocabularies", b =>
                 {
                     b.Property<Guid>("VocabID")
@@ -699,16 +1688,14 @@ namespace QuizzTiengNhat.Migrations
                     b.Property<string>("AudioURL")
                         .HasColumnType("text");
 
-                    b.Property<string>("Example")
-                        .IsRequired()
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ImageURL")
                         .HasColumnType("text");
 
-                    b.Property<string>("ExampleMeaning")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<Guid?>("JLPT_LevelLevelID")
-                        .HasColumnType("uuid");
+                    b.Property<bool>("IsCommon")
+                        .HasColumnType("boolean");
 
                     b.Property<Guid>("LessonID")
                         .HasColumnType("uuid");
@@ -720,12 +1707,21 @@ namespace QuizzTiengNhat.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("Mnemonics")
+                        .HasColumnType("text");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Reading")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid>("TopicID")
-                        .HasColumnType("uuid");
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Word")
                         .IsRequired()
@@ -733,15 +1729,119 @@ namespace QuizzTiengNhat.Migrations
 
                     b.HasKey("VocabID");
 
-                    b.HasIndex("JLPT_LevelLevelID");
-
                     b.HasIndex("LessonID");
 
                     b.HasIndex("LevelID");
 
-                    b.HasIndex("TopicID");
-
                     b.ToTable("Vocabularies");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.VocabularyKanjis", b =>
+                {
+                    b.Property<Guid>("VocabID")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("KanjiID")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("VocabID", "KanjiID");
+
+                    b.HasIndex("KanjiID");
+
+                    b.ToTable("VocabularyKanjis");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.WordTypes", b =>
+                {
+                    b.Property<Guid>("WordTypeID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("WordTypeID");
+
+                    b.ToTable("WordTypes");
+                });
+
+            modelBuilder.Entity("ExamTemplate", b =>
+                {
+                    b.HasOne("QuizzTiengNhat.Models.JLPT_Level", "JLPTLevel")
+                        .WithMany("ExamTemplates")
+                        .HasForeignKey("LevelID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("JLPTLevel");
+                });
+
+            modelBuilder.Entity("ExamTemplateDetail", b =>
+                {
+                    b.HasOne("ExamTemplate", "Template")
+                        .WithMany("Details")
+                        .HasForeignKey("TemplateID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Template");
+                });
+
+            modelBuilder.Entity("Exam_Session_Answers", b =>
+                {
+                    b.HasOne("Exam_Sessions", "Session")
+                        .WithMany("Answers")
+                        .HasForeignKey("SessionID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Session");
+                });
+
+            modelBuilder.Entity("Exam_Sessions", b =>
+                {
+                    b.HasOne("Exams", "Exam")
+                        .WithMany()
+                        .HasForeignKey("ExamID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Exam");
+                });
+
+            modelBuilder.Entity("Exams", b =>
+                {
+                    b.HasOne("QuizzTiengNhat.Models.Courses", "Course")
+                        .WithMany()
+                        .HasForeignKey("CourseID")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("QuizzTiengNhat.Models.Lessons", "Lesson")
+                        .WithMany()
+                        .HasForeignKey("LessonID")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("QuizzTiengNhat.Models.JLPT_Level", "Level")
+                        .WithMany()
+                        .HasForeignKey("LevelID");
+
+                    b.HasOne("ExamTemplate", "Template")
+                        .WithMany()
+                        .HasForeignKey("TemplateID")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Course");
+
+                    b.Navigation("Lesson");
+
+                    b.Navigation("Level");
+
+                    b.Navigation("Template");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -808,11 +1908,54 @@ namespace QuizzTiengNhat.Migrations
 
             modelBuilder.Entity("QuizzTiengNhat.Models.ApplicationUser", b =>
                 {
-                    b.HasOne("QuizzTiengNhat.Models.JLPT_Level", "Level")
+                    b.HasOne("QuizzTiengNhat.Models.JLPT_Level", null)
                         .WithMany("Users")
-                        .HasForeignKey("LevelID");
+                        .HasForeignKey("JLPT_LevelLevelID");
+
+                    b.HasOne("QuizzTiengNhat.Models.JLPT_Level", "Level")
+                        .WithMany()
+                        .HasForeignKey("LevelID")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Level");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.ChatConversation", b =>
+                {
+                    b.HasOne("QuizzTiengNhat.Models.ApplicationUser", "AssignedAdmin")
+                        .WithMany()
+                        .HasForeignKey("AssignedAdminId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("QuizzTiengNhat.Models.ApplicationUser", "Learner")
+                        .WithMany()
+                        .HasForeignKey("LearnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AssignedAdmin");
+
+                    b.Navigation("Learner");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.ChatMessage", b =>
+                {
+                    b.HasOne("QuizzTiengNhat.Models.ChatConversation", "Conversation")
+                        .WithMany("Messages")
+                        .HasForeignKey("ConversationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("QuizzTiengNhat.Models.ApplicationUser", "Sender")
+                        .WithMany()
+                        .HasForeignKey("SenderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Conversation");
+
+                    b.Navigation("Sender");
                 });
 
             modelBuilder.Entity("QuizzTiengNhat.Models.Courses", b =>
@@ -826,46 +1969,192 @@ namespace QuizzTiengNhat.Migrations
                     b.Navigation("Level");
                 });
 
+            modelBuilder.Entity("QuizzTiengNhat.Models.Exam_Questions", b =>
+                {
+                    b.HasOne("Exams", "Exam")
+                        .WithMany("ExamQuestions")
+                        .HasForeignKey("ExamID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("QuizzTiengNhat.Models.Listenings", "Listening")
+                        .WithMany()
+                        .HasForeignKey("ListeningID");
+
+                    b.HasOne("QuizzTiengNhat.Models.Questions", "Question")
+                        .WithMany("ExamQuestions")
+                        .HasForeignKey("QuestionID");
+
+                    b.HasOne("QuizzTiengNhat.Models.Readings", "Reading")
+                        .WithMany()
+                        .HasForeignKey("ReadingID");
+
+                    b.Navigation("Exam");
+
+                    b.Navigation("Listening");
+
+                    b.Navigation("Question");
+
+                    b.Navigation("Reading");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.Exam_Result_Details", b =>
+                {
+                    b.HasOne("QuizzTiengNhat.Models.Exam_Questions", "ExamQuestion")
+                        .WithMany()
+                        .HasForeignKey("ExamQuestionID")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Exams", null)
+                        .WithMany("ExamResultDetails")
+                        .HasForeignKey("ExamsExamID");
+
+                    b.HasOne("QuizzTiengNhat.Models.Listenings", "Listening")
+                        .WithMany()
+                        .HasForeignKey("ListeningID")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("QuizzTiengNhat.Models.Questions", "Question")
+                        .WithMany()
+                        .HasForeignKey("QuestionID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("QuizzTiengNhat.Models.Readings", "Reading")
+                        .WithMany()
+                        .HasForeignKey("ReadingID")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("QuizzTiengNhat.Models.Exam_Results", "Result")
+                        .WithMany("ResultDetails")
+                        .HasForeignKey("ResultID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("QuizzTiengNhat.Models.Topics", "Topic")
+                        .WithMany()
+                        .HasForeignKey("TopicID")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("ExamQuestion");
+
+                    b.Navigation("Listening");
+
+                    b.Navigation("Question");
+
+                    b.Navigation("Reading");
+
+                    b.Navigation("Result");
+
+                    b.Navigation("Topic");
+                });
+
             modelBuilder.Entity("QuizzTiengNhat.Models.Exam_Results", b =>
                 {
+                    b.HasOne("Exams", "Exam")
+                        .WithMany("ExamResults")
+                        .HasForeignKey("ExamID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("QuizzTiengNhat.Models.ApplicationUser", "User")
                         .WithMany("ExamResults")
                         .HasForeignKey("UserID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("Exam");
+
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("QuizzTiengNhat.Models.Grammars", b =>
+            modelBuilder.Entity("QuizzTiengNhat.Models.Examples", b =>
                 {
-                    b.HasOne("QuizzTiengNhat.Models.JLPT_Level", null)
-                        .WithMany("Grammars")
-                        .HasForeignKey("JLPT_LevelLevelID");
+                    b.HasOne("QuizzTiengNhat.Models.Grammars", "Grammar")
+                        .WithMany("Examples")
+                        .HasForeignKey("GrammarID");
 
-                    b.HasOne("QuizzTiengNhat.Models.Lessons", "Lesson")
-                        .WithMany()
-                        .HasForeignKey("LessonID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                    b.HasOne("QuizzTiengNhat.Models.Vocabularies", "Vocabulary")
+                        .WithMany("Examples")
+                        .HasForeignKey("VocabID");
 
-                    b.HasOne("QuizzTiengNhat.Models.JLPT_Level", "JLPTLevel")
+                    b.Navigation("Grammar");
+
+                    b.Navigation("Vocabulary");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.FlashcardDeck", b =>
+                {
+                    b.HasOne("QuizzTiengNhat.Models.JLPT_Level", "Level")
                         .WithMany()
                         .HasForeignKey("LevelID")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("QuizzTiengNhat.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Level");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.FlashcardItem", b =>
+                {
+                    b.HasOne("QuizzTiengNhat.Models.FlashcardDeck", "Deck")
+                        .WithMany("Items")
+                        .HasForeignKey("DeckID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Deck");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.GrammarTopics", b =>
+                {
+                    b.HasOne("QuizzTiengNhat.Models.Grammars", "Grammar")
+                        .WithMany("GrammarTopics")
+                        .HasForeignKey("GrammarID")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("QuizzTiengNhat.Models.Topics", "Topic")
-                        .WithMany("Grammars")
+                        .WithMany("GrammarTopics")
                         .HasForeignKey("TopicID")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.Navigation("Grammar");
+
+                    b.Navigation("Topic");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.Grammars", b =>
+                {
+                    b.HasOne("QuizzTiengNhat.Models.GrammarGroups", "GrammarGroup")
+                        .WithMany("Grammars")
+                        .HasForeignKey("GrammarGroupID")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("QuizzTiengNhat.Models.Lessons", "Lesson")
+                        .WithMany()
+                        .HasForeignKey("LessonID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("QuizzTiengNhat.Models.JLPT_Level", "JLPTLevel")
+                        .WithMany("Grammars")
+                        .HasForeignKey("LevelID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("GrammarGroup");
+
                     b.Navigation("JLPTLevel");
 
                     b.Navigation("Lesson");
-
-                    b.Navigation("Topic");
                 });
 
             modelBuilder.Entity("QuizzTiengNhat.Models.Kanjis", b =>
@@ -873,13 +2162,19 @@ namespace QuizzTiengNhat.Migrations
                     b.HasOne("QuizzTiengNhat.Models.Lessons", "Lesson")
                         .WithMany()
                         .HasForeignKey("LessonID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("QuizzTiengNhat.Models.JLPT_Level", "JLPTLevel")
                         .WithMany("Kanjis")
                         .HasForeignKey("LevelID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("QuizzTiengNhat.Models.Radicals", "Radical")
+                        .WithMany("Kanjis")
+                        .HasForeignKey("RadicalID")
+                        .OnDelete(DeleteBehavior.SetNull)
                         .IsRequired();
 
                     b.HasOne("QuizzTiengNhat.Models.Topics", "Topic")
@@ -891,6 +2186,8 @@ namespace QuizzTiengNhat.Migrations
                     b.Navigation("JLPTLevel");
 
                     b.Navigation("Lesson");
+
+                    b.Navigation("Radical");
 
                     b.Navigation("Topic");
                 });
@@ -900,7 +2197,7 @@ namespace QuizzTiengNhat.Migrations
                     b.HasOne("QuizzTiengNhat.Models.Courses", "Course")
                         .WithMany("Lessons")
                         .HasForeignKey("CourseID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("QuizzTiengNhat.Models.JLPT_Level", null)
@@ -915,16 +2212,35 @@ namespace QuizzTiengNhat.Migrations
                     b.HasOne("QuizzTiengNhat.Models.Lessons", "Lesson")
                         .WithMany("LessonTopics")
                         .HasForeignKey("LessonsID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("QuizzTiengNhat.Models.Topics", "Topic")
                         .WithMany("LessonTopics")
                         .HasForeignKey("TopicID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Lesson");
+
+                    b.Navigation("Topic");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.ListeningTopics", b =>
+                {
+                    b.HasOne("QuizzTiengNhat.Models.Listenings", "Listening")
+                        .WithMany("ListeningTopics")
+                        .HasForeignKey("ListeningID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("QuizzTiengNhat.Models.Topics", "Topic")
+                        .WithMany("ListeningTopics")
+                        .HasForeignKey("TopicID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Listening");
 
                     b.Navigation("Topic");
                 });
@@ -934,26 +2250,18 @@ namespace QuizzTiengNhat.Migrations
                     b.HasOne("QuizzTiengNhat.Models.Lessons", "Lesson")
                         .WithMany()
                         .HasForeignKey("LessonID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("QuizzTiengNhat.Models.JLPT_Level", "JLPTLevel")
                         .WithMany()
                         .HasForeignKey("LevelID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("QuizzTiengNhat.Models.Topics", "Topic")
-                        .WithMany("Listenings")
-                        .HasForeignKey("TopicID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("JLPTLevel");
 
                     b.Navigation("Lesson");
-
-                    b.Navigation("Topic");
                 });
 
             modelBuilder.Entity("QuizzTiengNhat.Models.Progress", b =>
@@ -987,22 +2295,26 @@ namespace QuizzTiengNhat.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("QuizzTiengNhat.Models.Listenings", null)
+                    b.HasOne("QuizzTiengNhat.Models.Listenings", "Listening")
                         .WithMany("Questions")
-                        .HasForeignKey("ListeningsListeningID");
+                        .HasForeignKey("ListeningID");
 
                     b.HasOne("QuizzTiengNhat.Models.Questions", "ParentQuestion")
                         .WithMany("SubQuestions")
                         .HasForeignKey("ParentID")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("QuizzTiengNhat.Models.Readings", null)
+                    b.HasOne("QuizzTiengNhat.Models.Readings", "Reading")
                         .WithMany("Questions")
-                        .HasForeignKey("ReadingsReadingID");
+                        .HasForeignKey("ReadingID");
 
                     b.Navigation("Lesson");
 
+                    b.Navigation("Listening");
+
                     b.Navigation("ParentQuestion");
+
+                    b.Navigation("Reading");
                 });
 
             modelBuilder.Entity("QuizzTiengNhat.Models.Questions_Topic", b =>
@@ -1024,62 +2336,226 @@ namespace QuizzTiengNhat.Migrations
                     b.Navigation("Topic");
                 });
 
+            modelBuilder.Entity("QuizzTiengNhat.Models.RadicalVariants", b =>
+                {
+                    b.HasOne("QuizzTiengNhat.Models.Radicals", "Radical")
+                        .WithMany("RadicalVariants")
+                        .HasForeignKey("RadicalID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Radical");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.ReadingTopics", b =>
+                {
+                    b.HasOne("QuizzTiengNhat.Models.Readings", "Reading")
+                        .WithMany("ReadingTopics")
+                        .HasForeignKey("ReadingID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("QuizzTiengNhat.Models.Topics", "Topic")
+                        .WithMany("ReadingTopics")
+                        .HasForeignKey("TopicID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Reading");
+
+                    b.Navigation("Topic");
+                });
+
             modelBuilder.Entity("QuizzTiengNhat.Models.Readings", b =>
                 {
                     b.HasOne("QuizzTiengNhat.Models.Lessons", "Lesson")
                         .WithMany()
                         .HasForeignKey("LessonID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("QuizzTiengNhat.Models.JLPT_Level", "JLPTLevel")
                         .WithMany()
                         .HasForeignKey("LevelID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("QuizzTiengNhat.Models.Topics", "Topic")
-                        .WithMany("Readings")
-                        .HasForeignKey("TopicID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("JLPTLevel");
 
                     b.Navigation("Lesson");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.TutorAiMessage", b =>
+                {
+                    b.HasOne("QuizzTiengNhat.Models.TutorAiConversation", "Conversation")
+                        .WithMany("Messages")
+                        .HasForeignKey("ConversationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Conversation");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.TutorAiMessageAudio", b =>
+                {
+                    b.HasOne("QuizzTiengNhat.Models.TutorAiMessage", "Message")
+                        .WithOne("Audio")
+                        .HasForeignKey("QuizzTiengNhat.Models.TutorAiMessageAudio", "MessageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Message");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.UserAnswerHistory", b =>
+                {
+                    b.HasOne("QuizzTiengNhat.Models.Questions", "Question")
+                        .WithMany()
+                        .HasForeignKey("QuestionID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("QuizzTiengNhat.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Question");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.UserInterest", b =>
+                {
+                    b.HasOne("QuizzTiengNhat.Models.Topics", "Topic")
+                        .WithMany()
+                        .HasForeignKey("TopicID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("QuizzTiengNhat.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Topic");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.User_Skill_Matrix", b =>
+                {
+                    b.HasOne("QuizzTiengNhat.Models.JLPT_Level", "Level")
+                        .WithMany()
+                        .HasForeignKey("LevelID")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("QuizzTiengNhat.Models.ApplicationUser", "User")
+                        .WithMany("SkillMatrix")
+                        .HasForeignKey("UserID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Level");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.VocabTopics", b =>
+                {
+                    b.HasOne("QuizzTiengNhat.Models.Topics", "Topic")
+                        .WithMany("VocabTopics")
+                        .HasForeignKey("TopicID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("QuizzTiengNhat.Models.Vocabularies", "Vocabulary")
+                        .WithMany("VocabTopics")
+                        .HasForeignKey("VocabID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Topic");
+
+                    b.Navigation("Vocabulary");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.VocabWordTypes", b =>
+                {
+                    b.HasOne("QuizzTiengNhat.Models.Vocabularies", "Vocabulary")
+                        .WithMany("VocabWordTypes")
+                        .HasForeignKey("VocabID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("QuizzTiengNhat.Models.WordTypes", "WordType")
+                        .WithMany("VocabWordTypes")
+                        .HasForeignKey("WordTypeID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Vocabulary");
+
+                    b.Navigation("WordType");
                 });
 
             modelBuilder.Entity("QuizzTiengNhat.Models.Vocabularies", b =>
                 {
-                    b.HasOne("QuizzTiengNhat.Models.JLPT_Level", null)
-                        .WithMany("Vocabularies")
-                        .HasForeignKey("JLPT_LevelLevelID");
-
                     b.HasOne("QuizzTiengNhat.Models.Lessons", "Lesson")
                         .WithMany()
                         .HasForeignKey("LessonID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("QuizzTiengNhat.Models.JLPT_Level", "JLPTLevel")
-                        .WithMany()
-                        .HasForeignKey("LevelID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("QuizzTiengNhat.Models.Topics", "Topic")
                         .WithMany("Vocabularies")
-                        .HasForeignKey("TopicID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasForeignKey("LevelID")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("JLPTLevel");
 
                     b.Navigation("Lesson");
+                });
 
-                    b.Navigation("Topic");
+            modelBuilder.Entity("QuizzTiengNhat.Models.VocabularyKanjis", b =>
+                {
+                    b.HasOne("QuizzTiengNhat.Models.Kanjis", "Kanji")
+                        .WithMany("RelatedVocabularies")
+                        .HasForeignKey("KanjiID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("QuizzTiengNhat.Models.Vocabularies", "Vocabulary")
+                        .WithMany("RelatedKanjis")
+                        .HasForeignKey("VocabID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Kanji");
+
+                    b.Navigation("Vocabulary");
+                });
+
+            modelBuilder.Entity("ExamTemplate", b =>
+                {
+                    b.Navigation("Details");
+                });
+
+            modelBuilder.Entity("Exam_Sessions", b =>
+                {
+                    b.Navigation("Answers");
+                });
+
+            modelBuilder.Entity("Exams", b =>
+                {
+                    b.Navigation("ExamQuestions");
+
+                    b.Navigation("ExamResultDetails");
+
+                    b.Navigation("ExamResults");
                 });
 
             modelBuilder.Entity("QuizzTiengNhat.Models.ApplicationUser", b =>
@@ -1087,6 +2563,13 @@ namespace QuizzTiengNhat.Migrations
                     b.Navigation("ExamResults");
 
                     b.Navigation("Progresses");
+
+                    b.Navigation("SkillMatrix");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.ChatConversation", b =>
+                {
+                    b.Navigation("Messages");
                 });
 
             modelBuilder.Entity("QuizzTiengNhat.Models.Courses", b =>
@@ -1094,8 +2577,32 @@ namespace QuizzTiengNhat.Migrations
                     b.Navigation("Lessons");
                 });
 
+            modelBuilder.Entity("QuizzTiengNhat.Models.Exam_Results", b =>
+                {
+                    b.Navigation("ResultDetails");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.FlashcardDeck", b =>
+                {
+                    b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.GrammarGroups", b =>
+                {
+                    b.Navigation("Grammars");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.Grammars", b =>
+                {
+                    b.Navigation("Examples");
+
+                    b.Navigation("GrammarTopics");
+                });
+
             modelBuilder.Entity("QuizzTiengNhat.Models.JLPT_Level", b =>
                 {
+                    b.Navigation("ExamTemplates");
+
                     b.Navigation("Grammars");
 
                     b.Navigation("Kanjis");
@@ -1109,6 +2616,11 @@ namespace QuizzTiengNhat.Migrations
                     b.Navigation("Vocabularies");
                 });
 
+            modelBuilder.Entity("QuizzTiengNhat.Models.Kanjis", b =>
+                {
+                    b.Navigation("RelatedVocabularies");
+                });
+
             modelBuilder.Entity("QuizzTiengNhat.Models.Lessons", b =>
                 {
                     b.Navigation("LessonTopics");
@@ -1120,6 +2632,8 @@ namespace QuizzTiengNhat.Migrations
 
             modelBuilder.Entity("QuizzTiengNhat.Models.Listenings", b =>
                 {
+                    b.Navigation("ListeningTopics");
+
                     b.Navigation("Questions");
                 });
 
@@ -1127,29 +2641,66 @@ namespace QuizzTiengNhat.Migrations
                 {
                     b.Navigation("Answers");
 
+                    b.Navigation("ExamQuestions");
+
                     b.Navigation("QuestionTopics");
 
                     b.Navigation("SubQuestions");
                 });
 
+            modelBuilder.Entity("QuizzTiengNhat.Models.Radicals", b =>
+                {
+                    b.Navigation("Kanjis");
+
+                    b.Navigation("RadicalVariants");
+                });
+
             modelBuilder.Entity("QuizzTiengNhat.Models.Readings", b =>
                 {
                     b.Navigation("Questions");
+
+                    b.Navigation("ReadingTopics");
                 });
 
             modelBuilder.Entity("QuizzTiengNhat.Models.Topics", b =>
                 {
-                    b.Navigation("Grammars");
+                    b.Navigation("GrammarTopics");
 
                     b.Navigation("LessonTopics");
 
-                    b.Navigation("Listenings");
+                    b.Navigation("ListeningTopics");
 
                     b.Navigation("QuestionTopics");
 
-                    b.Navigation("Readings");
+                    b.Navigation("ReadingTopics");
 
-                    b.Navigation("Vocabularies");
+                    b.Navigation("VocabTopics");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.TutorAiConversation", b =>
+                {
+                    b.Navigation("Messages");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.TutorAiMessage", b =>
+                {
+                    b.Navigation("Audio");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.Vocabularies", b =>
+                {
+                    b.Navigation("Examples");
+
+                    b.Navigation("RelatedKanjis");
+
+                    b.Navigation("VocabTopics");
+
+                    b.Navigation("VocabWordTypes");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.WordTypes", b =>
+                {
+                    b.Navigation("VocabWordTypes");
                 });
 #pragma warning restore 612, 618
         }

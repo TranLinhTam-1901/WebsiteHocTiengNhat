@@ -1,0 +1,401 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import { logout } from '../../../store/auth.slice';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { useDispatch, useSelector} from 'react-redux';
+import { AppDispatch, RootState} from '../../../store';
+import { User } from '../../../interfaces/User';
+import { LearnerProfileService } from '../../../services/Learner/learnerProfileService';
+import { SkillType } from '../../../interfaces/Admin/QuestionBank';
+import dashboardService from '../../../services/Learner/progressService';
+
+const Sidebar: React.FC = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  const { email } = useSelector((state: RootState) => state.auth);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+
+  const isSkillActive = location.pathname.includes('/learner/skill') || location.pathname.includes('/learner/flashcards');
+  const [isSkillOpen, setIsSkillOpen] = useState(isSkillActive);
+
+  const isSubItemActive = (pathSegment: string, skillEnum: number) => {
+    // 1. Kiểm tra theo đường dẫn trực tiếp (trang Hub/Learning)
+    if (location.pathname.includes(pathSegment)) return true;
+  
+    // 2. Lấy type từ Search Params (?type=...)
+    const searchParams = new URLSearchParams(location.search);
+    const typeParam = searchParams.get('type');
+    
+    // 3. Lấy type từ Navigate State (Dùng cho các trang con như Review/Detail)
+    const stateType = location.state?.filterState ?? location.state?.skillType;
+  
+    // Kiểm tra nếu đang ở các trang Flashcard
+    if (location.pathname.includes('/learner/flashcards')) {
+      // Ưu tiên check theo Param trên URL trước, sau đó tới State
+      const currentType = typeParam !== null ? Number(typeParam) : stateType;
+      
+      if (currentType !== undefined && Number(currentType) === skillEnum) {
+        return true;
+      }
+    }
+  
+    return false;
+  };
+  
+  const fetchProfile = useCallback(async () => {
+    try {
+      const profile = await LearnerProfileService.getCurrentProfile();
+      setCurrentUser(profile);
+    } catch (error) {
+      console.error('Failed to fetch profile', error);
+    }
+  }, []);
+
+
+      const handleProtectedNavigation = (
+      e: React.MouseEvent,
+      path: string
+    ) => {
+
+      const isExamRunning =
+        sessionStorage.getItem(
+          'isExamInProgress'
+        ) === 'true';
+
+      if (!isExamRunning) return;
+
+      e.preventDefault();
+
+      window.dispatchEvent(
+        new CustomEvent(
+          'protected-navigation',
+          {
+            detail: {
+              path
+            }
+          }
+        )
+      );
+    };
+
+
+    
+
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
+
+  useEffect(() => {
+    const onRefresh = () => {
+      fetchProfile();
+    };
+    window.addEventListener('learner-profile-refresh', onRefresh);
+    return () => window.removeEventListener('learner-profile-refresh', onRefresh);
+  }, [fetchProfile]);
+
+  useEffect(() => {
+    if (isSkillActive) setIsSkillOpen(true);
+  }, [location.pathname]);
+
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate('/login', { replace: true });
+  };
+
+  //sidebar
+  const [progressData, setProgressData] = useState<any>(null);
+  const fetchProgress = useCallback(async () => {
+  try {
+    const res = await dashboardService.getOverallProgress();
+    setProgressData(res.data);
+  } catch (error) {
+    console.error("Sidebar progress fetch failed", error);
+  }
+}, []);
+
+useEffect(() => {
+  fetchProgress();
+  // Lắng nghe sự kiện để cập nhật lại khi người dùng vừa học xong ở trang khác
+  window.addEventListener('learner-profile-refresh', fetchProgress);
+  return () => window.removeEventListener('learner-profile-refresh', fetchProgress);
+}, [fetchProgress]);
+
+  return (
+    <aside className="w-64 flex flex-col bg-white border-r border-[#f4f0f2] shrink-0 h-screen">
+      <div className="p-6 flex flex-col gap-8 h-full">
+        
+        {/* Logo */}
+        <div className="flex gap-3 items-center cursor-pointer" onClick={() => navigate('/learner/dashboard')}>
+          <div className="bg-primary rounded-full size-10 flex items-center justify-center text-white shadow-lg shadow-primary/20 font-bold">
+            J
+          </div>
+          <div className="flex flex-col">
+            <h1 className="text-base font-bold leading-none text-[#181114]">JQuiz Learner</h1>
+            <p className="text-[#886373] text-xs font-normal">Học tiếng Nhật cùng AI</p>
+          </div>
+        </div>
+
+        <nav className="flex flex-col gap-1 flex-1 overflow-y-auto no-scrollbar">
+          {/* --- PHẦN 1: TỔNG QUAN --- */}
+          <NavItem 
+            to="/learner/dashboard" 
+            icon="dashboard" 
+            label="Tổng quan" 
+            active={location.pathname === '/learner/dashboard'} 
+             onProtectedNavigate={handleProtectedNavigation}
+          />
+          <NavItem 
+            to="/learner/profile" 
+            icon="person" 
+            label="Hồ sơ" 
+            active={location.pathname === '/learner/profile'} 
+          />
+
+          <NavItem
+            to="/learner/courses"
+            icon="menu_book"
+            label="Khóa học"
+            active={
+              location.pathname.startsWith('/learner/courses') ||
+              /\/learner\/lessons\/[^/]+\/learn/.test(location.pathname)
+            }
+             onProtectedNavigate={handleProtectedNavigation}
+          />
+
+          {/* --- PHẦN 2: LỘ TRÌNH HỌC CHÍNH --- */}
+          {/* <NavItem 
+            to="/learner/roadmap" 
+            icon="map" 
+            label="Lộ trình Minna" 
+            active={location.pathname.startsWith('/learner/roadmap') || location.pathname.startsWith('/learner/study/')} 
+          /> */}
+
+          <NavItem 
+            to="/learner/studyresource/vocabulary" 
+            icon="menu_book" 
+            label="Thư viện từ vựng" 
+            active={location.pathname.startsWith('/learner/studyresource/vocabulary')} 
+             onProtectedNavigate={handleProtectedNavigation}
+          />
+          <NavItem 
+            to="/learner/studyresource/kanji" 
+            icon="draw" 
+            label="Thư viện Kanji" 
+            active={location.pathname.startsWith('/learner/studyresource/kanji')} 
+             onProtectedNavigate={handleProtectedNavigation}
+          />
+
+          {/* --- PHẦN 3: RÈN LUYỆN KỸ NĂNG --- */}
+          <div className="flex flex-col gap-1">
+            <button 
+              onClick={() => setIsSkillOpen(!isSkillOpen)}
+              className={`flex items-center justify-between px-4 py-3 rounded-xl transition-colors w-full ${
+                isSkillActive ? 'bg-primary/10 text-primary' : 'text-[#886373] hover:bg-[#f4f0f2]'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <span className="material-symbols-outlined" style={isSkillActive ? { fontVariationSettings: "'FILL' 1" } : {}}>
+                  fitness_center
+                </span>
+                <span className="text-sm font-bold">Luyện kỹ năng</span>
+              </div>
+              <span className={`material-symbols-outlined text-sm transition-transform ${isSkillOpen ? 'rotate-180' : ''}`}>
+                expand_more
+              </span>
+            </button>
+
+            {isSkillOpen && (
+              <div className="pl-12 flex flex-col gap-1 mt-1 transition-all">
+                <SubNavItem 
+                  to="/learner/skill-learning/vocabulary" 
+                  label="Từ vựng" 
+                  active={isSubItemActive('/skill-learning/vocabulary', SkillType.Vocabulary)} 
+                  onProtectedNavigate={handleProtectedNavigation}
+                />
+                <SubNavItem 
+                  to="/learner/skill-learning/kanji" 
+                  label="Hán tự" 
+                  active={isSubItemActive('/skill-learning/kanji', SkillType.Kanji)} 
+                  onProtectedNavigate={handleProtectedNavigation}
+                />
+                <SubNavItem 
+                  to="/learner/skill-learning/grammar" 
+                  label="Ngữ pháp" 
+                  active={isSubItemActive('/skill-learning/grammar', SkillType.Grammar)} 
+                  onProtectedNavigate={handleProtectedNavigation}
+                />
+                <SubNavItem 
+                  to="/learner/skill-learning/reading" 
+                  label="Luyện đọc" 
+                  active={isSubItemActive('/skill-learning/reading', SkillType.Reading)} 
+                  onProtectedNavigate={handleProtectedNavigation}
+                />
+                <SubNavItem 
+                  to="/learner/skill-learning/listening" 
+                  label="Luyện nghe" 
+                  active={isSubItemActive('/skill-learning/listening', SkillType.Listening)}
+                  onProtectedNavigate={handleProtectedNavigation}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* --- PHẦN 4: KIỂM TRA & KẾT QUẢ --- */}
+          <NavItem 
+            to="/learner/exams/jlpt-exams" 
+            icon="assignment" 
+            label="Kho đề thi JLPT" 
+            active={location.pathname.startsWith('/learner/exams/jlpt-exams')} 
+            onProtectedNavigate={handleProtectedNavigation}
+          />
+
+          <NavItem 
+            to="/learner/history" 
+            icon="history" 
+            label="Lịch sử & Tiến độ" 
+            active={location.pathname.startsWith('/learner/history')} 
+          />
+
+          {/* <NavItem 
+            to="/learner/leaderboard" 
+            icon="emoji_events" 
+            label="Bảng xếp hạng" 
+            active={location.pathname === '/learner/leaderboard'} 
+          /> */}
+
+          <NavItem 
+            to="/learner/ai-tutor" 
+            icon="smart_toy" 
+            label="Trợ lý AI (Ollama)" 
+            active={location.pathname === '/learner/ai-tutor'} 
+            onProtectedNavigate={handleProtectedNavigation}
+          />
+          <NavItem 
+            to="/learner/support" 
+            icon="chat" 
+            label="Chat hỗ trợ" 
+            active={location.pathname === '/learner/support'} 
+            onProtectedNavigate={handleProtectedNavigation}
+          />
+
+          <div className="my-4 border-t border-[#f4f0f2]"></div>
+        </nav>
+
+       {/* Widget Tiến độ cải tiến - Phương án A: Lesson 35% + Exam 35% + Score 20% + Flashcard 10% */}
+        <div className="bg-primary/5 p-4 rounded-xl border border-primary/10 mb-2">
+          <p className="text-[10px] font-bold text-primary mb-1 uppercase tracking-widest">
+            Tiến độ tổng thể
+          </p>
+          
+          <div className="flex items-end justify-between mb-3">
+            <h4 className="text-lg font-black text-[#181114] leading-none">
+              {progressData?.totalPercent ?? 0}%
+            </h4>
+            <span className="text-[10px] text-[#886373] font-bold">
+              Cấp độ: {progressData?.currentLevelName || currentUser?.levelName || 'N5'}
+            </span>
+          </div>
+
+          <div className="w-full bg-zinc-200 h-1.5 rounded-full overflow-hidden">
+            <div 
+              className="bg-primary h-full transition-all duration-1000 ease-out shadow-[0_0_8px_rgba(242,133,173,0.4)]" 
+              style={{ width: `${progressData?.totalPercent ?? 0}%` }}
+            ></div>
+          </div>
+
+          {/* Breakdown 35/35/20/10 */}
+          <div className="mt-2 space-y-1.5 text-[9px] text-[#886373] font-medium">
+            <div className="flex justify-between items-center">
+              <span>📚 Bài học (35%)</span>
+              <span className="text-primary font-bold">{progressData?.courseProgress?.percentage ?? 0}%</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span>✅ Luyện tập (35%)</span>
+              <span className="text-emerald-600 font-bold">{progressData?.examProgress?.passRate ?? 0}%</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span>📊 Điểm trung bình (20%)</span>
+              <span className="text-blue-600 font-bold">{progressData?.examProgress?.averageScore ?? 0}/10</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span>💎 Flashcard (10%)</span>
+              <span className="text-amber-600 font-bold">{progressData?.skillProgress?.percentage ?? 0}%</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Thông tin User & Đăng xuất */}
+        <div className="mt-auto">
+          <div className="bg-[#fbf9fa] p-4 rounded-xl flex items-center justify-between gap-1 group border border-[#f4f0f2]">
+            <div className="flex items-center gap-3 overflow-hidden">
+              <div 
+                className="size-9 shrink-0 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary text-sm border-2 border-primary/20"
+              >
+                {currentUser?.fullName?.charAt(0).toUpperCase() || 'J'}
+              </div>
+              <div className="flex-1 overflow-hidden">
+                <p className="text-xs font-bold truncate text-[#181114]">{currentUser?.fullName || 'Học viên'}</p>
+                <p className="text-[10px] text-[#886373] truncate">{currentUser?.email || email || 'learner@jquiz.vn'}</p>
+              </div>
+            </div>
+
+            <button
+              onClick={handleLogout}
+              title="Đăng xuất"
+              className="p-2 rounded-lg text-red-500 hover:bg-white hover:shadow-sm transition-all duration-200 flex items-center justify-center shrink-0"
+            >
+              <span className="material-symbols-outlined text-xl">logout</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </aside>
+  );
+};
+
+// Component NavItem
+const NavItem = ({ to = "#", icon, label, active = false,onProtectedNavigate }: { to?: string, icon: string, label: string, active?: boolean,onProtectedNavigate?: (
+    e: React.MouseEvent,
+    to: string
+  ) => void }) => (
+  <Link 
+    to={to} 
+    onClick={(e) =>
+      onProtectedNavigate?.(e, to)
+    }
+    className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${
+      active 
+      ? 'bg-primary/10 text-primary font-bold' 
+      : 'text-[#886373] hover:bg-[#f4f0f2]'
+    }`}
+  >
+    <span 
+      className="material-symbols-outlined" 
+      style={active ? { fontVariationSettings: "'FILL' 1" } : {}}
+    >
+      {icon}
+    </span>
+    <span className="text-sm font-medium">{label}</span>
+  </Link>
+);
+
+// Component SubNavItem (Dành cho các mục con trong menu kỹ năng)
+const SubNavItem = ({ to, label, active, onProtectedNavigate }: { to: string, label: string, active: boolean, onProtectedNavigate?: (
+    e: React.MouseEvent,
+    to: string
+  ) => void }) => (
+  <Link 
+    to={to} 
+    onClick={(e) =>
+      onProtectedNavigate?.(e, to)
+    }
+    className={`py-2 px-2 rounded-lg text-sm transition-all block ${
+      active ? 'text-primary font-bold' : 'text-[#886373] hover:text-primary'
+    }`}
+  >
+    {label}
+  </Link>
+);
+
+export default Sidebar;

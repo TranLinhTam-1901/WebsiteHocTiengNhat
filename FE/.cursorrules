@@ -1,0 +1,6 @@
+Bạn là chuyên gia React + TypeScript + Tailwind CSS.
+Quy tắc code:
+- Sử dụng Functional Components và Hooks.
+- Luôn ưu tiên dùng Tailwind CSS để style.
+- Giữ cấu trúc folder hiện tại (src/components, src/pages...).
+- Chú ý xử lý hiển thị tiếng Nhật (Kanji/Hiragana/Katakana) chuẩn UTF-8.

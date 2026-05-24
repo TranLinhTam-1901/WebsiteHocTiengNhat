@@ -1,170 +1,214 @@
 <!DOCTYPE html>
-<html class="light" lang="en"><head>
+
+<html class="light" lang="vi"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Placement Test Intro - JQuiz</title>
+<title>JQuiz - Flashcard Sakura Bloom</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <script id="tailwind-config">
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    colors: {
-                        "primary": "#F285AD",
-                        "background-light": "#f8f6f7",
-                        "background-dark": "#211118",
-                    },
-                    fontFamily: {
-                        "display": ["Lexend"]
-                    },
-                    borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
-                },
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-secondary": "#ffffff",
+              "on-surface-variant": "#534248",
+              "surface-container-low": "#fdf8fa",
+              "secondary-fixed-dim": "#efb7cc",
+              "secondary-fixed": "#ffd8e5",
+              "tertiary-fixed-dim": "#8ed883",
+              "surface-tint": "#f287b6",
+              "on-tertiary": "#ffffff",
+              "on-primary-container": "#701c48",
+              "background": "#f8f6f7",
+              "secondary": "#7e5163",
+              "on-surface": "#211118",
+              "tertiary": "#266c24",
+              "surface-variant": "#f1ecf0",
+              "primary-fixed": "#ffd8e5",
+              "inverse-surface": "#372e31",
+              "on-tertiary-container": "#004908",
+              "on-error-container": "#93000a",
+              "on-secondary-container": "#7b4e60",
+              "primary-fixed-dim": "#ffb0cf",
+              "on-error": "#ffffff",
+              "on-tertiary-fixed": "#002202",
+              "outline": "#867278",
+              "inverse-primary": "#ffb0cf",
+              "surface-container": "#f8f6f7",
+              "surface-dim": "#f8f6f7",
+              "on-secondary-fixed": "#311020",
+              "on-background": "#211118",
+              "tertiary-container": "#72ba68",
+              "surface-container-lowest": "#ffffff",
+              "surface-bright": "#ffffff",
+              "secondary-container": "#fec5da",
+              "on-secondary-fixed-variant": "#633a4c",
+              "primary": "#f287b6",
+              "tertiary-fixed": "#aaf59c",
+              "inverse-on-surface": "#fdedf1",
+              "primary-container": "rgba(242, 135, 182, 0.1)",
+              "outline-variant": "rgba(242, 135, 182, 0.1)",
+              "on-primary-fixed": "#3d0023",
+              "on-primary": "#ffffff",
+              "surface-container-high": "#f1ecf0",
+              "on-tertiary-fixed-variant": "#05530d",
+              "surface-container-highest": "#ebe5e9",
+              "on-primary-fixed-variant": "#7b2652",
+              "surface": "#ffffff",
+              "error-container": "#ffdad6",
+              "error": "#ba1a1a"
             },
-        }
+            fontFamily: {
+              "headline": ["Lexend"],
+              "body": ["Lexend"],
+              "label": ["Lexend"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
     </script>
-<style type="text/tailwindcss">
+<style>
         .material-symbols-outlined {
             font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
         }
-        body {
-            font-family: 'Lexend', sans-serif;
+        body { font-family: 'Lexend', sans-serif; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(242, 135, 182, 0.1);
         }
-        .ai-glow {
-            box-shadow: 0 0 40px -10px rgba(242, 133, 173, 0.4);
+        .sakura-glow {
+            background: linear-gradient(135deg, rgba(242, 135, 182, 0.15) 0%, transparent 100%);
         }
     </style>
 </head>
-<body class="bg-background-light dark:bg-background-dark min-h-screen">
-<div class="flex h-screen overflow-hidden">
-<aside class="w-64 flex flex-col justify-between bg-white dark:bg-zinc-900 border-r border-[#f4f0f2] dark:border-zinc-800 p-4 shrink-0">
-<div class="flex flex-col gap-8">
-<div class="flex gap-3 items-center px-2">
-<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDPwdm08m0GVHmx_JeFubqUDTsOdvvGpbzizT28bNrGOyvFuUMKXCOiLRFNUvYwGaqAyFFESScIOb7dmeLTKilgcTuKDzUep0wpza1NpFqcRdcMj8OeaCgO54DSlQXmgUAwpmXc7heyU1sR2n8N_X6r35WHQ0RhgF-kNzT-eDChgJb_4rkGvp2U13yqzcBzoRFYQFfxjofIujPBYDKT5Gr3SvKG3mPmjqy23qwtttG9mAubogoe6XQnO_Tx0gnR96h5pxfs7OMNMNc-");'></div>
-<div class="flex flex-col">
-<h1 class="text-[#181114] dark:text-white text-lg font-bold leading-none">JQuiz</h1>
-<p class="text-[#886373] dark:text-zinc-400 text-xs font-normal">JLPT AI Tutor</p>
+<body class="bg-background text-on-background min-h-screen">
+<!-- Main Content Canvas -->
+<main class="pt-16 md:pl-64 min-h-screen flex flex-col">
+<div class="flex-1 p-6 md:p-10 flex flex-col max-w-5xl mx-auto w-full">
+<!-- Contextual Header & Progress -->
+<div class="mb-10 text-center">
+<div class="inline-flex items-center px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-bold mb-4 tracking-wider uppercase">
+                    Thẻ ghi nhớ • JLPT N3
+                </div>
+<h2 class="text-3xl font-black text-slate-900 mb-6">Chủ đề: Nhà hàng &amp; Ẩm thực</h2>
+<div class="max-w-md mx-auto">
+<div class="flex justify-between items-end mb-2">
+<span class="text-xs font-bold text-slate-500 uppercase tracking-tighter">Tiến độ hôm nay</span>
+<span class="text-sm font-black text-primary">12 / 20</span>
 </div>
-</div>
-<nav class="flex flex-col gap-1">
-<div class="flex items-center gap-3 px-3 py-2.5 text-[#181114] dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full cursor-pointer">
-<span class="material-symbols-outlined">dashboard</span>
-<p class="text-sm font-medium">Dashboard</p>
-</div>
-<div class="flex items-center gap-3 px-3 py-2.5 text-[#181114] dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full cursor-pointer">
-<span class="material-symbols-outlined">book_4</span>
-<p class="text-sm font-medium">Lessons</p>
-</div>
-<div class="flex items-center gap-3 px-3 py-2.5 text-[#181114] dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full cursor-pointer">
-<span class="material-symbols-outlined">edit_note</span>
-<p class="text-sm font-medium">Practice</p>
-</div>
-<div class="flex items-center gap-3 px-3 py-2.5 rounded-full bg-primary/10 text-primary">
-<span class="material-symbols-outlined fill-1">assignment</span>
-<p class="text-sm font-semibold">Placement</p>
-</div>
-<div class="flex items-center gap-3 px-3 py-2.5 text-[#181114] dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full cursor-pointer">
-<span class="material-symbols-outlined">analytics</span>
-<p class="text-sm font-medium">Progress</p>
-</div>
-</nav>
-</div>
-<div class="flex flex-col gap-4">
-<div class="bg-primary/5 p-4 rounded-xl border border-primary/20">
-<p class="text-xs font-bold text-primary mb-1 uppercase tracking-wider">Status</p>
-<p class="text-sm font-semibold text-[#181114] dark:text-white mb-2">Unranked</p>
-<div class="w-full bg-zinc-200 dark:bg-zinc-700 h-1.5 rounded-full overflow-hidden">
-<div class="bg-zinc-300 h-full w-[5%]"></div>
+<div class="h-3 w-full bg-primary-container rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[60%] rounded-full shadow-[0_0_12px_rgba(242,135,182,0.4)]"></div>
 </div>
 </div>
 </div>
-</aside>
-<main class="flex-1 overflow-y-auto">
-<header class="sticky top-0 z-10 flex items-center justify-between bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-[#f4f0f2] dark:border-zinc-800 px-8 py-4">
-<div class="flex items-center gap-4">
-<h2 class="text-[#181114] dark:text-white text-xl font-bold tracking-tight">AI Diagnostic</h2>
+<!-- Central Flashcard Area -->
+<div class="relative group perspective-1000 flex-1 flex flex-col items-center justify-center">
+<!-- Decorative Sakura Pedals (Faded backgrounds) -->
+<div class="absolute -top-10 -left-10 w-40 h-40 bg-primary/5 rounded-full blur-3xl"></div>
+<div class="absolute -bottom-10 -right-10 w-48 h-48 bg-primary/5 rounded-full blur-3xl"></div>
+<!-- Main Card -->
+<div class="w-full max-w-2xl aspect-[1.6/1] glass-card rounded-lg shadow-xl shadow-primary/5 flex flex-col items-center justify-center p-12 text-center relative overflow-hidden sakura-glow cursor-pointer transition-transform duration-500 hover:scale-[1.01] active:scale-95">
+<!-- Card Corner Ornament -->
+<div class="absolute top-0 right-0 w-24 h-24 overflow-hidden pointer-events-none opacity-20">
+<div class="absolute top-4 right-4 text-primary">
+<span class="material-symbols-outlined text-4xl" data-icon="filter_vintage">filter_vintage</span>
 </div>
-<div class="flex items-center gap-6">
-<div class="flex gap-2">
-<button class="flex items-center justify-center rounded-full size-10 bg-white dark:bg-zinc-900 text-[#181114] dark:text-white border border-[#f4f0f2] dark:border-zinc-800">
-<span class="material-symbols-outlined">help_outline</span>
+</div>
+<div class="space-y-4">
+<span class="text-sm font-medium text-primary bg-primary/10 px-3 py-1 rounded-full uppercase tracking-widest">Từ vựng N3</span>
+<div class="py-4">
+<!-- Main Content (Japanese Kanji) -->
+<h3 class="text-7xl md:text-8xl font-black text-slate-900 tracking-tighter">雰囲 気</h3>
+<p class="text-2xl font-medium text-slate-500 mt-2">ふんいき</p>
+</div>
+<div class="flex items-center justify-center gap-2 text-slate-400">
+<span class="material-symbols-outlined text-sm" data-icon="volume_up">volume_up</span>
+<span class="text-xs font-medium italic">Nhấn để nghe phát âm</span>
+</div>
+</div>
+<!-- Card Hint (Bottom) -->
+<div class="absolute bottom-8 left-0 right-0 flex justify-center">
+<div class="px-4 py-2 bg-slate-100/50 rounded-full flex items-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="help_outline">help_outline</span>
+<span class="text-xs font-bold text-slate-600">Gợi ý: "Cảm giác của một nơi nào đó"</span>
+</div>
+</div>
+</div>
+<!-- Controls Cluster -->
+<div class="mt-12 w-full max-w-2xl grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Mark Unlearned -->
+<button class="order-2 md:order-1 flex flex-col items-center gap-2 group">
+<div class="w-16 h-16 rounded-full bg-surface shadow-md flex items-center justify-center text-error border border-error/10 transition-all duration-300 group-hover:scale-110 group-active:scale-90">
+<span class="material-symbols-outlined text-3xl" data-icon="close">close</span>
+</div>
+<span class="text-sm font-bold text-slate-500 group-hover:text-error transition-colors">Chưa thuộc</span>
+</button>
+<!-- Main Action (Flip) -->
+<button class="order-1 md:order-2 flex flex-col items-center gap-3">
+<div class="w-20 h-20 rounded-full bg-primary shadow-lg shadow-primary/30 flex items-center justify-center text-white transition-all duration-300 hover:shadow-primary/50 hover:scale-105 active:scale-95">
+<span class="material-symbols-outlined text-4xl" data-icon="refresh">refresh</span>
+</div>
+<span class="text-lg font-black text-slate-800">Lật thẻ</span>
+</button>
+<!-- Mark Learned -->
+<button class="order-3 flex flex-col items-center gap-2 group">
+<div class="w-16 h-16 rounded-full bg-surface shadow-md flex items-center justify-center text-tertiary border border-tertiary/10 transition-all duration-300 group-hover:scale-110 group-active:scale-90">
+<span class="material-symbols-outlined text-3xl" data-icon="check" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+<span class="text-sm font-bold text-slate-500 group-hover:text-tertiary transition-colors">Đã thuộc</span>
 </button>
 </div>
-<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 ring-2 ring-primary/20" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB8SMNC3nIOFUVSJQga6Z6FSJjaurDPHzpdjzFGk1roIZWaPUpkHt9d6j1ylFZWdNsOABZ2QbBYT9saB05OiHJG3l71uFG6UEMJ38AmNH3aLsayJoW8pCB-nottUtoXhNmKSyny9ZHse9E9hhck52yl8e83ibakWVD0FUaRkRoGHm_Gb3EmdbqzVHYGJEELfUAz588EwiWHSwjQAhw93BUrTMQmSN1EzqYkhwoyTC9V5lT9S20I1vY5fQoXTHMOnC3VCZcdCwWG5pZ8");'></div>
 </div>
-</header>
-<div class="p-8 max-w-5xl mx-auto">
-<div class="flex flex-col items-center text-center mt-8">
-<div class="bg-white dark:bg-zinc-900 rounded-[2.5rem] p-12 shadow-sm border border-[#f4f0f2] dark:border-zinc-800 max-w-3xl w-full relative overflow-hidden ai-glow">
-<div class="absolute -top-24 -right-24 size-64 bg-primary/5 rounded-full blur-3xl"></div>
-<div class="absolute -bottom-24 -left-24 size-64 bg-primary/5 rounded-full blur-3xl"></div>
-<div class="relative z-10 flex flex-col items-center">
-<div class="mb-8 relative">
-<div class="size-48 bg-primary/10 rounded-full flex items-center justify-center relative">
-<span class="material-symbols-outlined text-primary text-8xl">smart_toy</span>
-<div class="absolute -right-2 top-4 bg-white dark:bg-zinc-800 p-2 rounded-lg shadow-md border border-zinc-100 dark:border-zinc-700">
-<span class="text-2xl block">こんにちは!</span>
-</div>
-</div>
-<div class="absolute -bottom-2 right-10 size-6 bg-green-500 border-4 border-white dark:border-zinc-900 rounded-full"></div>
-</div>
-<h1 class="text-[#181114] dark:text-white text-4xl font-black tracking-tight mb-4">Let's find your level</h1>
-<p class="text-[#886373] dark:text-zinc-400 text-lg max-w-xl mx-auto leading-relaxed">
-                            I'll guide you through a quick evaluation of your Japanese skills. This helps me build a 
-                            <span class="text-primary font-bold tracking-tight">personalized roadmap</span> 
-                            focused exactly on where you need to improve for the JLPT.
-                        </p>
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mt-12 mb-12">
-<div class="flex flex-col items-center gap-2">
-<div class="size-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary mb-2">
-<span class="material-symbols-outlined">speed</span>
-</div>
-<h4 class="font-bold text-sm text-[#181114] dark:text-white">Adaptive Difficulty</h4>
-<p class="text-xs text-[#886373]">Questions adjust based on your answers</p>
-</div>
-<div class="flex flex-col items-center gap-2">
-<div class="size-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary mb-2">
-<span class="material-symbols-outlined">analytics</span>
-</div>
-<h4 class="font-bold text-sm text-[#181114] dark:text-white">Skill Mapping</h4>
-<p class="text-xs text-[#886373]">Get a breakdown of N5-N3 proficiency</p>
-</div>
-<div class="flex flex-col items-center gap-2">
-<div class="size-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary mb-2">
-<span class="material-symbols-outlined">map</span>
-</div>
-<h4 class="font-bold text-sm text-[#181114] dark:text-white">Instant Roadmap</h4>
-<p class="text-xs text-[#886373]">Unlock your daily study plan immediately</p>
-</div>
-</div>
-<div class="flex flex-col items-center gap-6 w-full max-w-md">
-<button class="w-full bg-primary hover:bg-[#e0759c] text-white py-4 px-8 rounded-full text-lg font-bold shadow-xl shadow-primary/25 transition-all flex items-center justify-center gap-3 group">
-                                Start Evaluation
-                                <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
-</button>
-<div class="flex items-center gap-8">
-<div class="flex items-center gap-2 text-[#886373] dark:text-zinc-500">
-<span class="material-symbols-outlined text-sm">schedule</span>
-<span class="text-sm font-medium">15-20 mins</span>
-</div>
-<div class="flex items-center gap-2 text-[#886373] dark:text-zinc-500">
-<span class="material-symbols-outlined text-sm">quiz</span>
-<span class="text-sm font-medium">35 Questions</span>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="mt-8 flex items-center gap-3 px-6 py-3 bg-white/50 dark:bg-zinc-800/50 rounded-full border border-[#f4f0f2] dark:border-zinc-800">
-<span class="material-symbols-outlined text-amber-500 text-sm">lightbulb</span>
-<p class="text-xs text-[#886373] dark:text-zinc-400">
-                        Don't worry if you don't know an answer. "I don't know" helps me identify your learning gaps better!
+<!-- Contextual Stats / History -->
+<div class="mt-16 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+<div class="p-8 rounded-lg bg-white shadow-sm border border-primary/5">
+<h4 class="text-lg font-black text-slate-800 mb-4">Mẹo ghi nhớ</h4>
+<p class="text-slate-600 text-sm leading-relaxed">
+                        Từ <strong>雰囲気 (Fun-iki)</strong> thường bị phát âm sai thành "Fun-yi-ki". Hãy nhớ âm tiết thứ 2 là 'i' chứ không phải 'yi'. Từ này dùng để tả không khí của quán cà phê, buổi tiệc...
                     </p>
+<div class="mt-4 flex flex-wrap gap-2">
+<span class="px-3 py-1 bg-secondary-fixed text-on-secondary-fixed text-[10px] font-black rounded-full uppercase">Ví dụ</span>
+<span class="px-3 py-1 bg-secondary-fixed text-on-secondary-fixed text-[10px] font-black rounded-full uppercase">Kanji N3</span>
+</div>
+</div>
+<div class="relative h-48 overflow-hidden rounded-lg">
+<img alt="Cozy Japanese Cafe Atmosphere" class="w-full h-full object-cover" data-alt="Interior of a warm cozy Japanese cafe with soft lantern lighting, wooden furniture, and a tranquil atmosphere" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDQMmrz6bYbjCjGSky78d36Hz6EaOPfghxBaev_smvtl9rEkJl38DAUb39uiS1AISuSOz8X_LxTIijaQYfqvIzc1XJL_Ppz4Mz1gxnQCdQxvnzCNNXt1sQ1nFYoYuo9LLC2J8kWR9zthESKkOFlqJnwTnuKmRFTfNyeEuDj8xaU944YGxub9LcCVyk4sx3EK4B03ITgvrabjXsYgOnMn7hteurdroqsEuyhWodoKK1Lv3yqhIzGKKS5sN9e3FXPWRHa34yz983Pesr9"/>
+<div class="absolute inset-0 bg-linear-to-t from-slate-900/60 to-transparent flex flex-col justify-end p-6">
+<p class="text-white text-sm font-bold italic">"Kono resutoran wa fun-iki ga ii desu ne!"</p>
+<p class="text-white/80 text-xs">Nhà hàng này không khí tốt nhỉ!</p>
+</div>
 </div>
 </div>
 </div>
 </main>
+<!-- Bottom Nav for Mobile Only -->
+<nav class="fixed bottom-0 left-0 right-0 bg-white shadow-[0_-4px_10px_rgba(0,0,0,0.05)] h-16 md:hidden flex justify-around items-center px-4 z-50">
+<button class="flex flex-col items-center gap-1 text-slate-400">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="text-[10px] font-bold">Trang chủ</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined" data-icon="auto_stories" style="font-variation-settings: 'FILL' 1;">auto_stories</span>
+<span class="text-[10px] font-bold">Học tập</span>
+</button>
+<div class="-mt-8">
+<button class="w-14 h-14 bg-primary text-white rounded-full shadow-lg shadow-primary/40 flex items-center justify-center">
+<span class="material-symbols-outlined text-3xl" data-icon="add">add</span>
+</button>
 </div>
-
+<button class="flex flex-col items-center gap-1 text-slate-400">
+<span class="material-symbols-outlined" data-icon="psychology">psychology</span>
+<span class="text-[10px] font-bold">Kỹ năng</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-slate-400">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+<span class="text-[10px] font-bold">Cá nhân</span>
+</button>
+</nav>
 </body></html>

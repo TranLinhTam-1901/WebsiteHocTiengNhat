@@ -5,11 +5,38 @@ export enum QuestionType {
     Ordering = 2,       // Sắp xếp câu (Dạng bài dấu sao ★ cực kỳ quan trọng)
     Synonym = 3,        // Tìm từ đồng nghĩa (Dạng bài đặc thù JLPT)
     Usage = 4,
+    // TextCompletion = 5, // Hoàn thành văn bản
+    // ListeningComp = 6,  // Nghe hiểu
+    // ReadingComp = 7     // Đọc hiểu
+}
+
+export enum QuestionFormat {
+    StandardChoice = 0,     // Câu hỏi trắc nghiệm thông thường
+    StarSentence = 1,       // Câu hỏi có dấu ★ (文の組み立て - JLPT N1/N2)
+    Passage = 2,            // Đọc đoạn văn (Reading comprehension)
+    AudioChoice = 3         // Câu hỏi nghe (Audio-based multiple choice)
 }
 
 export enum QuestionStatus {
+    Draft = 0,
     Active = 1,
-    Draft = 0
+    Archived = 2
+}
+
+export enum SkillType {
+    General = 0,
+    Vocabulary = 1,
+    Grammar = 2,
+    Kanji = 3,
+    Reading = 4,
+    Listening = 5,
+    Practice = 6
+} 
+
+export enum ExamType {
+    StandardJLPT = 0,
+    LessonPractice = 1,
+    SkillPractice = 2
 }
 
 // 2. Interface cho Đáp án
@@ -23,14 +50,16 @@ export interface CreateQuestionDTO {
     lessonID: string;
     content: string;
     questionType: QuestionType;
+    questionFormat: QuestionFormat;
     difficulty: number;
-    audioURL?: string;
-    mediaTimestamp?: number;
+    // audioURL?: string;
+    // mediaTimestamp?: number;
     explanation?: string;
     equivalentID?: string | null;
     sourceID?: string | null;
     topicIds: string[];
     status: QuestionStatus;
+    skillType?: SkillType; 
     answers: AnswerDTO[];
 }
 
@@ -42,17 +71,51 @@ export interface SourceMaterial {
     title?: string;     // Cho Grammar/Reading/Listening
     meaning?: string;
     example?: string;
-    audioURL?: string;
+    // audioURL?: string;
     topicID?: string;
-}
-export interface Topics {
-    topicID: string;
-    topicName: string;
+    structure?: string; // Cho Grammar
+    onyomi?: string;    // Cho Kanji
+    kunyomi?: string;   // Cho Kanji
 }
 
 export interface LessonLookupDTO {
     lessonID: string;
     title: string;
+    courseID?: string;
+    courseName?: string;
     levelValue: string; 
     levelName: string;  
+}
+
+// Dành cho hiển thị danh sách (View 1)
+export interface QuestionListItem {
+  questionID: string;
+  content: string;
+  questionType: QuestionType;
+  questionFormat: QuestionFormat;
+  difficulty: number;
+  status: QuestionStatus; 
+  hasAudio: boolean;
+  linkedCount: number;
+  lessonId: string;
+  lessonName: string;
+  topicName: string[];
+}
+
+
+export interface QuestionDetail {
+  questionID?: string; // Optional vì khi tạo mới chưa có ID
+  content: string;
+  questionType: QuestionType;
+  questionFormat: QuestionFormat;
+  difficulty: number;
+//   audioURL?: string;
+//   mediaTimestamp?: number;
+  explanation?: string;
+  equivalentID?: string;
+  topicIds: string[];
+  sourceID?: string;
+  lessonID: string;
+  status: QuestionStatus;
+  answers: AnswerDTO[];
 }

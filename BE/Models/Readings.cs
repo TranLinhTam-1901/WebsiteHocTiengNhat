@@ -14,20 +14,23 @@ namespace QuizzTiengNhat.Models
         [Required]
         public string Content { get; set; } // Đoạn văn bản đọc hiểu
         public string Translation { get; set; }
+        public int WordCount { get; set; } // Tổng số chữ trong bài (để tính tốc độ đọc)
+        public int EstimatedTime { get; set; } // Thời gian làm bài dự kiến (phút)
+        public int Status { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
         public Guid LevelID { get; set; }
-        public Guid TopicID { get; set; }
+        public Guid LessonID { get; set; }
 
         // Navigation properties
         [ForeignKey("LevelID")]
         public virtual JLPT_Level JLPTLevel { get; set; }
 
-        public Guid LessonID { get; set; }
+        public virtual ICollection<ReadingTopics> ReadingTopics { get; set; } = new List<ReadingTopics>();
+
         [ForeignKey("LessonID")]
         public virtual Lessons Lesson { get; set; }
-
-        [ForeignKey("TopicID")]
-        public virtual Topics Topic { get; set; }
 
         // Một bài đọc có thể có nhiều câu hỏi liên quan
         public virtual ICollection<Questions> Questions { get; set; }

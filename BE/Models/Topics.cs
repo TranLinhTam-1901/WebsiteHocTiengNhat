@@ -10,10 +10,10 @@ namespace QuizzTiengNhat.Models
         public string Description { get; set; }
 
         // Navigation properties chĩa đến các bảng nội dung thô
-        public virtual ICollection<Vocabularies> Vocabularies { get; set; } = new List<Vocabularies>();
-        public virtual ICollection<Grammars> Grammars { get; set; } = new List<Grammars>();
-        public virtual ICollection<Listenings> Listenings { get; set; } = new List<Listenings>();
-        public virtual ICollection<Readings> Readings { get; set; } = new List<Readings>();
+        public virtual ICollection<VocabTopics> VocabTopics { get; set; } = new List<VocabTopics>();
+        public virtual ICollection<GrammarTopics> GrammarTopics { get; set; } = new List<GrammarTopics>();
+        public virtual ICollection<ReadingTopics> ReadingTopics { get; set; } = new List<ReadingTopics>();
+        public virtual ICollection<ListeningTopics> ListeningTopics { get; set; } = new List<ListeningTopics>();
 
         // Navigation properties cho bảng liên kết
         public virtual ICollection<Questions_Topic> QuestionTopics { get; set; } = new List<Questions_Topic>();

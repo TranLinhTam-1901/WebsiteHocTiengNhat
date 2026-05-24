@@ -1,0 +1,448 @@
+import React, { useState } from 'react';
+import { GenerateExamRequest } from '../../../interfaces/Admin/Exam';
+import { ExamType, SkillType } from '../../../interfaces/Admin/QuestionBank';
+
+interface Props {
+    data: GenerateExamRequest;
+    onChange: (data: GenerateExamRequest) => void;
+    levels: any[];
+    lessons: { lessonID: string, title: string }[];
+    lessonDataFull: any[];
+    onLevelChange: (levelId: string) => void;
+    courses: { courseID: string; courseName: string }[];
+    selectedCourseId: string | null;
+    onCourseChange: (courseId: string) => Promise<void>;
+    isEditMode?: boolean;
+}
+
+const LessonPractice: React.FC<Props> = ({ data, onChange, levels, lessons, lessonDataFull, onLevelChange, courses, selectedCourseId, onCourseChange, isEditMode = false }) => {
+    const [isLevelMenuOpen, setIsLevelMenuOpen] = useState(false);
+    const [levelSearch, setLevelSearch] = useState("");
+    const [isLessonMenuOpen, setIsLessonMenuOpen] = useState(false);
+    const [lessonSearch, setLessonSearch] = useState("");
+
+    const currentLessonInfo = lessonDataFull.find(l => l.lessonID === data.lessonID);
+
+
+    const [isCourseMenuOpen, setIsCourseMenuOpen] = useState(false);
+    const [courseSearch, setCourseSearch] = useState("");
+
+    // Tìm thông tin khóa học đang được chọn (từ prop selectedCourseId)
+    const selectedCourse = courses.find(c => c.courseID === selectedCourseId);
+
+    const filteredCourses = courses.filter(c => 
+        c.courseName.toLowerCase().includes(courseSearch.toLowerCase())
+    );
+
+    const filteredLevels = levels
+        .filter(lvl => ["N3", "N4", "N5"].includes(lvl.levelName.toUpperCase()))
+        .filter(lvl => lvl.levelName.toLowerCase().includes(levelSearch.toLowerCase()))
+        .sort((a, b) => b.levelName.localeCompare(a.levelName));
+
+    const filteredLessons = lessons
+        .filter(l => l.title.toLowerCase().includes(lessonSearch.toLowerCase()));
+
+    const selectedLevel = levels.find(l => l.levelID === data.levelID);
+    const selectedLesson = lessons.find(l => l.lessonID === data.lessonID);
+
+    const skillOptions = [
+        { skillType: SkillType.Vocabulary, skillName: 'Từ vựng', icon: '📚' },
+        { skillType: SkillType.Grammar, skillName: 'Ngữ pháp', icon: '📝' },
+        { skillType: SkillType.Kanji, skillName: 'Kanji', icon: '🀄' },
+        { skillType: SkillType.Reading, skillName: 'Đọc hiểu', icon: '📖' },
+        { skillType: SkillType.Listening, skillName: 'Nghe hiểu', icon: '🎧' }
+    ];
+
+    const normalizedParts = skillOptions.map(option => {
+        const existingPart = data.parts.find(part => part.skillType === option.skillType);
+        return existingPart || { skillType: option.skillType, quantity: 0, pointPerQuestion: 1 };
+    });
+
+    const selectedParts = normalizedParts.filter(part => part.quantity > 0);
+
+    const updateParts = (newParts: typeof normalizedParts) => {
+        onChange({ ...data, parts: newParts });
+    };
+
+    const toggleSkillSelection = (skillType: SkillType) => {
+        const updatedParts = normalizedParts.map(part =>
+            part.skillType === skillType
+                ? { ...part, quantity: part.quantity > 0 ? 0 : 1 }
+                : part
+        );
+        updateParts(updatedParts);
+    };
+
+    const getSkillStat = (skillType: SkillType) => {
+        const currentLesson = lessonDataFull.find(l => l.lessonID === data.lessonID);
+        return currentLesson?.skillStats?.find((s: any) => String(s.skillId) === String(skillType));
+    };
+
+    return (
+        <div className="space-y-6 animate-in fade-in duration-500">
+            {/* Section lọc Level & Chọn bài học */}
+            <section className="bg-white p-8 rounded-2xl border border-[#f4f0f2] shadow-sm space-y-8">
+                <div className="flex items-center gap-3 mb-2">
+                    <span className="material-symbols-outlined text-primary">menu_book</span>
+                    <h3 className="text-base font-bold text-[#181114] uppercase">Luyện tập theo Bài học</h3>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {/* Cấp độ trình độ */}
+                    <div className="space-y-3">
+                        <label className="block text-xs font-bold text-[#886373] uppercase tracking-wider">Trình độ mục tiêu</label>
+                        <div className="relative">
+                            <div className="relative">
+                                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[#886373]">
+                                    search
+                                </span>
+                                <input
+                                    type="text"
+                                    placeholder="Tìm và chọn trình độ..."
+                                    value={isLevelMenuOpen ? levelSearch : (selectedLevel?.levelName || "")}
+                                    onChange={(e) => {
+                                        setLevelSearch(e.target.value);
+                                        setIsLevelMenuOpen(true);
+                                    }}
+                                    onFocus={() => {
+                                        setIsLevelMenuOpen(true);
+                                        setLevelSearch("");
+                                    }}
+                                    className="w-full bg-[#fbf9fa] border border-[#f4f0f2] rounded-xl pl-9 pr-4 py-3 text-sm font-bold focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all"
+                                />
+                                {selectedLevel && !isLevelMenuOpen && (
+                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-primary text-sm">check_circle</span>
+                                )}
+                            </div>
+
+                            {isLevelMenuOpen && (
+                                <>
+                                    <div className="fixed inset-0 z-10" onClick={() => setIsLevelMenuOpen(false)} />
+                                    <div className="absolute left-0 right-0 mt-2 bg-white border border-[#f4f0f2] rounded-xl shadow-xl z-20 max-h-48 overflow-y-auto p-1 custom-scrollbar animate-in fade-in slide-in-from-top-2 duration-200">
+                                        {filteredLevels.map((lvl) => (
+                                            <button
+                                                key={lvl.levelID}
+                                                type="button"
+                                                onClick={() => {
+                                                    onLevelChange(lvl.levelID);
+                                                    setIsLevelMenuOpen(false);
+                                                    setLevelSearch("");
+                                                }}
+                                                className={`w-full text-left px-4 py-2.5 text-sm rounded-lg hover:bg-primary/5 hover:text-primary transition-colors flex items-center justify-between group ${data.levelID === lvl.levelID ? 'bg-primary/5 text-primary font-bold' : 'text-[#886373]'}`}
+                                            >
+                                                {lvl.levelName}
+                                                {data.levelID === lvl.levelID && <span className="material-symbols-outlined text-xs">check</span>}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    </div>
+
+            {/* 2. CHỌN KHÓA HỌC (THÊM MỚI Ở ĐÂY) */}
+                <div className="space-y-3">
+                    <label className="block text-xs font-bold text-[#886373] uppercase tracking-wider">Khóa học</label>
+                    <div className="relative">
+                        <div className="relative">
+                            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[#886373]">
+                                layers
+                            </span>
+                            <input
+                                type="text"
+                                placeholder={data.levelID ? "Chọn khóa học..." : "Chọn trình độ trước..."}
+                                disabled={!data.levelID}
+                                value={isCourseMenuOpen ? courseSearch : (selectedCourse?.courseName || "")}
+                                onChange={(e) => {
+                                    setCourseSearch(e.target.value);
+                                    setIsCourseMenuOpen(true);
+                                }}
+                                onFocus={() => {
+                                    setIsCourseMenuOpen(true);
+                                    setCourseSearch("");
+                                }}
+                                className="w-full bg-[#fbf9fa] border border-[#f4f0f2] rounded-xl pl-9 pr-4 py-3 text-sm font-bold focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all disabled:opacity-50"
+                            />
+                        </div>
+
+                        {isCourseMenuOpen && (
+                            <>
+                                <div className="fixed inset-0 z-10" onClick={() => setIsCourseMenuOpen(false)} />
+                                <div className="absolute left-0 right-0 mt-2 bg-white border border-[#f4f0f2] rounded-xl shadow-xl z-20 max-h-48 overflow-y-auto p-1 custom-scrollbar">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            onCourseChange(""); // Chọn "Tất cả"
+                                            setIsCourseMenuOpen(false);
+                                        }}
+                                        className={`w-full text-left px-4 py-2.5 text-sm rounded-lg hover:bg-primary/5 italic ${!selectedCourseId ? 'text-primary font-bold' : 'text-gray-500'}`}
+                                    >
+                                        -- Tất cả khóa học --
+                                    </button>
+                                    {filteredCourses.map((c) => (
+                                        <button
+                                            key={c.courseID}
+                                            type="button"
+                                            onClick={() => {
+                                                onCourseChange(c.courseID);
+                                                setIsCourseMenuOpen(false);
+                                                setCourseSearch("");
+                                            }}
+                                            className={`w-full text-left px-4 py-2.5 text-sm rounded-lg hover:bg-primary/5 hover:text-primary transition-colors flex items-center justify-between ${selectedCourseId === c.courseID ? 'bg-primary/5 text-primary font-bold' : 'text-[#886373]'}`}
+                                        >
+                                            {c.courseName}
+                                            {selectedCourseId === c.courseID && <span className="material-symbols-outlined text-xs">check</span>}
+                                        </button>
+                                    ))}
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </div>
+
+                    {/* Tiêu đề đề thi */}
+                    <div className="space-y-3">
+                        <label className="block text-xs font-bold text-[#886373] uppercase tracking-wider">Tên đề luyện tập</label>
+                        <input 
+                            type="text"
+                            placeholder="VD: Luyện tập ngữ pháp N4 - Bài 1..."
+                            className="w-full px-4 py-3 bg-[#fbf9fa] border border-[#f4f0f2] rounded-xl text-sm font-bold focus:border-primary outline-none transition-all placeholder:text-[#886373]/30"
+                            value={data.title}
+                            onChange={e => onChange({...data, title: e.target.value})}
+                        />
+                    </div>
+                    
+                </div>
+
+                {/* HÀNG 2: CHỌN BÀI HỌC */}
+                {data.levelID && (
+                    <div className="p-6 bg-primary/5 rounded-2xl border border-dashed border-primary/20 animate-in slide-in-from-top-2 duration-300">
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-2">
+                                <span className="material-symbols-outlined text-primary text-xl">auto_stories</span>
+                                <label className="text-sm font-bold text-primary uppercase">Phạm vi bài học cụ thể</label>
+                            </div>
+
+                            <div className="relative">
+                                <div className="relative">
+                                    <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-sm text-primary/60">
+                                        search
+                                    </span>
+                                    <input
+                                        type="text"
+                                        placeholder="Tìm và chọn bài học từ danh sách..."
+                                        value={isLessonMenuOpen ? lessonSearch : (selectedLesson?.title || "")}
+                                        onChange={(e) => {
+                                            setLessonSearch(e.target.value);
+                                            setIsLessonMenuOpen(true);
+                                        }}
+                                        onFocus={() => {
+                                            setIsLessonMenuOpen(true);
+                                            setLessonSearch("");
+                                        }}
+                                        className="w-full bg-white border border-primary/20 rounded-xl pl-9 pr-4 py-3 text-sm font-bold text-primary focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all shadow-sm"
+                                    />
+                                    {selectedLesson && !isLessonMenuOpen && (
+                                        <span className="absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-primary text-sm">check_circle</span>
+                                    )}
+                                </div>
+
+                                {isLessonMenuOpen && (
+                                    <>
+                                        <div className="fixed inset-0 z-10" onClick={() => setIsLessonMenuOpen(false)} />
+                                        <div className="absolute left-0 right-0 mt-2 bg-white border border-[#f4f0f2] rounded-xl shadow-xl z-20 max-h-48 overflow-y-auto p-1 custom-scrollbar animate-in fade-in slide-in-from-top-2 duration-200">
+                                            {filteredLessons.map((l) => (
+                                                <button
+                                                    key={l.lessonID}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const updates: any = { ...data, lessonID: l.lessonID };
+                                                        if (!data.title) {
+                                                            updates.title = `Luyện tập: ${l.title}`;
+                                                        }
+                                                        onChange(updates);
+                                                        setIsLessonMenuOpen(false);
+                                                        setLessonSearch("");
+                                                    }}
+                                                    className={`w-full text-left px-4 py-2.5 text-sm rounded-lg hover:bg-primary/5 hover:text-primary transition-colors flex items-center justify-between group ${data.lessonID === l.lessonID ? 'bg-primary/5 text-primary font-bold' : 'text-[#886373]'}`}
+                                                >
+                                                    {l.title}
+                                                    {data.lessonID === l.lessonID && <span className="material-symbols-outlined text-xs">check</span>}
+                                                </button>
+                                            ))}
+                                            {filteredLessons.length === 0 && (
+                                                <div className="p-3 text-center text-xs text-gray-400 italic">Không tìm thấy bài học phù hợp</div>
+                                            )}
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {data.levelID && (
+                    <section className="bg-white p-8 rounded-2xl border border-[#f4f0f2] shadow-sm space-y-6">
+                        <div className="flex items-center gap-2">
+                            <span className="material-symbols-outlined text-primary text-xl">extension</span>
+                            <h3 className="text-sm font-bold text-[#181114] uppercase tracking-tight">Chọn kỹ năng cho đề luyện tập</h3>
+                        </div>
+
+                        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                            {skillOptions.map((option) => {
+                                const part = normalizedParts.find(p => p.skillType === option.skillType)!;
+                                const isSelected = part.quantity > 0;
+                                const stat = getSkillStat(option.skillType);
+                                const availableCount = stat?.totalQuestions ?? 0;
+
+                                return (
+                                    <button
+                                        key={option.skillType}
+                                        type="button"
+                                        onClick={() => toggleSkillSelection(option.skillType)}
+                                        className={`rounded-2xl border p-4 text-left transition-all ${isSelected ? 'border-primary bg-primary/10 text-primary' : 'border-[#f4f0f2] bg-white text-[#886373] hover:border-primary/30 hover:bg-primary/5'}`}
+                                    >
+                                        <div className="flex items-center gap-2 mb-2 text-lg">
+                                            <span>{option.icon}</span>
+                                            <span className="font-bold">{option.skillName}</span>
+                                        </div>
+                                        <div className="text-[11px] text-[#886373] uppercase tracking-widest font-bold">
+                                            {isSelected ? 'Đã chọn' : 'Chưa chọn'}
+                                        </div>
+                                        <div className="mt-2 text-xs text-[#886373]">
+                                            {availableCount} câu có sẵn
+                                        </div>
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        {isEditMode && selectedParts.length > 0 && (
+                            <div className="pt-4 border-t border-dashed border-[#f4f0f2]">
+                                <div className="text-xs text-[#886373] uppercase tracking-[0.15em] font-bold mb-3">Kỹ năng hiện có của đề thi</div>
+                                <div className="flex flex-wrap gap-2">
+                                    {selectedParts.map(part => (
+                                        <span key={part.skillType} className="px-3 py-2 rounded-full bg-primary/10 text-primary text-xs font-bold border border-primary/20">
+                                            {SkillType[part.skillType]} ({part.quantity} câu)
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </section>
+                )}
+
+            </section>
+
+            {/* Bảng cấu hình rút gọn */}
+            <section className="bg-white rounded-2xl border border-[#f4f0f2] shadow-sm overflow-hidden animate-in slide-in-from-top-4">
+                <div className="p-6 border-b border-[#f4f0f2] bg-[#fbf9fa] flex justify-between items-center">
+                    <h3 className="text-sm font-bold text-[#181114] uppercase tracking-tight">Thiết lập số lượng câu hỏi</h3>
+                    <span className="px-3 py-1 bg-emerald-50 text-emerald-600 text-[10px] font-bold rounded-full uppercase">Luyện tập tự do</span>
+                </div>
+                
+                <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {normalizedParts.map((part, idx) => {
+                        // 1. Tìm thông tin bài học từ mảng chứa data đầy đủ (có stats)
+                        const currentLesson = lessonDataFull.find(l => l.lessonID === data.lessonID);
+                        
+                        // 2. Tìm stat của skill tương ứng
+                        // Lưu ý: Ép kiểu hoặc so sánh lỏng nếu skillId từ API là string
+                        const skillStat = currentLesson?.skillStats?.find(
+                            (s: any) => String(s.skillId) === String(part.skillType)
+                        );
+
+                        const maxAvailable = skillStat?.totalQuestions || 0;
+
+                        
+                        const getSkillIcon = (skill: SkillType) => {
+                            switch (skill) {
+                                case SkillType.Vocabulary:
+                                    return '🎋';
+                                case SkillType.Grammar:
+                                    return '📝';
+                                case SkillType.Kanji:
+                                    return '🀄';
+                                case SkillType.Reading:
+                                    return '📖';
+                                case SkillType.Listening:
+                                    return '🎧';
+                                default:
+                                    return '❓';
+                            }
+                        };
+
+                        return (
+                            <div key={idx} className="flex items-center justify-between p-5 bg-[#fbf9fa] rounded-2xl border border-[#f4f0f2] hover:border-primary/30 transition-all group">
+                                <div className="flex items-center gap-4">
+                                    <div className="size-12 rounded-2xl bg-white border border-[#f4f0f2] flex items-center justify-center text-2xl shadow-sm group-hover:scale-110 transition-transform">
+                                        {getSkillIcon(part.skillType)}
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="font-bold text-sm text-[#181114]">{SkillType[part.skillType]}</p>
+                                        <div className="flex items-center gap-1.5 text-[10px] font-bold text-[#886373] uppercase">
+                                            <span>Kho câu hỏi:</span>
+                                            <span className="text-primary">{maxAvailable}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div className="flex items-center gap-3">
+                                    <button 
+                                        type="button"
+                                        className="size-8 rounded-xl bg-white border border-[#f4f0f2] flex items-center justify-center hover:bg-rose-50 hover:text-rose-500 disabled:opacity-30 shadow-sm transition-colors"
+                                        onClick={() => {
+                                            const newParts = [...normalizedParts];
+                                            newParts[idx].quantity = Math.max(0, newParts[idx].quantity - 1);
+                                            updateParts(newParts);
+                                        }}
+                                        disabled={part.quantity <= 0}
+                                    >
+                                        <span className="material-symbols-outlined text-sm">remove</span>
+                                    </button>
+
+                                    <div className="w-12 text-center">
+                                        <input 
+                                            type="number" 
+                                            className="w-full bg-transparent font-black text-lg outline-none text-primary"
+                                            value={part.quantity}
+                                            onChange={(e) => {
+                                                let val = Math.min(maxAvailable, Math.max(0, parseInt(e.target.value) || 0));
+                                                const newParts = [...normalizedParts];
+                                                newParts[idx].quantity = val;
+                                                updateParts(newParts);
+                                            }}
+                                        />
+                                    </div>
+
+                                    <button 
+                                        type="button"
+                                        className="size-8 rounded-xl bg-white border border-[#f4f0f2] flex items-center justify-center hover:bg-emerald-50 hover:text-emerald-500 disabled:opacity-30 shadow-sm transition-colors"
+                                        onClick={() => {
+                                            if (part.quantity < maxAvailable) {
+                                                const newParts = [...normalizedParts];
+                                                newParts[idx].quantity += 1;
+                                                updateParts(newParts);
+                                            }
+                                        }}
+                                        disabled={part.quantity >= maxAvailable}
+                                    >
+                                        <span className="material-symbols-outlined text-sm">add</span>
+                                    </button>
+                                </div>
+                            </div>
+                        );
+                        
+                    }
+                    )}
+                    {selectedParts.length === 0 && (
+                        <div className="col-span-2 py-10 text-center text-xs text-[#886373] italic">Vui lòng chọn ít nhất một kỹ năng để cấu hình câu hỏi</div>
+                    )}
+                </div>
+            </section>
+
+        </div>
+    );
+};
+
+export default LessonPractice;

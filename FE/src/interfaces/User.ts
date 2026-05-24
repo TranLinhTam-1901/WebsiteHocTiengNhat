@@ -3,10 +3,23 @@ export interface User {
   fullName: string;
   email: string;
   role: string;
-  isLocked: boolean; 
+  isLocked: boolean;
+  
+  levelId?: string;
+  levelName?: string; 
+  progressPercent?: number;
+  completedLessons?: number;
+  totalLessons?: number;
+  avatarUrl?: string;
 }
 
 export interface UpdateRoleRequest {
   userId: string;
   newRole: string;
+}
+
+// Dùng để đổ dữ liệu vào các ô Select lọc trình độ
+export interface JLPTLevel {
+  id: string;
+  name: string; 
 }
