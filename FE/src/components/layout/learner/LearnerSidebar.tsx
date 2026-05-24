@@ -145,6 +145,12 @@ useEffect(() => {
             active={location.pathname === '/learner/dashboard'} 
              onProtectedNavigate={handleProtectedNavigation}
           />
+          <NavItem 
+            to="/learner/profile" 
+            icon="person" 
+            label="Hồ sơ" 
+            active={location.pathname === '/learner/profile'} 
+          />
 
           <NavItem
             to="/learner/courses"

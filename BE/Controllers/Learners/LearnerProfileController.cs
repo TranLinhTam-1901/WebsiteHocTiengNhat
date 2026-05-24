@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using QuizzTiengNhat.DTOs.Learner;
 using QuizzTiengNhat.Models;
 using System.Security.Claims;
 
@@ -81,7 +82,78 @@ namespace QuizzTiengNhat.Controllers.Learners
                 levelName = user.Level?.LevelName ?? "N5",
                 progressPercent = percent,
                 completedLessons = completedLessons,
-                totalLessons = totalLessons
+                totalLessons = totalLessons,
+                avatarUrl = user.AvatarUrl
+            });
+        }
+
+        [HttpPut]
+        public async Task<IActionResult> UpdateProfile([FromBody] LearnerProfileUpdateRequest request)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized();
+            }
+
+            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if (user == null)
+            {
+                return NotFound("User not found.");
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.FullName))
+            {
+                user.FullName = request.FullName;
+            }
+
+            if (request.AvatarUrl != null)
+            {
+                user.AvatarUrl = request.AvatarUrl;
+            }
+
+            var result = await _userManager.UpdateAsync(user);
+            if (!result.Succeeded)
+            {
+                return BadRequest(result.Errors);
+            }
+
+            var roles = await _userManager.GetRolesAsync(user);
+            var completedLessons = await _context.Progresses
+                .CountAsync(p => p.UserID == user.Id && p.Status == "Completed");
+
+            int totalLessons = 0;
+            if (user.LevelID.HasValue)
+            {
+                totalLessons = await _context.Lessons
+                    .Include(l => l.Course)
+                    .CountAsync(l => l.Course.LevelID == user.LevelID.Value);
+            }
+
+            if (totalLessons == 0)
+            {
+                totalLessons = await _context.Lessons.CountAsync();
+            }
+
+            if (totalLessons == 0)
+            {
+                totalLessons = 50;
+            }
+
+            int percent = totalLessons > 0 ? (int)((double)completedLessons / totalLessons * 100) : 0;
+            if (percent > 100) percent = 100;
+
+            return Ok(new
+            {
+                id = user.Id,
+                fullName = user.FullName,
+                email = user.Email,
+                role = roles.FirstOrDefault() ?? "No Role",
+                isLocked = user.LockoutEnd.HasValue && user.LockoutEnd > DateTimeOffset.UtcNow,
+                levelId = user.LevelID,
+                levelName = user.Level?.LevelName ?? "N5",
+                progressPercent = percent,
+                avatarUrl = user.AvatarUrl
             });
         }
     }

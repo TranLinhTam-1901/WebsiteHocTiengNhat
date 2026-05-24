@@ -7,12 +7,13 @@ namespace QuizzTiengNhat.Models
     public class ApplicationUser : IdentityUser
     {
         [Required]
-        public string FullName { get; set; }
+        public string FullName { get; set; } = default!;
 
-        
         [ForeignKey("Level")]
         public Guid? LevelID { get; set; }
-        public virtual JLPT_Level Level { get; set; }
+        public virtual JLPT_Level? Level { get; set; }
+
+        public string? AvatarUrl { get; set; }
 
         // 3. Quan hệ 1-nhiều tới các bảng tiến trình và kết quả
         public virtual ICollection<Progress> Progresses { get; set; } = new List<Progress>();
