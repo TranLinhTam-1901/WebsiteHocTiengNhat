@@ -357,7 +357,7 @@ const ReadingEditor: React.FC = () => {
                 </div>
               </div>
               <div className="mt-4 p-4 bg-[#f287b6]/5 rounded-xl border border-dashed border-[#f287b6]/30 text-left">
-                <p className="text-xs font-bold text-[#f287b6] uppercase mb-2">Live Preview (Xem trước)</p>
+                <p className="text-xs font-bold text-[#f287b6] uppercase mb-2">Xem trước trực tiếp</p>
                 <div className="text-lg leading-[2.5] text-slate-800">
                   {formData.content ? renderFurigana(formData.content) : <span className="text-slate-400 italic">Văn bản xem trước sẽ hiện ở đây...</span>}
                 </div>
@@ -396,10 +396,10 @@ const ReadingEditor: React.FC = () => {
           <div className="col-span-4 space-y-6 text-left">
 
             <div className="bg-white rounded-2xl border border-[#f4f0f2] shadow-sm p-8">
-              <h3 className="text-base font-bold mb-6 flex items-center gap-2"><span className="material-symbols-outlined text-primary">graphic_eq</span> File Audio </h3>
+              <h3 className="text-base font-bold mb-6 flex items-center gap-2"><span className="material-symbols-outlined text-primary">graphic_eq</span> File âm thanh </h3>
               <div onClick={() => ''} className="group flex flex-col items-center justify-center border-2 border-dashed border-[#d1ced0] rounded-2xl p-6 hover:border-primary cursor-pointer bg-[#fbf9fa]">
                 <span className="material-symbols-outlined text-3xl text-[#886373] mb-2 group-hover:text-primary">cloud_upload</span>
-                <p className="text-[11px] font-bold text-[#886373] uppercase">{'Upload MP3/WAV'}</p>
+                <p className="text-[11px] font-bold text-[#886373] uppercase">Tải lên MP3/WAV</p>
               </div>
 
               <div className="grid grid-cols-1 gap-8 mt-4">
@@ -462,7 +462,7 @@ const ReadingEditor: React.FC = () => {
                           </span>
                           <input
                               type="text"
-                              placeholder="Tìm và chọn Topic..."
+                              placeholder="Tìm và chọn chủ đề..."
                               value={topicSearch}
                               onChange={(e) => {
                                   setTopicSearch(e.target.value);
@@ -535,7 +535,7 @@ const ReadingEditor: React.FC = () => {
 
               {/* 2. SECTION LESSON */}
               <div className="pt-5 border-t border-[#f4f0f2]">
-                  <label className="block text-xs font-bold text-[#886373] uppercase tracking-wider mb-2">Lesson Assign</label>
+                  <label className="block text-xs font-bold text-[#886373] uppercase tracking-wider mb-2">Gán bài học</label>
                   <div className="relative">
                       <button 
                           onClick={(e) => handleOpenDropdown('lesson', e)}
@@ -585,7 +585,7 @@ const ReadingEditor: React.FC = () => {
 
               {/* 3. SECTION VISIBILITY */}
               <div className="pt-5 border-t border-[#f4f0f2]">
-                  <label className="block text-xs font-bold text-[#886373] uppercase tracking-wider mb-2">Visibility</label>
+                  <label className="block text-xs font-bold text-[#886373] uppercase tracking-wider mb-2">Hiển thị</label>
                   <div className="relative">
                       <button 
                           onClick={(e) => handleOpenDropdown('visibility', e)}

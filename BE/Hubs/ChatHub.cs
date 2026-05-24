@@ -11,19 +11,39 @@ namespace QuizzTiengNhat.Hubs
     public class ChatHub : Hub
     {
         private readonly IChatService _chatService;
+        private readonly IBrowserSessionHubCoordinator _sessionCoordinator;
 
-        public ChatHub(IChatService chatService)
+        public ChatHub(IChatService chatService, IBrowserSessionHubCoordinator sessionCoordinator)
         {
             _chatService = chatService;
+            _sessionCoordinator = sessionCoordinator;
         }
 
         public override async Task OnConnectedAsync()
         {
-            var roles = Context.User?.FindAll(ClaimTypes.Role).Select(r => r.Value).ToList() ?? new List<string>();
-            if (roles.Any(r => string.Equals(r, SD.Role_Admin, StringComparison.OrdinalIgnoreCase)))
+            var email = Context.User?.FindFirst(ClaimTypes.Email)?.Value;
+            if (!string.IsNullOrEmpty(email))
+            {
+                var roles = Context.User?.FindAll(ClaimTypes.Role).Select(r => r.Value.ToLower()).ToList() ?? new List<string>();
+                var isAdmin = roles.Any(r => r == "admin" || r == "administrator" || string.Equals(r, SD.Role_Admin, StringComparison.OrdinalIgnoreCase));
+                var browserId = Context.GetHttpContext()?.Request.Query["browserId"].FirstOrDefault() ?? string.Empty;
+                _sessionCoordinator.RegisterConnection(email, Context.ConnectionId, "chat", browserId, isAdmin);
+            }
+
+            var rolesForGroup = Context.User?.FindAll(ClaimTypes.Role).Select(r => r.Value).ToList() ?? new List<string>();
+            if (rolesForGroup.Any(r => string.Equals(r, SD.Role_Admin, StringComparison.OrdinalIgnoreCase)))
                 await Groups.AddToGroupAsync(Context.ConnectionId, "admins");
 
             await base.OnConnectedAsync();
+        }
+
+        public override async Task OnDisconnectedAsync(Exception? exception)
+        {
+            var email = Context.User?.FindFirst(ClaimTypes.Email)?.Value;
+            if (!string.IsNullOrEmpty(email))
+                _sessionCoordinator.UnregisterConnection(email, Context.ConnectionId);
+
+            await base.OnDisconnectedAsync(exception);
         }
 
         public async Task JoinConversation(Guid conversationId)
