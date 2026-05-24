@@ -236,15 +236,7 @@ const DeckCreatePage: React.FC = () => {
         }
     };
 
-    const buildPayload = (): { name: string; description?: string; items: DeckItemRefDto[] } => ({
-        name: name.trim(),
-        description: description.trim() || undefined,
-        items: selectedEntries.map((e) => ({
-            entityId: e.entityId,
-            itemType: e.itemType,
-        })),
-    });
-
+    
     const buildPayload = (): { name: string; description?: string; items: DeckItemRefDto[] } => ({
         name: name.trim(),
         description: description.trim() || undefined,

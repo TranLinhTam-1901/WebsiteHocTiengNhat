@@ -7,29 +7,6 @@ import { User } from '../../../interfaces/User';
 import  adminService  from '../../../services/Admin/adminService';
 import { DashboardProgressResponse } from '../../../interfaces/Admin/ProgressDetail';
 
-const ROLE_OPTIONS = [
-  { value: 'Learner', label: 'Học viên' },
-  { value: 'Admin', label: 'Quản trị viên' },
-] as const;
-
-function normalizeRole(role: string | undefined): string {
-  const r = role?.trim() || '';
-  if (r.toLowerCase() === 'admin') return 'Admin';
-  if (r.toLowerCase() === 'learner') return 'Learner';
-  return ROLE_OPTIONS.some((o) => o.value === r) ? r : 'Learner';
-}
-
-function isAdminUser(u: User): boolean {
-  return normalizeRole(u.role) === 'Admin';
-}
-
-function matchesUserSearch(u: User, query: string): boolean {
-  const q = query.trim().toLowerCase();
-  if (!q) return true;
-  const name = u.fullName?.toLowerCase() ?? '';
-  const email = u.email?.toLowerCase() ?? '';
-  return name.includes(q) || email.includes(q);
-}
 
 const ROLE_OPTIONS = [
   { value: 'Learner', label: 'Học viên' },
@@ -60,6 +37,10 @@ const LearnerList: React.FC = () => {
   const [updatingRoleFor, setUpdatingRoleFor] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showAdmins, setShowAdmins] = useState(false);
+
+  const [selectedProgress, setSelectedProgress] = React.useState<DashboardProgressResponse | null>(null);
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
+  const [isFetchingDetail, setIsFetchingDetail] = React.useState(false);
 
   // Lấy onlineCount trực tiếp từ Redux Store
   const { users, loading, onlineCount } = useSelector((state: RootState) => state.admin);
