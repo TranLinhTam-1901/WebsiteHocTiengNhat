@@ -243,12 +243,14 @@ useEffect(() => {
             active={location.pathname.startsWith('/learner/exams/jlpt-exams')} 
             onProtectedNavigate={handleProtectedNavigation}
           />
-          {/* <NavItem 
+
+          <NavItem 
             to="/learner/history" 
             icon="history" 
             label="Lịch sử & Tiến độ" 
-            active={location.pathname === '/learner/history'} 
-          /> */}
+            active={location.pathname.startsWith('/learner/history')} 
+          />
+
           {/* <NavItem 
             to="/learner/leaderboard" 
             icon="emoji_events" 

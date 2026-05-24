@@ -271,5 +271,23 @@ namespace QuizzTiengNhat.DTOs.Learner
         public decimal TotalPoints { get; set; }
     }
 
+
+    public class ExamResultListItemDTO
+    {
+        public Guid ResultID { get; set; }
+        public Guid ExamID { get; set; }
+
+        public string ExamTitle { get; set; } = "";
+        public ExamType ExamType { get; set; }
+
+        public float Score { get; set; }
+        public int CorrectAnswers { get; set; }
+        public int TotalQuestions { get; set; }
+        public int TimeSpent { get; set; }
+
+        public bool? IsPassed { get; set; }
+        public DateTime CreatedAt { get; set; }
+    }
+
    
 }
