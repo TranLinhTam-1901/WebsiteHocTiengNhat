@@ -248,7 +248,7 @@ const GrammarEditorPage: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Title */}
                     <div className="space-y-2">
-                    <label className="block text-xs font-bold text-[#886373] uppercase mb-2">Title</label>
+                    <label className="block text-xs font-bold text-[#886373] uppercase mb-2">Tiêu đề</label>
                     <input 
                         name="title"
                         value={formData.title}
@@ -261,7 +261,7 @@ const GrammarEditorPage: React.FC = () => {
 
                     {/* Structure */}
                     <div className="space-y-2">
-                    <label className="block text-xs font-bold text-[#886373] uppercase mb-2">Structure</label>
+                    <label className="block text-xs font-bold text-[#886373] uppercase mb-2">Cấu trúc</label>
                     <input 
                         name="structure"
                         value={formData.structure}
@@ -274,7 +274,7 @@ const GrammarEditorPage: React.FC = () => {
 
                     {/* JLPT Level */}
                     <div className="space-y-2">
-                    <label className="block text-xs font-bold text-[#886373] uppercase mb-2">JLPT Level</label>
+                    <label className="block text-xs font-bold text-[#886373] uppercase mb-2">Trình độ JLPT</label>
                     <div className="flex gap-2 mt-2">
                         {metadata.levels.map((lvl) => (
                         <button
@@ -295,7 +295,7 @@ const GrammarEditorPage: React.FC = () => {
 
                     {/* Meaning */}
                     <div className="space-y-2">
-                    <label className="block text-xs font-bold text-[#886373] uppercase mb-2">Meaning</label>
+                    <label className="block text-xs font-bold text-[#886373] uppercase mb-2">Nghĩa</label>
                     <input 
                         name="meaning"
                         value={formData.meaning}
@@ -468,7 +468,7 @@ const GrammarEditorPage: React.FC = () => {
 
                     {/* Explanation */}
                     <div className="md:col-span-2 space-y-2">
-                    <label className="block text-xs font-bold text-[#886373] uppercase mb-2">Explanation</label>
+                    <label className="block text-xs font-bold text-[#886373] uppercase mb-2">Giải thích</label>
                     <textarea 
                         name="explanation"
                         value={formData.explanation}
@@ -494,7 +494,7 @@ const GrammarEditorPage: React.FC = () => {
                             className="text-xs font-bold text-primary flex items-center gap-1 group"
                         >
                             <span className="material-symbols-outlined text-sm">add</span> 
-                            <span className="text-sm group-hover:underline">Add Sentence</span>
+                            <span className="text-sm group-hover:underline">Thêm câu ví dụ</span>
                         </button>
                     </div>
 
@@ -518,7 +518,7 @@ const GrammarEditorPage: React.FC = () => {
                                 <div className="space-y-4">
                                     {/* Japanese Content */}
                                     <div>
-                                        <label className="block text-[10px] font-bold text-[#886373] uppercase tracking-wider mb-1">Japanese</label>
+                                        <label className="block text-[10px] font-bold text-[#886373] uppercase tracking-wider mb-1">Tiếng Nhật</label>
                                         <input 
                                             value={ex.content} 
                                             onChange={(e) => {
@@ -533,7 +533,7 @@ const GrammarEditorPage: React.FC = () => {
 
                                     {/* Translation */}
                                     <div>
-                                        <label className="block text-[10px] font-bold text-[#886373] uppercase tracking-wider mb-1">Vietnamese</label>
+                                        <label className="block text-[10px] font-bold text-[#886373] uppercase tracking-wider mb-1">Tiếng Việt</label>
                                         <input 
                                             value={ex.translation} 
                                             onChange={(e) => {

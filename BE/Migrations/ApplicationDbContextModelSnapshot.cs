@@ -2267,6 +2267,28 @@ namespace QuizzTiengNhat.Migrations
                     b.Navigation("Lesson");
                 });
 
+            modelBuilder.Entity("QuizzTiengNhat.Models.TutorAiMessage", b =>
+                {
+                    b.HasOne("QuizzTiengNhat.Models.TutorAiConversation", "Conversation")
+                        .WithMany("Messages")
+                        .HasForeignKey("ConversationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Conversation");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.TutorAiMessageAudio", b =>
+                {
+                    b.HasOne("QuizzTiengNhat.Models.TutorAiMessage", "Message")
+                        .WithOne("Audio")
+                        .HasForeignKey("QuizzTiengNhat.Models.TutorAiMessageAudio", "MessageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Message");
+                });
+
             modelBuilder.Entity("QuizzTiengNhat.Models.UserAnswerHistory", b =>
                 {
                     b.HasOne("QuizzTiengNhat.Models.Questions", "Question")
@@ -2535,6 +2557,16 @@ namespace QuizzTiengNhat.Migrations
                     b.Navigation("ReadingTopics");
 
                     b.Navigation("VocabTopics");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.TutorAiConversation", b =>
+                {
+                    b.Navigation("Messages");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.TutorAiMessage", b =>
+                {
+                    b.Navigation("Audio");
                 });
 
             modelBuilder.Entity("QuizzTiengNhat.Models.Vocabularies", b =>
