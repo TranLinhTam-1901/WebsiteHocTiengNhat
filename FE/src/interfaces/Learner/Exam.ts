@@ -170,6 +170,20 @@ export interface SubmitExamResultDTO {
   sections: ExamReviewTreeItemDTO[];
 }
 
+
+export interface ExamResultListItemDTO {
+    resultID: string;
+    examID: string;
+    examTitle: string;
+    examType: number;
+    score: number;
+    correctAnswers: number;
+    totalQuestions: number;
+    timeSpent: number;
+    isPassed?: boolean | null;
+    createdAt: string;
+}
+
 export interface ExamResultSectionScoreDTO {
   sectionName: string;
   score: number;

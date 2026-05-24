@@ -25,6 +25,11 @@ namespace QuizzTiengNhat.Models
         public virtual Topics Topic { get; set; }
 
         public SkillType? SkillType { get; set; }
+        
+        public Guid? SelectedAnswerID { get; set; }
+
+        public string? TextAnswer { get; set; }
+
         public Guid? ReadingID { get; set; }
         [ForeignKey("ReadingID")]
         public virtual Readings Reading { get; set; }

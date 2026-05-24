@@ -50,24 +50,7 @@ public class LearnerExamController : ControllerBase
         result.Exam.ExamQuestions = examQuestions;  
         
         var questionIds = examQuestions.Select(eq => eq.Question!.QuestionID).Distinct().ToList();
-
-
-        // Lấy bản ghi gần thời điểm nộp bài nhất theo từng QuestionID.
-        var from = result.CreatedAt.AddMinutes(-30);
-        var to = result.CreatedAt.AddMinutes(10);
-
-        var histories = await _context.UserAnswerHistories
-            .AsNoTracking()
-            .Where(h => h.UserID == userId
-                        && questionIds.Contains(h.QuestionID)
-                        && h.AnsweredAt >= from
-                        && h.AnsweredAt <= to)
-            .OrderByDescending(h => h.AnsweredAt)
-            .ToListAsync();
-
-        var historyMap = histories
-            .GroupBy(h => h.QuestionID)
-            .ToDictionary(g => g.Key, g => g.First());
+        
 
         var detailMap = result.ResultDetails
             .GroupBy(d => d.QuestionID)
@@ -101,14 +84,21 @@ public class LearnerExamController : ControllerBase
                 sectionScores.All(x => x.IsPassed);
         }
 
-        var answerMap = historyMap.ToDictionary(
-            x => x.Key,
-            x => new UserAnswerSelectionDTO
+        var answerMap =result.ResultDetails
+        .GroupBy(d => d.QuestionID)
+        .ToDictionary(
+            g => g.Key,
+            g =>
             {
-                QuestionID = x.Value.QuestionID,
-                SelectedAnswerID = x.Value.SelectedAnswerID,
-                TextAnswer = x.Value.TextAnswer,
-                ResponseTime = x.Value.TimeTaken
+                var x = g.First();
+
+                return new UserAnswerSelectionDTO
+                {
+                    QuestionID = x.QuestionID,
+                    SelectedAnswerID = x.SelectedAnswerID,
+                    TextAnswer = x.TextAnswer,
+                    ResponseTime = x.ResponseTime
+                };
             }
         );
 
@@ -138,6 +128,56 @@ public class LearnerExamController : ControllerBase
         };
 
         return Ok(response);
+    }
+
+
+    [HttpGet("results")]
+    public async Task<IActionResult> GetMyExamResults(
+        [FromQuery] ExamType? examType,
+        [FromQuery] Guid? examId)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+        var query = _context.Exam_Results
+            .AsNoTracking()
+            .Include(r => r.Exam)
+            .Include(r => r.ResultDetails)
+            .Where(r => r.UserID == userId);
+
+        if (examType.HasValue)
+        {
+            query = query.Where(r => r.Exam.Type == examType.Value);
+        }
+
+        if (examId.HasValue)
+        {
+            query = query.Where(r => r.ExamID == examId.Value);
+        }
+
+        var results = await query
+            .OrderByDescending(r => r.CreatedAt)
+            .Select(r => new ExamResultListItemDTO
+            {
+                ResultID = r.ResultID,
+                ExamID = r.ExamID,
+                ExamTitle = r.Exam.Title,
+                ExamType = r.Exam.Type,
+
+                Score = r.Score,
+                CorrectAnswers = r.ResultDetails.Count(d => d.IsCorrect),
+                TotalQuestions = r.ResultDetails.Count,
+                TimeSpent = r.TimeSpent,
+
+                IsPassed = r.Exam.Type == ExamType.MockTest
+                    ?((decimal)r.Score) >= r.Exam.PassingScore
+                    : null,
+
+                CreatedAt = r.CreatedAt
+            })
+            .ToListAsync();
+
+        return Ok(results);
     }
 
    [HttpGet("{id}/questions")]
@@ -433,7 +473,10 @@ public class LearnerExamController : ControllerBase
                 QuestionID = question.QuestionID,
                 IsCorrect = isCorrect,
                 ResponseTime = userAns.ResponseTime,
-                SkillType = question.SkillType
+                SkillType = question.SkillType,
+
+                SelectedAnswerID = userAns.SelectedAnswerID,
+                TextAnswer = userAns.TextAnswer,
             });
 
             _context.UserAnswerHistories.Add(new UserAnswerHistory

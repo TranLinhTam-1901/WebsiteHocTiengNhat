@@ -90,6 +90,8 @@ export const learnerRoutes: RouteObject = {
     { path: 'exams/jlpt-exams/:id/summary', element: <JLPTExamSummaryPage /> },
     { path: 'exams/jlpt-exams/:id/take', element: <JLPTExamTakingPage /> },
     { path: 'exams/jlpt-exams/result/:resultId', element: <JLPTResultPage /> },
+    { path: 'exams/history', element: <ExamHistory /> },
+
 
     // Skill Learning
     { path: 'skill-learning/:skillType', element: <SkillHubPage /> },
