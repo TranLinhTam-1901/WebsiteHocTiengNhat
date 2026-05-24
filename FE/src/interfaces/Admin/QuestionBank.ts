@@ -93,6 +93,7 @@ export interface QuestionListItem {
   content: string;
   questionType: QuestionType;
   questionFormat: QuestionFormat;
+  skillType?: SkillType;
   difficulty: number;
   status: QuestionStatus; 
   hasAudio: boolean;
@@ -117,5 +118,6 @@ export interface QuestionDetail {
   sourceID?: string;
   lessonID: string;
   status: QuestionStatus;
+  skillType?: SkillType;
   answers: AnswerDTO[];
 }

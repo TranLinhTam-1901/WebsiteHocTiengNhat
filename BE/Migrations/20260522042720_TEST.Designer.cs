@@ -12,8 +12,8 @@ using QuizzTiengNhat.Models;
 namespace QuizzTiengNhat.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260502084101_Updatedb4.2")]
-    partial class Updatedb42
+    [Migration("20260522042720_TEST")]
+    partial class TEST
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -33,6 +33,9 @@ namespace QuizzTiengNhat.Migrations
 
                     b.Property<int>("Duration")
                         .HasColumnType("integer");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
 
                     b.Property<Guid>("LevelID")
                         .HasColumnType("uuid");
@@ -56,6 +59,9 @@ namespace QuizzTiengNhat.Migrations
                     b.Property<decimal>("TotalMaxScore")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<int>("Version")
+                        .HasColumnType("integer");
+
                     b.HasKey("TemplateID");
 
                     b.HasIndex("LevelID");
@@ -73,6 +79,9 @@ namespace QuizzTiengNhat.Migrations
                         .HasColumnType("decimal(18,4)");
 
                     b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("QuestionFormat")
                         .HasColumnType("integer");
 
                     b.Property<int>("SkillType")
@@ -140,12 +149,15 @@ namespace QuizzTiengNhat.Migrations
                     b.Property<Guid?>("TemplateID")
                         .HasColumnType("uuid");
 
+                    b.Property<int>("TemplateVersion")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<double>("TotalMaxScore")
-                        .HasColumnType("double precision");
+                    b.Property<decimal>("TotalMaxScore")
+                        .HasColumnType("numeric");
 
                     b.Property<int>("Type")
                         .HasColumnType("integer");
@@ -523,7 +535,7 @@ namespace QuizzTiengNhat.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<decimal>("Score")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(18,10)");
 
                     b.Property<int>("Version")
                         .HasColumnType("integer");
@@ -607,6 +619,9 @@ namespace QuizzTiengNhat.Migrations
 
                     b.Property<Guid>("ExamID")
                         .HasColumnType("uuid");
+
+                    b.Property<int>("ExamVersion")
+                        .HasColumnType("integer");
 
                     b.Property<float>("Score")
                         .HasColumnType("real");
@@ -1152,6 +1167,9 @@ namespace QuizzTiengNhat.Migrations
                     b.Property<Guid?>("ParentID")
                         .HasColumnType("uuid");
 
+                    b.Property<int>("QuestionFormat")
+                        .HasColumnType("integer");
+
                     b.Property<int>("QuestionType")
                         .HasColumnType("integer");
 
@@ -1346,6 +1364,121 @@ namespace QuizzTiengNhat.Migrations
                     b.HasKey("TopicID");
 
                     b.ToTable("Topics");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.TutorAiConversation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Live2dModelId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("Title")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("UserId", "UpdatedAt");
+
+                    b.HasIndex("UserId", "Live2dModelId", "UpdatedAt");
+
+                    b.ToTable("TutorAiConversations");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.TutorAiMessage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ClientMessageId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<int>("ConversationId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Expression")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("JapaneseSpeech")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PlainContent")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("VietnameseText")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConversationId");
+
+                    b.HasIndex("ConversationId", "ClientMessageId")
+                        .IsUnique();
+
+                    b.ToTable("TutorAiMessages");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.TutorAiMessageAudio", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("DurationMs")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("MessageId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("PublicUrl")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<int>("SpeakerId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MessageId")
+                        .IsUnique();
+
+                    b.ToTable("TutorAiMessageAudios");
                 });
 
             modelBuilder.Entity("QuizzTiengNhat.Models.UserAnswerHistory", b =>
@@ -2155,6 +2288,28 @@ namespace QuizzTiengNhat.Migrations
                     b.Navigation("Lesson");
                 });
 
+            modelBuilder.Entity("QuizzTiengNhat.Models.TutorAiMessage", b =>
+                {
+                    b.HasOne("QuizzTiengNhat.Models.TutorAiConversation", "Conversation")
+                        .WithMany("Messages")
+                        .HasForeignKey("ConversationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Conversation");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.TutorAiMessageAudio", b =>
+                {
+                    b.HasOne("QuizzTiengNhat.Models.TutorAiMessage", "Message")
+                        .WithOne("Audio")
+                        .HasForeignKey("QuizzTiengNhat.Models.TutorAiMessageAudio", "MessageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Message");
+                });
+
             modelBuilder.Entity("QuizzTiengNhat.Models.UserAnswerHistory", b =>
                 {
                     b.HasOne("QuizzTiengNhat.Models.Questions", "Question")
@@ -2418,6 +2573,16 @@ namespace QuizzTiengNhat.Migrations
                     b.Navigation("ReadingTopics");
 
                     b.Navigation("VocabTopics");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.TutorAiConversation", b =>
+                {
+                    b.Navigation("Messages");
+                });
+
+            modelBuilder.Entity("QuizzTiengNhat.Models.TutorAiMessage", b =>
+                {
+                    b.Navigation("Audio");
                 });
 
             modelBuilder.Entity("QuizzTiengNhat.Models.Vocabularies", b =>

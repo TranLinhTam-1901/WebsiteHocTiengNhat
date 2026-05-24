@@ -135,9 +135,17 @@ public class LearnerExamController : ControllerBase
             .Include(e => e.ExamQuestions)
                 .ThenInclude(eq => eq.Question)
                     .ThenInclude(q => q.Reading) // Liên kết bài đọc
+            .Include(e => e.ExamQuestions)
+                .ThenInclude(eq => eq.Question)
+                    .ThenInclude(q => q.Listening)
             .FirstOrDefaultAsync(e => e.ExamID == id);
 
         if (exam == null) return NotFound("Đề thi không tồn tại.");
+
+        var versionQuestions = exam.ExamQuestions
+            .Where(eq => eq.Version == exam.Version && eq.Question != null)
+            .OrderBy(eq => eq.OrderIndex)
+            .ToList();
 
         // 2. Lọc và ánh xạ dữ liệu
         var response = new ExamDisplayDTO
@@ -157,8 +165,10 @@ public class LearnerExamController : ControllerBase
                     Content = eq.Question.Content,
                     QuestionType = eq.Question.QuestionType,
                     QuestionFormat = eq.Question.QuestionFormat,
-                    ReadingContent = eq.Question.Reading?.Content, // Lấy nội dung bài đọc nếu có
-                    AudioURL = eq.Question.AudioURL,
+                    ReadingContent = eq.Question.Reading?.Content ?? eq.Question.Listening?.Script,
+                    ListeningScript = eq.Question.Listening?.Script,
+                    AudioURL = eq.Question.Listening?.AudioURL ?? eq.Question.AudioURL,
+                    ImageURL = eq.Question.ImageURL,
                     // Ánh xạ danh sách đáp án
                     Options = eq.Question.Answers.Select(a => new AnswerOptionDTO {
                         AnswerID = a.AnswerID,
@@ -170,13 +180,15 @@ public class LearnerExamController : ControllerBase
                         .Select(sq => new SubQuestionDTO {
                             QuestionID = sq.QuestionID,
                             Content = sq.Content,
+                            ImageURL = sq.ImageURL,
                             Options = sq.Answers.Select(sa => new AnswerOptionDTO {
                                 AnswerID = sa.AnswerID,
                                 AnswerText = sa.AnswerText
                             }).ToList()
                         }).ToList()
                 })
-                .ToList()
+                .ToList(),
+            Sections = await BuildExamQuestionTreeV2(versionQuestions)
         };
 
         return Ok(response);

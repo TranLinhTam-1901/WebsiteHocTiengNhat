@@ -7,10 +7,29 @@ public static class Data
     {
         
 
-        var n3Id = context.JLPT_Levels.FirstOrDefault(l => l.LevelName == "N3")?.LevelID;
-        var n4Id = context.JLPT_Levels.FirstOrDefault(l => l.LevelName == "N4")?.LevelID;
-        var n5Id = context.JLPT_Levels.FirstOrDefault(l => l.LevelName == "N5")?.LevelID;
+       static async Task<Guid> EnsureLevelAsync(ApplicationDbContext context,string levelName)
+        {
+            var level = await context.JLPT_Levels
+                .FirstOrDefaultAsync(l => l.LevelName == levelName);
 
+            if (level != null)
+                return level.LevelID;
+
+            level = new JLPT_Level
+            {
+                LevelID = Guid.NewGuid(),
+                LevelName = levelName
+            };
+
+            context.JLPT_Levels.Add(level);
+            await context.SaveChangesAsync();
+
+            return level.LevelID;
+        }
+
+        var n3Id = await EnsureLevelAsync(context, "N3");
+        var n4Id = await EnsureLevelAsync(context, "N4");
+        var n5Id = await EnsureLevelAsync(context, "N5");
         // Nếu chưa có N3/N4/N5 thì tạo mới để tránh lỗi khóa ngoại khi tạo mẫu đề thi
         var n3Version = 1;
 
@@ -25,7 +44,7 @@ public static class Data
         {
             TemplateID = Guid.NewGuid(),
             Title = "Cấu trúc JLPT N3 Chuẩn",
-            LevelID = n3Id.Value, // Nếu không tìm thấy N3 thì tạo mới ID giả (không liên kết)
+            LevelID = n3Id, // Nếu không tìm thấy N3 thì tạo mới ID giả (không liên kết)
             Duration = 130,
             TotalMaxScore = 180,
             PassingScore = 95,
@@ -71,7 +90,7 @@ public static class Data
         {
             TemplateID = Guid.NewGuid(),
             Title = "Cấu trúc JLPT N4 Chuẩn",
-            LevelID = n4Id.Value,
+            LevelID = n4Id,
             Duration = 115,
             TotalMaxScore = 180,
             PassingScore = 90,
@@ -115,7 +134,7 @@ public static class Data
         {
             TemplateID = Guid.NewGuid(),
             Title = "Cấu trúc JLPT N5 Chuẩn",
-            LevelID = n5Id.Value,
+            LevelID = n5Id,
             Duration = 105,
             TotalMaxScore = 180,
             PassingScore = 80,

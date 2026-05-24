@@ -4,14 +4,13 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { listeningService } from '../../../../services/Admin/listeningService';
 import { CreateUpdateListeningDTO, ListeningQuestionDTO } from '../../../../interfaces/Admin/Listening';
 import { QuestionDTO, QuestionType, QuestionStatus } from '../../../../interfaces/Admin/Question';
+import { normalizeMediaForSave, resolveMediaUrl } from '../../../../utils/resolveMediaUrl';
 
 const ListenEditor: React.FC = () => {
   const [jlptLevel, setJlptLevel] = useState('');
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const isEditMode = Boolean(id);
-  const API_URL = "https://localhost:7055";
-  
   // 1. Khai báo thêm State để lưu danh sách từ DB
   const [metadata, setMetadata] = useState({
       levels: [] as any[],
@@ -192,7 +191,7 @@ const ListenEditor: React.FC = () => {
       // 1. Tạo Payload (Vì dùng Base64 nên không cần upload riêng)
       const payload = {
         title: formData.title,
-        audioURL: formData.audioURL, // Đây là chuỗi Base64
+        audioURL: normalizeMediaForSave(formData.audioURL) ?? '',
         script: formData.script,
         transcript: formData.transcript,
         duration: Number(formData.duration),
@@ -207,7 +206,7 @@ const ListenEditor: React.FC = () => {
           lessonID: formData.lessonID, 
           
           content: q.content,
-          imageURL: q.imageURL, // Đã là Base64 từ hàm handleQuestionImageChange
+          imageURL: normalizeMediaForSave(q.imageURL) ?? null,
           mediaTimestamp: q.mediaTimestamp,
           explanation: q.explanation || "",
           difficulty: Number(q.difficulty) || 1,
@@ -283,18 +282,10 @@ const ListenEditor: React.FC = () => {
         // 2. Nếu ở chế độ Edit, mới tiến hành lấy chi tiết bài nghe
         if (isEditMode && id) {
           const data = await listeningService.getById(id);
-          
-          // --- SỬA TẠI ĐÂY: Xử lý audioURL ---
-          let formattedAudioURL = data.audioURL || '';
-          if (formattedAudioURL && !formattedAudioURL.startsWith('http') && !formattedAudioURL.startsWith('data:')) {
-            // Nối API_URL vào nếu là đường dẫn tương đối từ server
-            formattedAudioURL = `${API_URL}${formattedAudioURL.startsWith('/') ? '' : '/'}${formattedAudioURL}`;
-          }
 
-          // Cập nhật FormData
           setFormData({
             title: data.title || '',
-            audioURL: formattedAudioURL, // Dùng URL đã format
+            audioURL: data.audioURL || '',
             script: data.script || '',
             transcript: data.transcript || '',
             duration: data.duration || 0,
@@ -305,10 +296,7 @@ const ListenEditor: React.FC = () => {
             status: data.status ?? 0, 
             questions: (data.questions || []).map((q: any) => ({
               ...q,
-              // Xử lý imageURL (Bạn đã làm đúng, giữ nguyên hoặc tối ưu nhẹ)
-              imageURL: q.imageURL && !q.imageURL.startsWith("data:") && !q.imageURL.startsWith("http")
-                ? `${API_URL}${q.imageURL.startsWith('/') ? '' : '/'}${q.imageURL}` 
-                : q.imageURL
+              imageURL: q.imageURL || null,
             }))
           });
 
@@ -329,6 +317,8 @@ const ListenEditor: React.FC = () => {
 
     initPage();
   }, [id, isEditMode]);
+
+  const resolvedAudioUrl = resolveMediaUrl(formData.audioURL);
 
   return (
     /* Đổi flex-row thành flex-col để Header nằm trên cùng */
@@ -503,11 +493,11 @@ const ListenEditor: React.FC = () => {
                 accept="audio/*" 
               />
               
-              {formData.audioURL && formData.audioURL !== "" ? (
+              {resolvedAudioUrl ? (
                 <audio 
-                  key={formData.audioURL.substring(0, 100)} // Dùng 1 đoạn base64 làm key để reset audio
+                  key={resolvedAudioUrl.substring(0, 100)}
                   ref={audioRef} 
-                  src={formData.audioURL} 
+                  src={resolvedAudioUrl} 
                   onTimeUpdate={handleTimeUpdate}
                   onLoadedMetadata={handleLoadedMetadata}
                   onEnded={() => setIsPlaying(false)}
@@ -986,7 +976,10 @@ const ListenEditor: React.FC = () => {
 
       {/* BODY: Danh sách các câu hỏi */}
       <div className="p-6 space-y-8">
-        {formData.questions.map((q, qIndex) => (
+        {formData.questions.map((q, qIndex) => {
+          const resolvedQuestionImage = resolveMediaUrl(q.imageURL);
+
+          return (
           <div
             key={qIndex}
             className={`relative space-y-5 ${
@@ -1029,10 +1022,10 @@ const ListenEditor: React.FC = () => {
                     onChange={(e) => handleQuestionImageChange(qIndex, e)}
                   />
                   
-                  {q.imageURL && q.imageURL !== "" ? (
+                  {resolvedQuestionImage ? (
                     <div className="relative w-150 h-120 rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 group shadow-sm">
                       <img 
-                        src={q.imageURL} 
+                        src={resolvedQuestionImage} 
                         alt="Question illustration" 
                         className="w-full h-full object-contain bg-white"
                       />
@@ -1134,7 +1127,8 @@ const ListenEditor: React.FC = () => {
               ))}
             </div>
           </div>
-        ))}
+        );
+        })}
 
         {/* EMPTY STATE */}
         {formData.questions.length === 0 && (

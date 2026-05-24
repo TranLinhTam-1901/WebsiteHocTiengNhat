@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import QuestionService from '../../../services/Admin/questionService';
-import { QuestionListItem, QuestionType} from '../../../interfaces/Admin/QuestionBank';
+import { QuestionListItem, QuestionType, SkillType} from '../../../interfaces/Admin/QuestionBank';
 import AdminHeader from '../../../components/layout/admin/AdminHeader';
 import { Link } from 'react-router-dom';
 import { DIFFICULTY_OPTIONS } from '../../../constants/admin/questionOptions';
@@ -28,8 +28,14 @@ const QuestionListView = () => {
     });
     const [openFilter, setOpenFilter] = useState<string | null>(null);
 
+    const EXCLUDED_SKILL_TYPES = [SkillType.Reading, SkillType.Listening];
+
     // --- LOGIC LỌC TỔNG HỢP ---
     const filteredQuestions = questions.filter((item) => {
+        if (EXCLUDED_SKILL_TYPES.includes(Number(item.skillType))) {
+            return false;
+        }
+
         const search = searchTerm.toLowerCase();
         
         const matchSearch = !searchTerm || 
