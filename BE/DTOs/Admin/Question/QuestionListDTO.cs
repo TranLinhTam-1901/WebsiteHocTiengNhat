@@ -8,6 +8,7 @@ namespace QuizzTiengNhat.DTOs.Admin.Question
         public string Content { get; set; }
         public QuestionType QuestionType { get; set; }
         public QuestionFormat QuestionFormat { get; set; }
+        public SkillType SkillType { get; set; }
         public int Difficulty { get; set; }
         public Status Status { get; set; }
         

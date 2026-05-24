@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace QuizzTiengNhat.Migrations
 {
     /// <inheritdoc />
-    public partial class AI2D : Migration
+    public partial class TEST : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -215,7 +215,9 @@ namespace QuizzTiengNhat.Migrations
                     MinLanguageKnowledgeScore = table.Column<double>(type: "double precision", nullable: false),
                     MinReadingScore = table.Column<double>(type: "double precision", nullable: true),
                     MinListeningScore = table.Column<double>(type: "double precision", nullable: true),
-                    TotalMaxScore = table.Column<decimal>(type: "numeric(18,2)", nullable: false)
+                    TotalMaxScore = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    Version = table.Column<int>(type: "integer", nullable: false),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -425,6 +427,36 @@ namespace QuizzTiengNhat.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "User_Skill_Matrices",
+                columns: table => new
+                {
+                    MatrixID = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserID = table.Column<string>(type: "text", nullable: false),
+                    SkillType = table.Column<int>(type: "integer", nullable: false),
+                    ProficiencyScore = table.Column<int>(type: "integer", nullable: false),
+                    LastUpdated = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    LevelID = table.Column<Guid>(type: "uuid", nullable: true),
+                    NeedsReview = table.Column<bool>(type: "boolean", nullable: false),
+                    Confidence = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_User_Skill_Matrices", x => x.MatrixID);
+                    table.ForeignKey(
+                        name: "FK_User_Skill_Matrices_AspNetUsers_UserID",
+                        column: x => x.UserID,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_User_Skill_Matrices_JLPT_Levels_LevelID",
+                        column: x => x.LevelID,
+                        principalTable: "JLPT_Levels",
+                        principalColumn: "LevelID",
+                        onDelete: ReferentialAction.SetNull);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "UserInterests",
                 columns: table => new
                 {
@@ -483,6 +515,7 @@ namespace QuizzTiengNhat.Migrations
                 {
                     DetailID = table.Column<Guid>(type: "uuid", nullable: false),
                     SkillType = table.Column<int>(type: "integer", nullable: false),
+                    QuestionFormat = table.Column<int>(type: "integer", nullable: false),
                     Quantity = table.Column<int>(type: "integer", nullable: false),
                     PointPerQuestion = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
                     TemplateID = table.Column<Guid>(type: "uuid", nullable: false)
@@ -581,25 +614,36 @@ namespace QuizzTiengNhat.Migrations
                 {
                     ExamID = table.Column<Guid>(type: "uuid", nullable: false),
                     TemplateID = table.Column<Guid>(type: "uuid", nullable: true),
+                    CourseID = table.Column<Guid>(type: "uuid", nullable: true),
                     LessonID = table.Column<Guid>(type: "uuid", nullable: true),
                     LevelID = table.Column<Guid>(type: "uuid", nullable: true),
                     TargetSkill = table.Column<int>(type: "integer", nullable: true),
+                    Priority = table.Column<int>(type: "integer", nullable: false),
+                    IsCheckpoint = table.Column<bool>(type: "boolean", nullable: false),
                     Type = table.Column<int>(type: "integer", nullable: false),
                     Title = table.Column<string>(type: "text", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    TotalMaxScore = table.Column<double>(type: "double precision", nullable: false),
+                    TotalMaxScore = table.Column<decimal>(type: "numeric", nullable: false),
                     PassingScore = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
                     MinLanguageKnowledgeScore = table.Column<double>(type: "double precision", nullable: false),
                     MinReadingScore = table.Column<double>(type: "double precision", nullable: false),
                     MinListeningScore = table.Column<double>(type: "double precision", nullable: false),
                     ShowResultImmediately = table.Column<bool>(type: "boolean", nullable: false),
                     Duration = table.Column<int>(type: "integer", nullable: false),
-                    IsPublished = table.Column<bool>(type: "boolean", nullable: false)
+                    IsPublished = table.Column<bool>(type: "boolean", nullable: false),
+                    Version = table.Column<int>(type: "integer", nullable: false),
+                    TemplateVersion = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Exams", x => x.ExamID);
+                    table.ForeignKey(
+                        name: "FK_Exams_Courses_CourseID",
+                        column: x => x.CourseID,
+                        principalTable: "Courses",
+                        principalColumn: "CourseID",
+                        onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
                         name: "FK_Exams_ExamTemplates_TemplateID",
                         column: x => x.TemplateID,
@@ -878,7 +922,8 @@ namespace QuizzTiengNhat.Migrations
                     ExamID = table.Column<Guid>(type: "uuid", nullable: false),
                     Score = table.Column<float>(type: "real", nullable: false),
                     TimeSpent = table.Column<int>(type: "integer", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    ExamVersion = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -955,6 +1000,7 @@ namespace QuizzTiengNhat.Migrations
                     LessonID = table.Column<Guid>(type: "uuid", nullable: false),
                     Content = table.Column<string>(type: "text", nullable: false),
                     QuestionType = table.Column<int>(type: "integer", nullable: false),
+                    QuestionFormat = table.Column<int>(type: "integer", nullable: false),
                     SkillType = table.Column<int>(type: "integer", nullable: false),
                     AudioURL = table.Column<string>(type: "text", nullable: true),
                     ImageURL = table.Column<string>(type: "text", nullable: true),
@@ -1152,9 +1198,12 @@ namespace QuizzTiengNhat.Migrations
                 {
                     ExamQuestionID = table.Column<Guid>(type: "uuid", nullable: false),
                     ExamID = table.Column<Guid>(type: "uuid", nullable: false),
-                    QuestionID = table.Column<Guid>(type: "uuid", nullable: false),
+                    QuestionID = table.Column<Guid>(type: "uuid", nullable: true),
+                    ReadingID = table.Column<Guid>(type: "uuid", nullable: true),
+                    ListeningID = table.Column<Guid>(type: "uuid", nullable: true),
                     OrderIndex = table.Column<int>(type: "integer", nullable: false),
-                    Score = table.Column<decimal>(type: "numeric(18,2)", nullable: false)
+                    Score = table.Column<decimal>(type: "numeric(18,10)", nullable: false),
+                    Version = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -1166,11 +1215,20 @@ namespace QuizzTiengNhat.Migrations
                         principalColumn: "ExamID",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
+                        name: "FK_Exam_Questions_Listenings_ListeningID",
+                        column: x => x.ListeningID,
+                        principalTable: "Listenings",
+                        principalColumn: "ListeningID");
+                    table.ForeignKey(
                         name: "FK_Exam_Questions_Questions_QuestionID",
                         column: x => x.QuestionID,
                         principalTable: "Questions",
-                        principalColumn: "QuestionID",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "QuestionID");
+                    table.ForeignKey(
+                        name: "FK_Exam_Questions_Readings_ReadingID",
+                        column: x => x.ReadingID,
+                        principalTable: "Readings",
+                        principalColumn: "ReadingID");
                 });
 
             migrationBuilder.CreateTable(
@@ -1225,6 +1283,68 @@ namespace QuizzTiengNhat.Migrations
                         principalTable: "Questions",
                         principalColumn: "QuestionID",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Exam_Result_Details",
+                columns: table => new
+                {
+                    ResultDetailID = table.Column<Guid>(type: "uuid", nullable: false),
+                    ResultID = table.Column<Guid>(type: "uuid", nullable: false),
+                    QuestionID = table.Column<Guid>(type: "uuid", nullable: false),
+                    IsCorrect = table.Column<bool>(type: "boolean", nullable: false),
+                    ResponseTime = table.Column<int>(type: "integer", nullable: false),
+                    TopicID = table.Column<Guid>(type: "uuid", nullable: true),
+                    SkillType = table.Column<int>(type: "integer", nullable: true),
+                    ReadingID = table.Column<Guid>(type: "uuid", nullable: true),
+                    ListeningID = table.Column<Guid>(type: "uuid", nullable: true),
+                    ExamQuestionID = table.Column<Guid>(type: "uuid", nullable: true),
+                    ExamsExamID = table.Column<Guid>(type: "uuid", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Exam_Result_Details", x => x.ResultDetailID);
+                    table.ForeignKey(
+                        name: "FK_Exam_Result_Details_Exam_Questions_ExamQuestionID",
+                        column: x => x.ExamQuestionID,
+                        principalTable: "Exam_Questions",
+                        principalColumn: "ExamQuestionID",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_Exam_Result_Details_Exam_Results_ResultID",
+                        column: x => x.ResultID,
+                        principalTable: "Exam_Results",
+                        principalColumn: "ResultID",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Exam_Result_Details_Exams_ExamsExamID",
+                        column: x => x.ExamsExamID,
+                        principalTable: "Exams",
+                        principalColumn: "ExamID");
+                    table.ForeignKey(
+                        name: "FK_Exam_Result_Details_Listenings_ListeningID",
+                        column: x => x.ListeningID,
+                        principalTable: "Listenings",
+                        principalColumn: "ListeningID",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_Exam_Result_Details_Questions_QuestionID",
+                        column: x => x.QuestionID,
+                        principalTable: "Questions",
+                        principalColumn: "QuestionID",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Exam_Result_Details_Readings_ReadingID",
+                        column: x => x.ReadingID,
+                        principalTable: "Readings",
+                        principalColumn: "ReadingID",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_Exam_Result_Details_Topics_TopicID",
+                        column: x => x.TopicID,
+                        principalTable: "Topics",
+                        principalColumn: "TopicID",
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateIndex(
@@ -1310,9 +1430,54 @@ namespace QuizzTiengNhat.Migrations
                 column: "ExamID");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Exam_Questions_ListeningID",
+                table: "Exam_Questions",
+                column: "ListeningID");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Exam_Questions_QuestionID",
                 table: "Exam_Questions",
                 column: "QuestionID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Exam_Questions_ReadingID",
+                table: "Exam_Questions",
+                column: "ReadingID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Exam_Result_Details_ExamQuestionID",
+                table: "Exam_Result_Details",
+                column: "ExamQuestionID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Exam_Result_Details_ExamsExamID",
+                table: "Exam_Result_Details",
+                column: "ExamsExamID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Exam_Result_Details_ListeningID",
+                table: "Exam_Result_Details",
+                column: "ListeningID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Exam_Result_Details_QuestionID",
+                table: "Exam_Result_Details",
+                column: "QuestionID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Exam_Result_Details_ReadingID",
+                table: "Exam_Result_Details",
+                column: "ReadingID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Exam_Result_Details_ResultID",
+                table: "Exam_Result_Details",
+                column: "ResultID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Exam_Result_Details_TopicID",
+                table: "Exam_Result_Details",
+                column: "TopicID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Exam_Results_ExamID",
@@ -1333,6 +1498,11 @@ namespace QuizzTiengNhat.Migrations
                 name: "IX_Examples_VocabID",
                 table: "Examples",
                 column: "VocabID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Exams_CourseID",
+                table: "Exams",
+                column: "CourseID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Exams_LessonID",
@@ -1549,6 +1719,17 @@ namespace QuizzTiengNhat.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_User_Skill_Matrices_LevelID",
+                table: "User_Skill_Matrices",
+                column: "LevelID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_User_Skill_Matrices_UserID_SkillType",
+                table: "User_Skill_Matrices",
+                columns: new[] { "UserID", "SkillType" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_UserAnswerHistories_QuestionID",
                 table: "UserAnswerHistories",
                 column: "QuestionID");
@@ -1617,10 +1798,7 @@ namespace QuizzTiengNhat.Migrations
                 name: "ChatRoundRobinStates");
 
             migrationBuilder.DropTable(
-                name: "Exam_Questions");
-
-            migrationBuilder.DropTable(
-                name: "Exam_Results");
+                name: "Exam_Result_Details");
 
             migrationBuilder.DropTable(
                 name: "Examples");
@@ -1656,6 +1834,9 @@ namespace QuizzTiengNhat.Migrations
                 name: "TutorAiMessageAudios");
 
             migrationBuilder.DropTable(
+                name: "User_Skill_Matrices");
+
+            migrationBuilder.DropTable(
                 name: "UserAnswerHistories");
 
             migrationBuilder.DropTable(
@@ -1677,7 +1858,10 @@ namespace QuizzTiengNhat.Migrations
                 name: "ChatConversations");
 
             migrationBuilder.DropTable(
-                name: "Exams");
+                name: "Exam_Questions");
+
+            migrationBuilder.DropTable(
+                name: "Exam_Results");
 
             migrationBuilder.DropTable(
                 name: "FlashcardDecks");
@@ -1689,9 +1873,6 @@ namespace QuizzTiengNhat.Migrations
                 name: "TutorAiMessages");
 
             migrationBuilder.DropTable(
-                name: "Questions");
-
-            migrationBuilder.DropTable(
                 name: "Kanjis");
 
             migrationBuilder.DropTable(
@@ -1701,7 +1882,10 @@ namespace QuizzTiengNhat.Migrations
                 name: "WordTypes");
 
             migrationBuilder.DropTable(
-                name: "ExamTemplates");
+                name: "Questions");
+
+            migrationBuilder.DropTable(
+                name: "Exams");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
@@ -1713,16 +1897,19 @@ namespace QuizzTiengNhat.Migrations
                 name: "TutorAiConversations");
 
             migrationBuilder.DropTable(
+                name: "Radicals");
+
+            migrationBuilder.DropTable(
+                name: "Topics");
+
+            migrationBuilder.DropTable(
                 name: "Listenings");
 
             migrationBuilder.DropTable(
                 name: "Readings");
 
             migrationBuilder.DropTable(
-                name: "Radicals");
-
-            migrationBuilder.DropTable(
-                name: "Topics");
+                name: "ExamTemplates");
 
             migrationBuilder.DropTable(
                 name: "Lessons");

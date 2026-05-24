@@ -49,7 +49,29 @@ export interface ExamDisplayDTO {
   examID: string;
   title: string;
   duration: number;
+  version?: number;
   questions: QuestionDisplayDTO[];
+  /** Cây câu hỏi Normal / Reading / Listening từ API */
+  sections?: ExamTreeItemDTO[];
+}
+
+export interface ExamTreeItemDTO {
+  type: 'Normal' | 'Reading' | 'Listening';
+  questionID?: string;
+  content?: string;
+  audioUrl?: string;
+  script?: string;
+  imageURL?: string | null;
+  skillType?: string;
+  orderIndex?: number;
+  options?: AnswerOptionDTO[];
+  subQuestions: Array<{
+    questionID: string;
+    content: string;
+    imageURL?: string | null;
+    orderIndex?: number;
+    options: AnswerOptionDTO[];
+  }>;
 }
 
 // DTO để nộp bài

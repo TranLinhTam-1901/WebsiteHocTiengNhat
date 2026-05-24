@@ -9,23 +9,23 @@ const getAuthHeader = () => ({
 });
 
 export const SkillPracticeService = {
-  // // Lấy danh sách câu hỏi dựa trên filter
-  // getQuestionsByFilter: async (filter: SkillPracticeDTO) => {
-  //   const response = await axios.get(`${API_URL}/questions-by-filter`, {
-  //     params: filter,
-  //     ...getAuthHeader()
-  //   });
-  //   return response.data;
-  // },
+  // Lấy danh sách câu hỏi dựa trên filter
+  getQuestionsByFilter: async (filter: SkillPracticeDTO) => {
+    const response = await axiosInstance.get(`${API_URL}/questions-by-filter`, {
+      params: filter,
+      ...getAuthHeader()
+    });
+    return response.data;
+  },
 
-  // // Các API lấy Metadata
-  // getRadicals: async () => (await axios.get(`${API_URL}/metadata/radicals`, getAuthHeader())).data,
-  // getWordTypes: async () => (await axios.get(`${API_URL}/metadata/word-types`, getAuthHeader())).data,
-  // getGrammarGroups: async () => (await axios.get(`${API_URL}/metadata/grammar-groups`, getAuthHeader())).data,
-  // getLevels: async () => (await axios.get(`${API_URL}/metadata/levels`, getAuthHeader())).data,
-  // getTopics: async () => (await axios.get(`${API_URL}/metadata/topics`, getAuthHeader())).data,
-  // getLessons: async () => (await axios.get(`${API_URL}/metadata/lessons`, getAuthHeader())).data,
-  // getSkillHub: async () => (await axios.get(`${API_URL}/skill-hub`, getAuthHeader())).data,
+  // Các API lấy Metadata
+  getRadicals: async () => (await axiosInstance.get(`${API_URL}/metadata/radicals`, getAuthHeader())).data,
+  getWordTypes: async () => (await axiosInstance.get(`${API_URL}/metadata/word-types`, getAuthHeader())).data,
+  getGrammarGroups: async () => (await axiosInstance.get(`${API_URL}/metadata/grammar-groups`, getAuthHeader())).data,
+  getLevels: async () => (await axiosInstance.get(`${API_URL}/metadata/levels`, getAuthHeader())).data,
+  getTopics: async () => (await axiosInstance.get(`${API_URL}/metadata/topics`, getAuthHeader())).data,
+  getLessons: async () => (await axiosInstance.get(`${API_URL}/metadata/lessons`, getAuthHeader())).data,
+  getSkillHub: async () => (await axiosInstance.get(`${API_URL}/skill-hub`, getAuthHeader())).data,
 
   // API mới: Lấy danh sách đề luyện tập theo kỹ năng
   getSkillPracticeExams: async (skillType?: number): Promise<SkillPracticeExamDTO[]> => {

@@ -145,6 +145,7 @@ const QuestionCreatePage: React.FC = () => {
                         equivalentID: data.equivalentID || null,
                         sourceID: data.sourceID || null,
                         status: data.status,
+                        skillType: data.skillType ?? SkillType.Vocabulary,
                         topicIds: (data as any).questionTopics
                             ? (data as any).questionTopics.map((qt: any) => qt.topicID)
                             : (data.topicIds || []),

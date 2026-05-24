@@ -66,7 +66,7 @@ const CourseListPage: React.FC = () => {
           </p>
 
           {courses.length === 0 ? (
-            <div className="bg-white rounded-[2rem] border-2 border-dashed border-[#f4f0f2] p-12 text-center">
+            <div className="bg-white rounded-4xl border-2 border-dashed border-[#f4f0f2] p-12 text-center">
               <p className="text-[#886373] font-medium">Chưa có khóa học phù hợp với trình độ hiện tại.</p>
             </div>
           ) : (
@@ -74,7 +74,7 @@ const CourseListPage: React.FC = () => {
               {courses.map((c, index) => (
                 <div
                   key={c.courseID || index}
-                  className="bg-white rounded-[2rem] border-2 border-[#f4f0f2] p-8 shadow-sm flex flex-col gap-4"
+                  className="bg-white rounded-4xl border-2 border-[#f4f0f2] p-8 shadow-sm flex flex-col gap-4"
                 >
                   <div className="flex justify-between items-start gap-4">
                     <div>

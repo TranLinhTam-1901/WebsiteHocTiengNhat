@@ -12,6 +12,8 @@ namespace QuizzTiengNhat.DTOs.Learner
          
         public int Version { get; set; } 
         public List<QuestionDisplayDTO> Questions { get; set; } = new List<QuestionDisplayDTO>();
+        /// <summary>Cây câu hỏi (Normal / Reading / Listening) — dùng cho màn làm bài nghe/đọc.</summary>
+        public List<object>? Sections { get; set; }
     }
 
     public class ExamStructuredDTO
@@ -66,6 +68,7 @@ namespace QuizzTiengNhat.DTOs.Learner
     {
         public Guid QuestionID { get; set; }
         public string Content { get; set; } = string.Empty;
+        public string? ImageURL { get; set; }
         public List<AnswerOptionDTO> Options { get; set; } = new List<AnswerOptionDTO>();
     }
 
