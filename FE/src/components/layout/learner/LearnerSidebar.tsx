@@ -52,6 +52,36 @@ const Sidebar: React.FC = () => {
     }
   }, []);
 
+
+      const handleProtectedNavigation = (
+      e: React.MouseEvent,
+      path: string
+    ) => {
+
+      const isExamRunning =
+        sessionStorage.getItem(
+          'isExamInProgress'
+        ) === 'true';
+
+      if (!isExamRunning) return;
+
+      e.preventDefault();
+
+      window.dispatchEvent(
+        new CustomEvent(
+          'protected-navigation',
+          {
+            detail: {
+              path
+            }
+          }
+        )
+      );
+    };
+
+
+    
+
   useEffect(() => {
     fetchProfile();
   }, [fetchProfile]);
@@ -113,6 +143,13 @@ useEffect(() => {
             icon="dashboard" 
             label="Tổng quan" 
             active={location.pathname === '/learner/dashboard'} 
+             onProtectedNavigate={handleProtectedNavigation}
+          />
+          <NavItem 
+            to="/learner/profile" 
+            icon="person" 
+            label="Hồ sơ" 
+            active={location.pathname === '/learner/profile'} 
           />
 
           <NavItem
@@ -123,6 +160,7 @@ useEffect(() => {
               location.pathname.startsWith('/learner/courses') ||
               /\/learner\/lessons\/[^/]+\/learn/.test(location.pathname)
             }
+             onProtectedNavigate={handleProtectedNavigation}
           />
 
           {/* --- PHẦN 2: LỘ TRÌNH HỌC CHÍNH --- */}
@@ -138,12 +176,14 @@ useEffect(() => {
             icon="menu_book" 
             label="Thư viện từ vựng" 
             active={location.pathname.startsWith('/learner/studyresource/vocabulary')} 
+             onProtectedNavigate={handleProtectedNavigation}
           />
           <NavItem 
             to="/learner/studyresource/kanji" 
             icon="draw" 
             label="Thư viện Kanji" 
             active={location.pathname.startsWith('/learner/studyresource/kanji')} 
+             onProtectedNavigate={handleProtectedNavigation}
           />
 
           {/* --- PHẦN 3: RÈN LUYỆN KỸ NĂNG --- */}
@@ -171,26 +211,31 @@ useEffect(() => {
                   to="/learner/skill-learning/vocabulary" 
                   label="Từ vựng" 
                   active={isSubItemActive('/skill-learning/vocabulary', SkillType.Vocabulary)} 
+                  onProtectedNavigate={handleProtectedNavigation}
                 />
                 <SubNavItem 
                   to="/learner/skill-learning/kanji" 
                   label="Hán tự" 
                   active={isSubItemActive('/skill-learning/kanji', SkillType.Kanji)} 
+                  onProtectedNavigate={handleProtectedNavigation}
                 />
                 <SubNavItem 
                   to="/learner/skill-learning/grammar" 
                   label="Ngữ pháp" 
                   active={isSubItemActive('/skill-learning/grammar', SkillType.Grammar)} 
+                  onProtectedNavigate={handleProtectedNavigation}
                 />
                 <SubNavItem 
                   to="/learner/skill-learning/reading" 
                   label="Luyện đọc" 
                   active={isSubItemActive('/skill-learning/reading', SkillType.Reading)} 
+                  onProtectedNavigate={handleProtectedNavigation}
                 />
                 <SubNavItem 
                   to="/learner/skill-learning/listening" 
                   label="Luyện nghe" 
                   active={isSubItemActive('/skill-learning/listening', SkillType.Listening)}
+                  onProtectedNavigate={handleProtectedNavigation}
                 />
               </div>
             )}
@@ -202,13 +247,16 @@ useEffect(() => {
             icon="assignment" 
             label="Kho đề thi JLPT" 
             active={location.pathname.startsWith('/learner/exams/jlpt-exams')} 
+            onProtectedNavigate={handleProtectedNavigation}
           />
+
           <NavItem 
             to="/learner/history" 
             icon="history" 
             label="Lịch sử & Tiến độ" 
-            active={location.pathname === '/learner/history'} 
+            active={location.pathname.startsWith('/learner/history')} 
           />
+
           {/* <NavItem 
             to="/learner/leaderboard" 
             icon="emoji_events" 
@@ -221,12 +269,14 @@ useEffect(() => {
             icon="smart_toy" 
             label="Trợ lý AI (Ollama)" 
             active={location.pathname === '/learner/ai-tutor'} 
+            onProtectedNavigate={handleProtectedNavigation}
           />
           <NavItem 
             to="/learner/support" 
             icon="chat" 
             label="Chat hỗ trợ" 
             active={location.pathname === '/learner/support'} 
+            onProtectedNavigate={handleProtectedNavigation}
           />
 
           <div className="my-4 border-t border-[#f4f0f2]"></div>
@@ -305,9 +355,15 @@ useEffect(() => {
 };
 
 // Component NavItem
-const NavItem = ({ to = "#", icon, label, active = false }: { to?: string, icon: string, label: string, active?: boolean }) => (
+const NavItem = ({ to = "#", icon, label, active = false,onProtectedNavigate }: { to?: string, icon: string, label: string, active?: boolean,onProtectedNavigate?: (
+    e: React.MouseEvent,
+    to: string
+  ) => void }) => (
   <Link 
     to={to} 
+    onClick={(e) =>
+      onProtectedNavigate?.(e, to)
+    }
     className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${
       active 
       ? 'bg-primary/10 text-primary font-bold' 
@@ -325,9 +381,15 @@ const NavItem = ({ to = "#", icon, label, active = false }: { to?: string, icon:
 );
 
 // Component SubNavItem (Dành cho các mục con trong menu kỹ năng)
-const SubNavItem = ({ to, label, active }: { to: string, label: string, active: boolean }) => (
+const SubNavItem = ({ to, label, active, onProtectedNavigate }: { to: string, label: string, active: boolean, onProtectedNavigate?: (
+    e: React.MouseEvent,
+    to: string
+  ) => void }) => (
   <Link 
     to={to} 
+    onClick={(e) =>
+      onProtectedNavigate?.(e, to)
+    }
     className={`py-2 px-2 rounded-lg text-sm transition-all block ${
       active ? 'text-primary font-bold' : 'text-[#886373] hover:text-primary'
     }`}

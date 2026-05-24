@@ -94,6 +94,75 @@ namespace QuizzTiengNhat.Migrations
                     b.ToTable("ExamTemplateDetails");
                 });
 
+            modelBuilder.Entity("Exam_Session_Answers", b =>
+                {
+                    b.Property<Guid>("SessionAnswerID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("QuestionID")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("ResponseTime")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("SelectedAnswerID")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("SessionID")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("TextAnswer")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("SessionAnswerID");
+
+                    b.HasIndex("SessionID");
+
+                    b.ToTable("Exam_Session_Answers");
+                });
+
+            modelBuilder.Entity("Exam_Sessions", b =>
+                {
+                    b.Property<Guid>("SessionID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ExamID")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("ExamVersion")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("LastAccessedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("RemainingTime")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("StartedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("UserID")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("SessionID");
+
+                    b.HasIndex("ExamID");
+
+                    b.ToTable("Exam_Sessions");
+                });
+
             modelBuilder.Entity("Exams", b =>
                 {
                     b.Property<Guid>("ExamID")
@@ -341,6 +410,9 @@ namespace QuizzTiengNhat.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("integer");
 
+                    b.Property<string>("AvatarUrl")
+                        .HasColumnType("text");
+
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("text");
@@ -580,8 +652,14 @@ namespace QuizzTiengNhat.Migrations
                     b.Property<Guid>("ResultID")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("SelectedAnswerID")
+                        .HasColumnType("uuid");
+
                     b.Property<int?>("SkillType")
                         .HasColumnType("integer");
+
+                    b.Property<string>("TextAnswer")
+                        .HasColumnType("text");
 
                     b.Property<Guid?>("TopicID")
                         .HasColumnType("uuid");
@@ -1714,6 +1792,28 @@ namespace QuizzTiengNhat.Migrations
                     b.Navigation("Template");
                 });
 
+            modelBuilder.Entity("Exam_Session_Answers", b =>
+                {
+                    b.HasOne("Exam_Sessions", "Session")
+                        .WithMany("Answers")
+                        .HasForeignKey("SessionID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Session");
+                });
+
+            modelBuilder.Entity("Exam_Sessions", b =>
+                {
+                    b.HasOne("Exams", "Exam")
+                        .WithMany()
+                        .HasForeignKey("ExamID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Exam");
+                });
+
             modelBuilder.Entity("Exams", b =>
                 {
                     b.HasOne("QuizzTiengNhat.Models.Courses", "Course")
@@ -2442,6 +2542,11 @@ namespace QuizzTiengNhat.Migrations
             modelBuilder.Entity("ExamTemplate", b =>
                 {
                     b.Navigation("Details");
+                });
+
+            modelBuilder.Entity("Exam_Sessions", b =>
+                {
+                    b.Navigation("Answers");
                 });
 
             modelBuilder.Entity("Exams", b =>

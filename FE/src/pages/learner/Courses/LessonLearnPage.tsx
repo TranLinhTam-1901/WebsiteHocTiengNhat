@@ -240,6 +240,13 @@ const LessonLearnPage: React.FC = () => {
       setCompleting(false);
     }
   };
+  const API_BASE_URL = "http://localhost:5167";
+
+  const getMediaUrl = (path?: string | null) => {
+    if (!path) return "";
+    if (path.startsWith("http")) return path;
+    return `${API_BASE_URL}${path}`;
+  };
 
   if (loading || !data) {
     return (

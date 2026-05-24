@@ -9,6 +9,7 @@ import {
   ExamListItemDTO,
   ExamSummaryDTO,
   ExamStructuredDTO,
+  ExamResultListItemDTO,
 } from '../../interfaces/Learner/Exam';
 
 const API_URL = 'learner/exams';
@@ -36,10 +37,6 @@ export const LearnerExamService = {
     return response.data;
   },
 
-  async submitExam(id: string, data: SubmitExamRequestDTO): Promise<SubmitExamResultDTO> {
-    const response = await axiosInstance.post(`${API_URL}/${id}/submit`, data);
-    return response.data;
-  },
 
   async getExamResult(resultId: string): Promise<SubmitExamResultDTO> {
     const response = await axiosInstance.get(`${API_URL}/results/${resultId}`);
@@ -68,6 +65,17 @@ export const LearnerExamService = {
     );
 
     return response.data;
+  },
+
+   async submitExam(id: string, data: SubmitExamRequestDTO): Promise<SubmitExamResultDTO> {
+    const response = await axiosInstance.post(`${API_URL}/${id}/submit`, data);
+    return response.data;
+  },
+
+    async getMyExamResults( params?: {examType?: number;examId?: string;}): Promise<ExamResultListItemDTO[]> {
+     const response = await axiosInstance.get(`${API_URL}/results`,{ params });
+     return response.data;
   }
+
 
 };

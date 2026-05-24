@@ -29,6 +29,7 @@ export interface CreateUpdateListeningDTO {
   duration: number;              // Độ dài tính bằng giây
   speedCategory?: string | null;  // "Chậm", "Bình thường", "Nhanh"
   levelID: string;
+  courseID: string;              // NEW: Course ID (bắt buộc để lọc lessons)
   topicIDs: string[];
   lessonID: string;
   status: number;

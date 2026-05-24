@@ -9,6 +9,7 @@ import {
     ExamSummaryDTO,
     ExamSectionSummaryDTO
 } from '../../../../interfaces/Learner/Exam';
+import { Exam_Session_Service } from '../../../../services/Learner/exam_SessionService';
 
 const JLPTExamSummaryPage: React.FC = () => {
 
@@ -17,6 +18,10 @@ const JLPTExamSummaryPage: React.FC = () => {
 
     const [loading, setLoading] = useState(true);
     const [exam, setExam] = useState<ExamSummaryDTO | null>(null);
+
+    const [hasSession, setHasSession] = useState(false);
+
+    const [sessionId, setSessionId] = useState<string | null>(null);
 
     useEffect(() => {
 
@@ -29,6 +34,21 @@ const JLPTExamSummaryPage: React.FC = () => {
             try {
 
                 const data = await LearnerExamService.getExamSummary(id);
+                try {
+
+                    const session = await Exam_Session_Service.getActiveSession(id);
+
+                    if (session?.hasSession) {
+                        setHasSession(true);
+                        setSessionId(session.sessionID);
+                    } else {
+                        setHasSession(false);
+                        setSessionId(null);
+                    }
+
+                } catch (err) {
+                    console.error(err);
+                }
 
                 setExam(data);
 
@@ -315,7 +335,7 @@ const JLPTExamSummaryPage: React.FC = () => {
                             className="px-10 py-5 rounded-3xl bg-primary text-white font-black uppercase tracking-wider flex items-center gap-3 shadow-lg shadow-primary/20 hover:scale-105 transition-all"
                         >
 
-                            Bắt đầu làm bài
+                            {hasSession ? 'Tiếp tục làm bài' : 'Bắt đầu làm bài'}
 
                             <span className="material-symbols-outlined">
                                 arrow_forward
