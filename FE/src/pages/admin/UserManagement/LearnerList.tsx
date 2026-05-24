@@ -7,7 +7,6 @@ import { User } from '../../../interfaces/User';
 import  adminService  from '../../../services/Admin/adminService';
 import { DashboardProgressResponse } from '../../../interfaces/Admin/ProgressDetail';
 
-
 const ROLE_OPTIONS = [
   { value: 'Learner', label: 'Học viên' },
   { value: 'Admin', label: 'Quản trị viên' },
@@ -38,9 +37,24 @@ const LearnerList: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showAdmins, setShowAdmins] = useState(false);
 
+  // State quản lý Modal
   const [selectedProgress, setSelectedProgress] = React.useState<DashboardProgressResponse | null>(null);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [isFetchingDetail, setIsFetchingDetail] = React.useState(false);
+
+  // Hàm xử lý khi nhấn xem chi tiết
+  const handleViewDetail = async (userId: string) => {
+    try {
+      setIsFetchingDetail(true);
+      setIsModalOpen(true);
+      const data = await adminService.getLearnerProgress(userId);
+      setSelectedProgress(data);
+    } catch (error) {
+      console.error("Lỗi khi lấy tiến độ chi tiết", error);
+    } finally {
+      setIsFetchingDetail(false);
+    }
+  };
 
   // Lấy onlineCount trực tiếp từ Redux Store
   const { users, loading, onlineCount } = useSelector((state: RootState) => state.admin);
@@ -143,7 +157,7 @@ const LearnerList: React.FC = () => {
               <span className="material-symbols-outlined text-sm">
                 {showAdmins ? 'visibility' : 'visibility_off'}
               </span>
-              {showAdmins ? 'Ẩn quản trị' : 'Hiện quản trị'}
+              {showAdmins ? 'Ẩn admin' : 'Hiện admin'}
             </button>
           </div>
         </div>
@@ -174,7 +188,7 @@ const LearnerList: React.FC = () => {
                 <h3 className="text-2xl font-bold">{onlineCount}</h3>
               </div>
             </div>
-            <div className="mr-4 text-[#f287b6] text-xs font-bold italic">Thời gian thực</div>
+            <div className="mr-4 text-[#f287b6] text-xs font-bold italic">Realtime</div>
           </div>
 
           <div className="bg-white rounded-full p-6 flex items-center justify-between shadow-sm border border-[rgba(242,135,182,0.1)]">
@@ -202,7 +216,7 @@ const LearnerList: React.FC = () => {
                     <th className="w-[12%] px-4 py-4 text-center text-sm font-bold text-[#886373] uppercase tracking-wider">Trạng thái</th>
                     <th className="w-[12%] px-4 py-4 text-center text-sm font-bold text-[#886373] uppercase tracking-wider">Tiến độ</th>
                     <th className="w-[10%] px-4 py-4 text-center text-sm font-bold text-[#886373] uppercase tracking-wider">Mục tiêu</th>
-                    <th className="w-[16%] px-4 py-4 text-center text-sm font-bold text-[#886373] uppercase tracking-wider">Địa chỉ email</th>
+                    <th className="w-[16%] px-4 py-4 text-center text-sm font-bold text-[#886373] uppercase tracking-wider">Email</th>
                     <th className="w-[16%] px-4 py-4 text-center text-sm font-bold text-[#886373] uppercase tracking-wider">Vai trò</th>
                     <th className="w-[12%] px-4 py-4 text-center text-sm font-bold text-[#886373] uppercase tracking-wider">Thao tác</th>
                   </tr>
@@ -242,17 +256,20 @@ const LearnerList: React.FC = () => {
                         </td>
 
                         {/* Cột Tiến độ */}
-                        <td className="px-4 py-5 text-center">
-                          <div className="flex flex-col items-center gap-1">
-                              <span className="text-xs font-bold text-slate-500">{user.progressPercent || 0}%</span>
-                              <div className="w-20 bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                                <div 
-                                  className="bg-primary h-full rounded-full transition-all" 
-                                  style={{ width: `${user.progressPercent || 0}%` }}
-                                ></div>
-                              </div>
-                          </div>
-                        </td>
+                       <td className="px-8 py-5 text-center">
+                        <button 
+                          onClick={() => handleViewDetail(user.id)}
+                          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary border border-primary/20 hover:bg-primary hover:text-white transition-all duration-300 group shadow-sm"
+                        >
+                          <span className="material-symbols-outlined text-[18px] group-hover:rotate-180 transition-transform duration-500">
+                            monitoring
+                          </span>
+                          <span className="text-xs font-bold uppercase tracking-wider">Xem tiến độ</span>
+                        </button>
+                        
+                        {/* Chú thích nhỏ bên dưới nếu muốn */}
+                        {/* <p className="text-[9px] text-slate-400 mt-1 font-medium italic">Click để tính toán 70/30</p> */}
+                      </td>
 
                         {/* Cột Mục tiêu (JLPT) */}
                         <td className="px-4 py-5 text-center">
