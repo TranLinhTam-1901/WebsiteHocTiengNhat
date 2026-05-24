@@ -60,82 +60,82 @@ namespace QuizzTiengNhat.Services.Learners
                 .ToListAsync();
         }
 
-        public async Task<object> CheckAnswerWithLoggingAsync(string userId, Guid questionId, Guid? selectedAnswerId, string? textAnswer, int timeTaken)
-        {
-            var question = await _context.Questions
-                .Include(q => q.Answers)
-                .FirstOrDefaultAsync(q => q.QuestionID == questionId);
+        // public async Task<object> CheckAnswerWithLoggingAsync(string userId, Guid questionId, Guid? selectedAnswerId, string? textAnswer, int timeTaken)
+        // {
+        //     var question = await _context.Questions
+        //         .Include(q => q.Answers)
+        //         .FirstOrDefaultAsync(q => q.QuestionID == questionId);
 
-            if (question == null) return new { message = "Câu hỏi không tồn tại" };
+        //     if (question == null) return new { message = "Câu hỏi không tồn tại" };
 
-            bool isCorrect = false;
-            string? correctAnswerText = null;
+        //     bool isCorrect = false;
+        //     string? correctAnswerText = null;
 
-            // Phân nhánh cách chấm điểm dựa vào loại câu hỏi
-            if (question.QuestionType == QuestionType.FillInBlank || question.QuestionType == QuestionType.TextCompletion)
-            {
-                // Câu hỏi điền từ/tự luận: So sánh chữ user gõ với chữ lưu trong đáp án đúng
-                var correctAnswer = question.Answers.FirstOrDefault(a => a.IsCorrect);
-                correctAnswerText = correctAnswer?.AnswerText;
+        //     // Phân nhánh cách chấm điểm dựa vào loại câu hỏi
+        //     if (question.QuestionType == QuestionType.FillInBlank || question.QuestionType == QuestionType.TextCompletion)
+        //     {
+        //         // Câu hỏi điền từ/tự luận: So sánh chữ user gõ với chữ lưu trong đáp án đúng
+        //         var correctAnswer = question.Answers.FirstOrDefault(a => a.IsCorrect);
+        //         correctAnswerText = correctAnswer?.AnswerText;
 
-                if (correctAnswer != null && !string.IsNullOrWhiteSpace(textAnswer))
-                {
-                    // So sánh text (bỏ qua khoảng trắng thừa)
-                    isCorrect = correctAnswer.AnswerText.Trim().Equals(textAnswer.Trim(), StringComparison.OrdinalIgnoreCase);
-                }
-            }
-            else
-            {
-                // Câu hỏi trắc nghiệm bình thường: Check theo ID
-                var selectedAnswer = question.Answers.FirstOrDefault(a => a.AnswerID == selectedAnswerId);
-                isCorrect = selectedAnswer?.IsCorrect ?? false;
-                correctAnswerText = question.Answers.FirstOrDefault(a => a.IsCorrect)?.AnswerText;
-            }
+        //         if (correctAnswer != null && !string.IsNullOrWhiteSpace(textAnswer))
+        //         {
+        //             // So sánh text (bỏ qua khoảng trắng thừa)
+        //             isCorrect = correctAnswer.AnswerText.Trim().Equals(textAnswer.Trim(), StringComparison.OrdinalIgnoreCase);
+        //         }
+        //     }
+        //     else
+        //     {
+        //         // Câu hỏi trắc nghiệm bình thường: Check theo ID
+        //         var selectedAnswer = question.Answers.FirstOrDefault(a => a.AnswerID == selectedAnswerId);
+        //         isCorrect = selectedAnswer?.IsCorrect ?? false;
+        //         correctAnswerText = question.Answers.FirstOrDefault(a => a.IsCorrect)?.AnswerText;
+        //     }
 
-            // --- LƯU LỊCH SỬ LÀM BÀI ---
-            var history = new UserAnswerHistory
-            {
-                HistoryID = Guid.NewGuid(),
-                UserID = userId,
-                QuestionID = questionId,
-                SelectedAnswerID = selectedAnswerId,
-                TextAnswer = textAnswer, // Lưu lại chữ user gõ
-                IsCorrect = isCorrect,
-                TimeTaken = timeTaken,
-                AnsweredAt = DateTime.UtcNow
-            };
-            _context.UserAnswerHistories.Add(history);
-            // -------------------------
+        //     // --- LƯU LỊCH SỬ LÀM BÀI ---
+        //     var history = new UserAnswerHistory
+        //     {
+        //         HistoryID = Guid.NewGuid(),
+        //         UserID = userId,
+        //         QuestionID = questionId,
+        //         SelectedAnswerID = selectedAnswerId,
+        //         TextAnswer = textAnswer, // Lưu lại chữ user gõ
+        //         IsCorrect = isCorrect,
+        //         TimeTaken = timeTaken,
+        //         AnsweredAt = DateTime.UtcNow
+        //     };
+        //     _context.UserAnswerHistories.Add(history);
+        //     // -------------------------
 
-            if (question.EquivalentID.HasValue)
-            {
-                await _flashcardService.ApplyPracticeOutcomeAsync(
-                    userId,
-                    question.EquivalentID.Value,
-                    question.SkillType,
-                    isCorrect,
-                    timeTaken,
-                    persist: false);
-            }
+        //     if (question.EquivalentID.HasValue)
+        //     {
+        //         await _flashcardService.ApplyPracticeOutcomeAsync(
+        //             userId,
+        //             question.EquivalentID.Value,
+        //             question.SkillType,
+        //             isCorrect,
+        //             timeTaken,
+        //             persist: false);
+        //     }
 
-            if (!isCorrect && question.EquivalentID.HasValue)
-            {
-                await _flashcardService.AddToDeckAsync(userId, new AddFlashcardDto
-                {
-                    EntityId = question.EquivalentID.Value,
-                    ItemType = question.SkillType
-                }, persist: false);
-            }
+        //     if (!isCorrect && question.EquivalentID.HasValue)
+        //     {
+        //         await _flashcardService.AddToDeckAsync(userId, new AddFlashcardDto
+        //         {
+        //             EntityId = question.EquivalentID.Value,
+        //             ItemType = question.SkillType
+        //         }, persist: false);
+        //     }
 
-            await _context.SaveChangesAsync();
+        //     await _context.SaveChangesAsync();
 
-            return new
-            {
-                isCorrect = isCorrect,
-                explanation = question.Explanation,
-                correctAnswer = correctAnswerText,
-                message = isCorrect ? "Tuyệt vời!" : "Đã thêm nội dung này vào kho ôn tập."
-            };
-        }
+        //     return new
+        //     {
+        //         isCorrect = isCorrect,
+        //         explanation = question.Explanation,
+        //         correctAnswer = correctAnswerText,
+        //         message = isCorrect ? "Tuyệt vời!" : "Đã thêm nội dung này vào kho ôn tập."
+        //     };
+        // }
     }
 }

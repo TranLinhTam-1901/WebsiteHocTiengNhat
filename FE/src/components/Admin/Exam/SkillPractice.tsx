@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { GenerateExamRequest } from '../../../interfaces/Admin/Exam';
-import { SkillType } from '../../../interfaces/Admin/QuestionBank';
+import { QuestionFormat, SkillType } from '../../../interfaces/Admin/QuestionBank';
 
 interface Props {
     data: GenerateExamRequest;
     onChange: (data: GenerateExamRequest) => void;
     levels: any[];
     levelStats: any; 
-    onLevelChange: (levelId: string) => Promise<void>;
+    onLevelChange: (levelId: string) => void;
 }
 
 const SkillPractice: React.FC<Props> = ({ data, onChange, levels, levelStats, onLevelChange }) => {
@@ -20,18 +20,34 @@ const SkillPractice: React.FC<Props> = ({ data, onChange, levels, levelStats, on
         .sort((a, b) => b.levelName.localeCompare(a.levelName));
 
     const selectedLevel = levels.find(l => l.levelID === data.levelID);
+   
+    const visibleSkillTypes = [
+        SkillType.Vocabulary,
+        SkillType.Grammar,
+        SkillType.Kanji,
+        SkillType.Reading,
+        SkillType.Listening
+    ];
 
+    const visibleLevelStats = Array.isArray(levelStats)
+        ? levelStats.filter((stat: any) => visibleSkillTypes.includes(Number(stat.skillId)))
+        : [];
+
+    const visibleParts = data.parts.filter((part) => visibleSkillTypes.includes(part.skillType));
+    
+   
     const handleAddSkill = (stat: any) => {
         if (data.parts.find(p => p.skillType === stat.skillId)) {
             return;
         }
-
+    
         const newPart = {
             skillType: stat.skillId,
+            questionFormat: QuestionFormat.StandardChoice, 
             quantity: 1, 
             pointPerQuestion: 1
         };
-
+        // console.log("ADD PART", newPart);
         onChange({
             ...data,
             parts: [...data.parts, newPart]
@@ -43,6 +59,19 @@ const SkillPractice: React.FC<Props> = ({ data, onChange, levels, levelStats, on
             ...data,
             parts: data.parts.filter(p => p.skillType !== skillType)
         });
+    };
+
+    const getQuantityLabel = (skillType: number) => {
+        switch (skillType) {
+            case SkillType.Reading:
+                return "Đoạn đọc";
+
+            case SkillType.Listening:
+                return "Audio";
+
+            default:
+                return "Câu";
+        }
     };
 
     return (
@@ -130,8 +159,8 @@ const SkillPractice: React.FC<Props> = ({ data, onChange, levels, levelStats, on
                     </div>
                     
                     <div className="flex flex-wrap gap-3">
-                        {levelStats && levelStats.length > 0 ? (
-                            levelStats.map((stat: any) => {
+                        {visibleLevelStats.length > 0 ? (
+                            visibleLevelStats.map((stat: any) => {
                                 const isSelected = data.parts.some(p => p.skillType === stat.skillId);
                                 return (
                                     <button
@@ -162,12 +191,12 @@ const SkillPractice: React.FC<Props> = ({ data, onChange, levels, levelStats, on
             )}
 
             {/* SECTION 3: BẢNG CHI TIẾT CẤU HÌNH */}
-            {data.levelID && data.parts.length > 0 && (
+            {data.levelID && visibleParts.length > 0 && (
                 <section className="bg-white rounded-2xl border border-[#f4f0f2] shadow-sm overflow-hidden animate-in slide-in-from-top-4">
                     <div className="p-6 border-b border-[#f4f0f2] bg-[#fbf9fa] flex justify-between items-center">
                         <h3 className="text-sm font-bold text-[#181114] uppercase tracking-tight">Chi tiết cấu hình kỹ năng</h3>
                         <span className="px-3 py-1 bg-primary text-white text-[10px] font-black rounded-full uppercase shadow-sm shadow-primary/20">
-                            {data.parts.length} KỸ NĂNG
+                            {visibleParts.length} KỸ NĂNG
                         </span>
                     </div>
                     
@@ -176,14 +205,14 @@ const SkillPractice: React.FC<Props> = ({ data, onChange, levels, levelStats, on
                             <thead>
                                 <tr className="text-[10px] text-[#886373] uppercase tracking-[0.15em] bg-[#fbf9fa]/50">
                                     <th className="px-8 py-4 font-bold">Tên kỹ năng</th>
-                                    <th className="px-8 py-4 font-bold text-center">Số lượng câu</th>
+                                    <th className="px-8 py-4 font-bold text-center">Số lượng</th>
                                     <th className="px-8 py-4 font-bold text-center">Điểm / Câu</th>
                                     <th className="px-8 py-4 font-bold text-right">Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-[#f4f0f2]">
-                                {data.parts.map((part, idx) => {
-                                    const stat = levelStats?.find((s: any) => s.skillId === part.skillType);
+                                {visibleParts.map((part, idx) => {
+                                    const stat = visibleLevelStats.find((s: any) => Number(s.skillId) === Number(part.skillType));
                                     const maxCount = stat?.totalAvailable || 0;
 
                                     return (
@@ -195,7 +224,7 @@ const SkillPractice: React.FC<Props> = ({ data, onChange, levels, levelStats, on
                                                     </div>
                                                     <div>
                                                         <p className="font-bold text-sm text-[#181114]">{stat?.skillName || "Kỹ năng"}</p>
-                                                        <p className="text-[10px] text-[#886373] font-bold uppercase tracking-tight opacity-60">Tối đa: {maxCount} câu</p>
+                                                        <p className="text-[10px] text-[#886373] font-bold uppercase tracking-tight opacity-60">Tối đa: {maxCount} {getQuantityLabel(part.skillType)}</p>
                                                     </div>
                                                 </div>
                                             </td>
@@ -234,7 +263,16 @@ const SkillPractice: React.FC<Props> = ({ data, onChange, levels, levelStats, on
                                                     >
                                                         <span className="material-symbols-outlined text-sm">add</span>
                                                     </button>
+                                                    
                                                 </div>
+                                                {
+                                                    (part.skillType === SkillType.Reading ||
+                                                    part.skillType === SkillType.Listening) && (
+                                                        <p className="text-[10px] text-red-600 italic mt-1">
+                                                            Mỗi nhóm có thể chứa nhiều câu hỏi
+                                                        </p>
+                                                    )
+                                                }
                                             </td>
                                             <td className="px-8 py-5 text-center">
                                                 <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#fbf9fa] border border-[#f4f0f2] rounded-xl font-bold text-xs text-[#886373] shadow-inner">

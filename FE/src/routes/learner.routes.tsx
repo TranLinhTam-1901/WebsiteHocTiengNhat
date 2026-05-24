@@ -10,6 +10,9 @@ import WeaknessAnalysis from '../pages/learner/Analytics/WeaknessAnalysis';
 // Dashboard
 import LearnerDashboard from '../pages/learner/Dashboard/Home';
 // Skill Learning
+import SkillPracticeListPage from '../pages/learner/Exam/Skills/SkillPracticeListPage';
+import SkillHubPage from '../pages/learner/Exam/Skills/SkillHubPage';
+
 import PracticeResultPage from '../pages/learner/Skills/PracticeResultPage';
 import SkillFilterPage from '../pages/learner/Skills/SkillFilterPage';
 import SkillHubPage from '../pages/learner/Skills/SkillHubPage';
@@ -34,9 +37,9 @@ import Intro from '../pages/learner/PlacementTest/Intro';
 import Testing from '../pages/learner/PlacementTest/Testing';
 import Success from '../pages/learner/PlacementTest/Success';
 // Quiz
-import Exam from '../pages/learner/Quiz/Exam';
-import Practice from '../pages/learner/Quiz/Practice';
-import Result from '../pages/learner/Quiz/Result';
+import Exam from '../pages/learner/Exam/ExamDetailPage';
+// import Practice from '../pages/learner/Exam/Practice';
+import Result from '../pages/learner/Exam/Result';
 // Chat Support
 import LearnerChatPage from '../pages/learner/Support/LearnerChatPage';
 // Courses (học theo khóa)
@@ -49,6 +52,12 @@ import StudyVocabularyListPage from '../pages/learner/StudyResource/VocabularyLi
 import StudyVocabularyDetailPage from '../pages/learner/StudyResource/VocabularyDetailPage';
 import StudyKanjiListPage from '../pages/learner/StudyResource/Kanji/KanjiListPage';
 import StudyKanjiDetailPage from '../pages/learner/StudyResource/Kanji/KanjiDetailPage';
+import ExamDetailPage from '../pages/learner/Exam/ExamDetailPage';
+
+import JLPTExamListPage from '../pages/learner/Exam/JLPT/JLPTExamListPage';
+import JLPTExamSummaryPage from '../pages/learner/Exam/JLPT/JLPTExamSummaryPage';
+import JLPTExamTakingPage from '../pages/learner/Exam/JLPT/JLPTExamTakingPage';
+import JLPTResultPage from '../pages/learner/Exam/JLPT/JLPTResultPage';
 
 export const learnerRoutes: RouteObject = {
   path: '/learner',
@@ -71,10 +80,7 @@ export const learnerRoutes: RouteObject = {
     { path: 'placement-test/intro', element: <Intro /> },
     { path: 'placement-test/testing', element: <Testing /> },
     { path: 'placement-test/success', element: <Success /> },
-    // Quiz
-    { path: 'quiz/exam', element: <Exam /> },
-    { path: 'quiz/practice', element: <Practice /> },
-    { path: 'quiz/result', element: <Result /> },
+   
     // Roadmap
     { path: 'roadmap', element: <RoadmapOverview /> },
     { path: 'roadmap/:level', element: <RoadmapDetail /> },
@@ -82,11 +88,22 @@ export const learnerRoutes: RouteObject = {
     { path: 'study/lesson/:id', element: <LessonDetail /> },
     { path: 'study/reviews', element: <ReviewList /> },
     { path: 'study/video', element: <VideoPlayer /> },
+     // Exam(Lesson)
+    { path: 'quiz/exam/:id', element: <ExamDetailPage /> },
+    { path: 'quiz/result/:resultId', element: <Result /> },
+    // JLPT Mock Test
+    { path: 'exams/jlpt-exams', element: <JLPTExamListPage /> },
+    { path: 'exams/jlpt-exams/:id/summary', element: <JLPTExamSummaryPage /> },
+    { path: 'exams/jlpt-exams/:id/take', element: <JLPTExamTakingPage /> },
+    { path: 'exams/jlpt-exams/result/:resultId', element: <JLPTResultPage /> },
+    { path: 'exams/history', element: <ExamHistory /> },
+
+
     // Skill Learning
     { path: 'skill-learning/:skillType', element: <SkillHubPage /> },
-    { path: 'skill-learning/:skillType/select', element: <SkillFilterPage /> },
-    { path: 'skill-learning/:skillType/practice', element: <SkillPracticeView /> },
-    { path: 'skill-learning/:skillType/practice/result', element: <PracticeResultPage sessionData={[]} skillType={''} /> },
+    { path: 'skill-learning/:skillType/practice-list', element: <SkillPracticeListPage /> },
+    { path: 'skill-learning/:skillType/practice/:id', element: <ExamDetailPage /> },
+    { path: 'skill-learning/:skillType/result/:resultId', element: <Result /> },
     // Flashcards
     { path: 'flashcards', element: <DeckListPage /> },
     { path: 'flashcards/review/:deckID', element: <FlashcardReviewPage /> },

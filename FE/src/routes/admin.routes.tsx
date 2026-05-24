@@ -33,7 +33,6 @@ import TopicForm from '../pages/admin/LearningResource/Topic/TopicForm';
 
 import GrammarGroupListPage from '../pages/admin/LearningResource/GrammarGroup/GrammarGroupListPage';
 import GrammarGroupForm from '../pages/admin/LearningResource/GrammarGroup/GrammarGroupForm';
-import EditExamPage from '../pages/admin/ExamManagement/EditExamPage';
 
 export const adminRoutes: RouteObject[] = [
   {
@@ -110,7 +109,7 @@ export const adminRoutes: RouteObject[] = [
               // Trang chi tiết đề thi (Ví dụ: /admin/exams/123/details)
               { path: ':id/details', element: <ExamDetailPage /> },
 
-              { path: 'edit/:id', element: <EditExamPage /> },
+              { path: 'edit/:id', element: <ExamForgePage /> },
             ]
           },
         ],

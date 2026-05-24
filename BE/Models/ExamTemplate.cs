@@ -17,6 +17,9 @@ public class ExamTemplate {
     public double? MinListeningScore { get; set; }
     [Column(TypeName = "decimal(18,2)")]
     public decimal TotalMaxScore { get; set; }
+    public int Version { get; set; }
+
+    public bool IsActive { get; set; }
     public virtual ICollection<ExamTemplateDetail> Details { get; set; }
 
     [ForeignKey("LevelID")]

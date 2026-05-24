@@ -51,6 +51,12 @@ namespace QuizzTiengNhat.Models
         public DbSet<ExamTemplateDetail> ExamTemplateDetails { get; set; }
         public DbSet<Exams> Exams { get; set; }
         public DbSet<Exam_Questions> Exam_Questions { get; set; }
+        public DbSet<Exam_Result_Details> Exam_Result_Details { get; set; }
+        public DbSet<User_Skill_Matrix> User_Skill_Matrices { get; set; }
+
+        public DbSet<Exam_Sessions> Exam_Sessions { get; set; }
+
+        public DbSet<Exam_Session_Answers> Exam_Session_Answers { get; set; }
 
         // --- 6. Hệ thống Flashcard & Cá nhân hóa (MỚI) ---
         public DbSet<FlashcardDeck> FlashcardDecks { get; set; }
@@ -60,6 +66,11 @@ namespace QuizzTiengNhat.Models
         public DbSet<ChatConversation> ChatConversations { get; set; }
         public DbSet<ChatMessage> ChatMessages { get; set; }
         public DbSet<ChatRoundRobinState> ChatRoundRobinStates { get; set; }
+        
+
+        public DbSet<TutorAiConversation> TutorAiConversations { get; set; }
+        public DbSet<TutorAiMessage> TutorAiMessages { get; set; }
+        public DbSet<TutorAiMessageAudio> TutorAiMessageAudios { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -75,6 +86,27 @@ namespace QuizzTiengNhat.Models
             modelBuilder.Entity<ReadingTopics>().HasKey(rt => new { rt.ReadingID, rt.TopicID });
             modelBuilder.Entity<ListeningTopics>().HasKey(lt => new { lt.ListeningID, lt.TopicID });
             modelBuilder.Entity<UserInterest>().HasKey(ui => new { ui.UserID, ui.TopicID });
+
+            modelBuilder.Entity<TutorAiConversation>(e =>
+            {
+                e.HasIndex(x => x.UserId);
+                e.HasIndex(x => new { x.UserId, x.UpdatedAt });
+                e.HasIndex(x => new { x.UserId, x.Live2dModelId, x.UpdatedAt });
+            });
+
+            modelBuilder.Entity<TutorAiMessage>(e =>
+            {
+                e.HasIndex(x => x.ConversationId);
+                e.HasIndex(x => new { x.ConversationId, x.ClientMessageId }).IsUnique();
+                e.HasOne(x => x.Conversation)
+                    .WithMany(c => c.Messages)
+                    .HasForeignKey(x => x.ConversationId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                e.HasOne(x => x.Audio)
+                    .WithOne(a => a.Message)
+                    .HasForeignKey<TutorAiMessageAudio>(a => a.MessageId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
 
             // --- B. USER & LEVEL ---
             modelBuilder.Entity<ApplicationUser>(entity => {
@@ -119,6 +151,24 @@ namespace QuizzTiengNhat.Models
                 e.Property(x => x.TargetSkill).HasConversion<int>();
                 e.HasOne(x => x.Template).WithMany().HasForeignKey(x => x.TemplateID).OnDelete(DeleteBehavior.SetNull);
                 e.HasOne(x => x.Lesson).WithMany().HasForeignKey(x => x.LessonID).OnDelete(DeleteBehavior.SetNull);
+                e.HasOne(x => x.Course).WithMany().HasForeignKey(x => x.CourseID).OnDelete(DeleteBehavior.SetNull);
+            });
+
+            modelBuilder.Entity<Exam_Result_Details>(e => {
+                e.Property(x => x.SkillType).HasConversion<int>();
+                e.HasOne(x => x.Result).WithMany(r => r.ResultDetails).HasForeignKey(x => x.ResultID).OnDelete(DeleteBehavior.Cascade);
+                e.HasOne(x => x.Question).WithMany().HasForeignKey(x => x.QuestionID).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(x => x.Topic).WithMany().HasForeignKey(x => x.TopicID).OnDelete(DeleteBehavior.SetNull);
+                e.HasOne(x => x.Reading).WithMany().HasForeignKey(x => x.ReadingID).OnDelete(DeleteBehavior.SetNull);
+                e.HasOne(x => x.Listening).WithMany().HasForeignKey(x => x.ListeningID).OnDelete(DeleteBehavior.SetNull);
+                e.HasOne(x => x.ExamQuestion).WithMany().HasForeignKey(x => x.ExamQuestionID).OnDelete(DeleteBehavior.SetNull);
+            });
+
+            modelBuilder.Entity<User_Skill_Matrix>(e => {
+                e.Property(x => x.SkillType).HasConversion<int>();
+                e.HasOne(x => x.User).WithMany(u => u.SkillMatrix).HasForeignKey(x => x.UserID).OnDelete(DeleteBehavior.Cascade);
+                e.HasOne(x => x.Level).WithMany().HasForeignKey(x => x.LevelID).OnDelete(DeleteBehavior.SetNull);
+                e.HasIndex(x => new { x.UserID, x.SkillType }).IsUnique();
             });
 
             modelBuilder.Entity<Kanjis>(e => {

@@ -9,15 +9,30 @@ interface Props {
     lessons: { lessonID: string, title: string }[];
     lessonDataFull: any[];
     onLevelChange: (levelId: string) => void;
+    courses: { courseID: string; courseName: string }[];
+    selectedCourseId: string | null;
+    onCourseChange: (courseId: string) => Promise<void>;
+    isEditMode?: boolean;
 }
 
-const LessonPractice: React.FC<Props> = ({ data, onChange, levels, lessons, lessonDataFull, onLevelChange }) => {
+const LessonPractice: React.FC<Props> = ({ data, onChange, levels, lessons, lessonDataFull, onLevelChange, courses, selectedCourseId, onCourseChange, isEditMode = false }) => {
     const [isLevelMenuOpen, setIsLevelMenuOpen] = useState(false);
     const [levelSearch, setLevelSearch] = useState("");
     const [isLessonMenuOpen, setIsLessonMenuOpen] = useState(false);
     const [lessonSearch, setLessonSearch] = useState("");
 
     const currentLessonInfo = lessonDataFull.find(l => l.lessonID === data.lessonID);
+
+
+    const [isCourseMenuOpen, setIsCourseMenuOpen] = useState(false);
+    const [courseSearch, setCourseSearch] = useState("");
+
+    // Tìm thông tin khóa học đang được chọn (từ prop selectedCourseId)
+    const selectedCourse = courses.find(c => c.courseID === selectedCourseId);
+
+    const filteredCourses = courses.filter(c => 
+        c.courseName.toLowerCase().includes(courseSearch.toLowerCase())
+    );
 
     const filteredLevels = levels
         .filter(lvl => ["N3", "N4", "N5"].includes(lvl.levelName.toUpperCase()))
@@ -29,6 +44,39 @@ const LessonPractice: React.FC<Props> = ({ data, onChange, levels, lessons, less
 
     const selectedLevel = levels.find(l => l.levelID === data.levelID);
     const selectedLesson = lessons.find(l => l.lessonID === data.lessonID);
+
+    const skillOptions = [
+        { skillType: SkillType.Vocabulary, skillName: 'Từ vựng', icon: '📚' },
+        { skillType: SkillType.Grammar, skillName: 'Ngữ pháp', icon: '📝' },
+        { skillType: SkillType.Kanji, skillName: 'Kanji', icon: '🀄' },
+        { skillType: SkillType.Reading, skillName: 'Đọc hiểu', icon: '📖' },
+        { skillType: SkillType.Listening, skillName: 'Nghe hiểu', icon: '🎧' }
+    ];
+
+    const normalizedParts = skillOptions.map(option => {
+        const existingPart = data.parts.find(part => part.skillType === option.skillType);
+        return existingPart || { skillType: option.skillType, quantity: 0, pointPerQuestion: 1 };
+    });
+
+    const selectedParts = normalizedParts.filter(part => part.quantity > 0);
+
+    const updateParts = (newParts: typeof normalizedParts) => {
+        onChange({ ...data, parts: newParts });
+    };
+
+    const toggleSkillSelection = (skillType: SkillType) => {
+        const updatedParts = normalizedParts.map(part =>
+            part.skillType === skillType
+                ? { ...part, quantity: part.quantity > 0 ? 0 : 1 }
+                : part
+        );
+        updateParts(updatedParts);
+    };
+
+    const getSkillStat = (skillType: SkillType) => {
+        const currentLesson = lessonDataFull.find(l => l.lessonID === data.lessonID);
+        return currentLesson?.skillStats?.find((s: any) => String(s.skillId) === String(skillType));
+    };
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
@@ -92,6 +140,66 @@ const LessonPractice: React.FC<Props> = ({ data, onChange, levels, lessons, less
                         </div>
                     </div>
 
+            {/* 2. CHỌN KHÓA HỌC (THÊM MỚI Ở ĐÂY) */}
+                <div className="space-y-3">
+                    <label className="block text-xs font-bold text-[#886373] uppercase tracking-wider">Khóa học</label>
+                    <div className="relative">
+                        <div className="relative">
+                            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[#886373]">
+                                layers
+                            </span>
+                            <input
+                                type="text"
+                                placeholder={data.levelID ? "Chọn khóa học..." : "Chọn trình độ trước..."}
+                                disabled={!data.levelID}
+                                value={isCourseMenuOpen ? courseSearch : (selectedCourse?.courseName || "")}
+                                onChange={(e) => {
+                                    setCourseSearch(e.target.value);
+                                    setIsCourseMenuOpen(true);
+                                }}
+                                onFocus={() => {
+                                    setIsCourseMenuOpen(true);
+                                    setCourseSearch("");
+                                }}
+                                className="w-full bg-[#fbf9fa] border border-[#f4f0f2] rounded-xl pl-9 pr-4 py-3 text-sm font-bold focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all disabled:opacity-50"
+                            />
+                        </div>
+
+                        {isCourseMenuOpen && (
+                            <>
+                                <div className="fixed inset-0 z-10" onClick={() => setIsCourseMenuOpen(false)} />
+                                <div className="absolute left-0 right-0 mt-2 bg-white border border-[#f4f0f2] rounded-xl shadow-xl z-20 max-h-48 overflow-y-auto p-1 custom-scrollbar">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            onCourseChange(""); // Chọn "Tất cả"
+                                            setIsCourseMenuOpen(false);
+                                        }}
+                                        className={`w-full text-left px-4 py-2.5 text-sm rounded-lg hover:bg-primary/5 italic ${!selectedCourseId ? 'text-primary font-bold' : 'text-gray-500'}`}
+                                    >
+                                        -- Tất cả khóa học --
+                                    </button>
+                                    {filteredCourses.map((c) => (
+                                        <button
+                                            key={c.courseID}
+                                            type="button"
+                                            onClick={() => {
+                                                onCourseChange(c.courseID);
+                                                setIsCourseMenuOpen(false);
+                                                setCourseSearch("");
+                                            }}
+                                            className={`w-full text-left px-4 py-2.5 text-sm rounded-lg hover:bg-primary/5 hover:text-primary transition-colors flex items-center justify-between ${selectedCourseId === c.courseID ? 'bg-primary/5 text-primary font-bold' : 'text-[#886373]'}`}
+                                        >
+                                            {c.courseName}
+                                            {selectedCourseId === c.courseID && <span className="material-symbols-outlined text-xs">check</span>}
+                                        </button>
+                                    ))}
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </div>
+
                     {/* Tiêu đề đề thi */}
                     <div className="space-y-3">
                         <label className="block text-xs font-bold text-[#886373] uppercase tracking-wider">Tên đề luyện tập</label>
@@ -103,6 +211,7 @@ const LessonPractice: React.FC<Props> = ({ data, onChange, levels, lessons, less
                             onChange={e => onChange({...data, title: e.target.value})}
                         />
                     </div>
+                    
                 </div>
 
                 {/* HÀNG 2: CHỌN BÀI HỌC */}
@@ -171,6 +280,58 @@ const LessonPractice: React.FC<Props> = ({ data, onChange, levels, lessons, less
                         </div>
                     </div>
                 )}
+
+                {data.levelID && (
+                    <section className="bg-white p-8 rounded-2xl border border-[#f4f0f2] shadow-sm space-y-6">
+                        <div className="flex items-center gap-2">
+                            <span className="material-symbols-outlined text-primary text-xl">extension</span>
+                            <h3 className="text-sm font-bold text-[#181114] uppercase tracking-tight">Chọn kỹ năng cho đề luyện tập</h3>
+                        </div>
+
+                        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                            {skillOptions.map((option) => {
+                                const part = normalizedParts.find(p => p.skillType === option.skillType)!;
+                                const isSelected = part.quantity > 0;
+                                const stat = getSkillStat(option.skillType);
+                                const availableCount = stat?.totalQuestions ?? 0;
+
+                                return (
+                                    <button
+                                        key={option.skillType}
+                                        type="button"
+                                        onClick={() => toggleSkillSelection(option.skillType)}
+                                        className={`rounded-2xl border p-4 text-left transition-all ${isSelected ? 'border-primary bg-primary/10 text-primary' : 'border-[#f4f0f2] bg-white text-[#886373] hover:border-primary/30 hover:bg-primary/5'}`}
+                                    >
+                                        <div className="flex items-center gap-2 mb-2 text-lg">
+                                            <span>{option.icon}</span>
+                                            <span className="font-bold">{option.skillName}</span>
+                                        </div>
+                                        <div className="text-[11px] text-[#886373] uppercase tracking-widest font-bold">
+                                            {isSelected ? 'Đã chọn' : 'Chưa chọn'}
+                                        </div>
+                                        <div className="mt-2 text-xs text-[#886373]">
+                                            {availableCount} câu có sẵn
+                                        </div>
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        {isEditMode && selectedParts.length > 0 && (
+                            <div className="pt-4 border-t border-dashed border-[#f4f0f2]">
+                                <div className="text-xs text-[#886373] uppercase tracking-[0.15em] font-bold mb-3">Kỹ năng hiện có của đề thi</div>
+                                <div className="flex flex-wrap gap-2">
+                                    {selectedParts.map(part => (
+                                        <span key={part.skillType} className="px-3 py-2 rounded-full bg-primary/10 text-primary text-xs font-bold border border-primary/20">
+                                            {SkillType[part.skillType]} ({part.quantity} câu)
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </section>
+                )}
+
             </section>
 
             {/* Bảng cấu hình rút gọn */}
@@ -181,18 +342,41 @@ const LessonPractice: React.FC<Props> = ({ data, onChange, levels, lessons, less
                 </div>
                 
                 <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {data.parts.map((part, idx) => {
-                        const skillStat = currentLessonInfo?.skillStats?.find(
-                            (s: any) => s.skillId === part.skillType
+                    {normalizedParts.map((part, idx) => {
+                        // 1. Tìm thông tin bài học từ mảng chứa data đầy đủ (có stats)
+                        const currentLesson = lessonDataFull.find(l => l.lessonID === data.lessonID);
+                        
+                        // 2. Tìm stat của skill tương ứng
+                        // Lưu ý: Ép kiểu hoặc so sánh lỏng nếu skillId từ API là string
+                        const skillStat = currentLesson?.skillStats?.find(
+                            (s: any) => String(s.skillId) === String(part.skillType)
                         );
+
                         const maxAvailable = skillStat?.totalQuestions || 0;
+
+                        
+                        const getSkillIcon = (skill: SkillType) => {
+                            switch (skill) {
+                                case SkillType.Vocabulary:
+                                    return '🎋';
+                                case SkillType.Grammar:
+                                    return '📝';
+                                case SkillType.Kanji:
+                                    return '🀄';
+                                case SkillType.Reading:
+                                    return '📖';
+                                case SkillType.Listening:
+                                    return '🎧';
+                                default:
+                                    return '❓';
+                            }
+                        };
 
                         return (
                             <div key={idx} className="flex items-center justify-between p-5 bg-[#fbf9fa] rounded-2xl border border-[#f4f0f2] hover:border-primary/30 transition-all group">
                                 <div className="flex items-center gap-4">
                                     <div className="size-12 rounded-2xl bg-white border border-[#f4f0f2] flex items-center justify-center text-2xl shadow-sm group-hover:scale-110 transition-transform">
-                                        {part.skillType === SkillType.Vocabulary ? "🎋" : 
-                                         part.skillType === SkillType.Grammar ? "📝" : "🎧"}
+                                        {getSkillIcon(part.skillType)}
                                     </div>
                                     <div className="space-y-1">
                                         <p className="font-bold text-sm text-[#181114]">{SkillType[part.skillType]}</p>
@@ -208,9 +392,9 @@ const LessonPractice: React.FC<Props> = ({ data, onChange, levels, lessons, less
                                         type="button"
                                         className="size-8 rounded-xl bg-white border border-[#f4f0f2] flex items-center justify-center hover:bg-rose-50 hover:text-rose-500 disabled:opacity-30 shadow-sm transition-colors"
                                         onClick={() => {
-                                            const newParts = [...data.parts];
+                                            const newParts = [...normalizedParts];
                                             newParts[idx].quantity = Math.max(0, newParts[idx].quantity - 1);
-                                            onChange({...data, parts: newParts});
+                                            updateParts(newParts);
                                         }}
                                         disabled={part.quantity <= 0}
                                     >
@@ -224,9 +408,9 @@ const LessonPractice: React.FC<Props> = ({ data, onChange, levels, lessons, less
                                             value={part.quantity}
                                             onChange={(e) => {
                                                 let val = Math.min(maxAvailable, Math.max(0, parseInt(e.target.value) || 0));
-                                                const newParts = [...data.parts];
+                                                const newParts = [...normalizedParts];
                                                 newParts[idx].quantity = val;
-                                                onChange({...data, parts: newParts});
+                                                updateParts(newParts);
                                             }}
                                         />
                                     </div>
@@ -236,9 +420,9 @@ const LessonPractice: React.FC<Props> = ({ data, onChange, levels, lessons, less
                                         className="size-8 rounded-xl bg-white border border-[#f4f0f2] flex items-center justify-center hover:bg-emerald-50 hover:text-emerald-500 disabled:opacity-30 shadow-sm transition-colors"
                                         onClick={() => {
                                             if (part.quantity < maxAvailable) {
-                                                const newParts = [...data.parts];
+                                                const newParts = [...normalizedParts];
                                                 newParts[idx].quantity += 1;
-                                                onChange({...data, parts: newParts});
+                                                updateParts(newParts);
                                             }
                                         }}
                                         disabled={part.quantity >= maxAvailable}
@@ -248,12 +432,15 @@ const LessonPractice: React.FC<Props> = ({ data, onChange, levels, lessons, less
                                 </div>
                             </div>
                         );
-                    })}
-                    {data.parts.length === 0 && (
-                        <div className="col-span-2 py-10 text-center text-xs text-[#886373] italic">Vui lòng chọn trình độ và bài học để cấu hình câu hỏi</div>
+                        
+                    }
+                    )}
+                    {selectedParts.length === 0 && (
+                        <div className="col-span-2 py-10 text-center text-xs text-[#886373] italic">Vui lòng chọn ít nhất một kỹ năng để cấu hình câu hỏi</div>
                     )}
                 </div>
             </section>
+
         </div>
     );
 };

@@ -1,6 +1,7 @@
 import axiosInstance from '../../utils/axiosInstance';
 import type {
   CourseListItemDTO,
+  CourseTimelineItemDTO,
   LessonCompleteResponseDTO,
   LessonLearnDTO,
   LessonListItemDTO,
@@ -29,6 +30,13 @@ export const LearnerCourseService = {
       `${COURSES_BASE}/${courseId}/lessons`
     );
     return unwrapArray<LessonListItemDTO>(data);
+  },
+
+  getCourseTimeline: async (courseId: string): Promise<CourseTimelineItemDTO[]> => {
+    const { data } = await axiosInstance.get<CourseTimelineItemDTO[] | { $values?: CourseTimelineItemDTO[] }>(
+      `${COURSES_BASE}/${courseId}/timeline`
+    );
+    return unwrapArray<CourseTimelineItemDTO>(data);
   },
 
   /** GET /api/learner/courses/{lessonId}/learn — tham số là lessonId, không phải courseId */

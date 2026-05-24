@@ -6,6 +6,7 @@ namespace QuizzTiengNhat.DTOs.Admin.Question
     {
         public string Content { get; set; }
         public QuestionType QuestionType { get; set; } // Enum: MultipleChoice, Listening...
+        public QuestionFormat QuestionFormat { get; set; } = QuestionFormat.StandardChoice;
         public int Difficulty { get; set; }
         public string? AudioURL { get; set; }
         public string? MediaTimestamp { get; set; }

@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using QuizzTiengNhat.Models.Enums;
 namespace QuizzTiengNhat.Models
 {
@@ -11,7 +12,9 @@ namespace QuizzTiengNhat.Models
         public string Title { get; set; }
         public SkillType SkillType { get; set; } // Vocabulary, Grammar...
         public int Difficulty { get; set; }
-        public int Priority { get; set; }
+        
+        [Column("Priority")]
+        public int SortOrder { get; set; }
 
         // Navigation properties
        public virtual Courses Course { get; set; }  = new Courses();

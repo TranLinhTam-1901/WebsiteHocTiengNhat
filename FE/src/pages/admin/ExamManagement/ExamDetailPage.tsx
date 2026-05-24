@@ -16,6 +16,15 @@ const ExamDetailPage: React.FC = () => {
         skillType: [] as string[]
     });
 
+    const [expandedGroups, setExpandedGroups] = useState<string[]>([]);
+    const toggleGroup = (groupKey: string) => {
+    setExpandedGroups((prev) =>
+        prev.includes(groupKey)
+            ? prev.filter((x) => x !== groupKey)
+            : [...prev, groupKey]
+    );
+    };
+
     useEffect(() => {
         const fetchDetails = async () => {
             if (id) {
@@ -55,6 +64,7 @@ const ExamDetailPage: React.FC = () => {
             onChange(newValues);
         };
 
+       
         return (
             <div className="relative inline-block text-left">
                 <div className="flex items-center justify-center gap-1 min-w-max">
@@ -127,6 +137,21 @@ const ExamDetailPage: React.FC = () => {
             </div>
         );
     }
+    const exam = details;
+
+    const totalQuestions = exam.questions.reduce((acc, q) => {
+
+        const subCount = q.subQuestions?.length ?? 0;
+
+        if (subCount > 0) {
+            return acc + subCount;
+        }
+
+        return acc + 1;
+
+    }, 0);
+
+    const totalScore = details.totalScore ?? 0;
 
     return (
         <div className="flex h-screen overflow-hidden bg-background-light font-display text-[#181114]">
@@ -160,7 +185,11 @@ const ExamDetailPage: React.FC = () => {
                                 />
                             </div>
                             <button 
-                                onClick={() => navigate(`/admin/exams/edit/${id}`)}
+                                onClick={() => {
+                                    if (details && id) {
+                                        navigate(`/admin/exams/edit/${id}`, { state: { editData: details, isEdit: true } });
+                                    }
+                                }}
                                 className="bg-primary hover:bg-primary-dark text-white px-5 py-2 rounded-full text-sm font-bold flex items-center gap-2 transition-all shadow-lg active:scale-95"
                             >
                                 <span className="material-symbols-outlined text-sm">edit</span> Chỉnh sửa
@@ -206,24 +235,138 @@ const ExamDetailPage: React.FC = () => {
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-[#f4f0f2]">
-                                            {filteredQuestions.map((q) => (
-                                                <tr key={q.questionID} className="group hover:bg-primary/5 transition-colors">
-                                                    <td className="px-8 py-5">
-                                                        <span className="text-xs font-bold text-[#886373]/50">#{q.orderIndex}</span>
-                                                    </td>
-                                                    <td className="px-8 py-5">
-                                                        <p className="text-sm font-bold text-[#181114] line-clamp-2">{q.content}</p>
-                                                    </td>
-                                                    <td className="px-8 py-5 text-center">
-                                                        <span className="px-2.5 py-1 bg-primary/5 border border-primary/10 rounded-lg text-[10px] font-black text-primary uppercase whitespace-nowrap">
-                                                            {q.skillType}
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-8 py-5 text-right font-black text-sm text-[#181114]">
-                                                        {q.score}
-                                                    </td>
-                                                </tr>
-                                            ))}
+                                           {filteredQuestions.map((q, index) => {
+                                                const isGroup = (q.subQuestions?.length ?? 0) > 0;
+
+                                                // =========================================
+                                                // GROUP QUESTION (READING/LISTENING)
+                                                // =========================================
+                                                if (isGroup) {
+
+                                                    const groupKey = `group-${index}`;
+
+                                                    const isExpanded = expandedGroups.includes(groupKey);
+
+                                                    return (
+                                                        <React.Fragment key={groupKey}>
+
+                                                            {/* ========================= */}
+                                                            {/* QUESTION CHA */}
+                                                            {/* ========================= */}
+                                                            <tr
+                                                                onClick={() => toggleGroup(groupKey)}
+                                                                className="bg-primary/5 hover:bg-primary/10 transition-all cursor-pointer border-b border-primary/10"
+                                                            >
+                                                                <td className="px-8 py-5">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <span
+                                                                            className={`material-symbols-outlined text-primary text-[18px] transition-transform ${
+                                                                                isExpanded ? "rotate-180" : ""
+                                                                            }`}
+                                                                        >
+                                                                            expand_more
+                                                                        </span>
+
+                                                                        <span className="text-xs font-bold text-primary">
+                                                                            #{q.orderIndex}
+                                                                        </span>
+                                                                    </div>
+                                                                </td>
+
+                                                                <td className="px-8 py-5">
+                                                                    <div className="space-y-1">
+                                                                        <p className="text-sm font-black text-[#181114]">
+                                                                            {q.content}
+                                                                        </p>
+
+                                                                        <p className="text-[11px] text-[#886373]">
+                                                                            {(q.subQuestions?.length ?? 0)} câu hỏi
+                                                                        </p>
+                                                                    </div>
+                                                                </td>
+
+                                                                <td className="px-8 py-5 text-center">
+                                                                    <span className="px-2.5 py-1 bg-primary/10 border border-primary/20 rounded-lg text-[10px] font-black text-primary uppercase">
+                                                                        {q.skillType}
+                                                                    </span>
+                                                                </td>
+
+                                                                <td className="px-8 py-5 text-right font-black text-sm text-primary">
+                                                                    {(q.subQuestions ?? []).reduce(
+                                                                        (acc, subQ) => acc + (subQ.score ?? 0),
+                                                                        0
+                                                                    )}
+                                                                </td>
+                                                            </tr>
+
+                                                            {/* ========================= */}
+                                                            {/* SUB QUESTIONS */}
+                                                            {/* ========================= */}
+                                                            {isExpanded &&
+                                                                (q.subQuestions ?? []).map((subQ) => (
+                                                                    <tr
+                                                                        key={subQ.questionID}
+                                                                        className="bg-white hover:bg-slate-50 transition-colors"
+                                                                    >
+                                                                        <td className="px-8 py-4">
+                                                                            <span className="text-xs text-[#886373]">
+                                                                                #{subQ.orderIndex}
+                                                                            </span>
+                                                                        </td>
+
+                                                                        <td className="px-8 py-4 pl-14">
+                                                                            <p className="text-sm text-[#181114]">
+                                                                                {subQ.content}
+                                                                            </p>
+                                                                        </td>
+
+                                                                        <td className="px-8 py-4 text-center">
+                                                                            <span className="px-2 py-1 bg-slate-100 rounded text-[10px] font-bold text-slate-600 uppercase">
+                                                                                {subQ.skillType}
+                                                                            </span>
+                                                                        </td>
+
+                                                                        <td className="px-8 py-4 text-right font-bold text-sm">
+                                                                            {Number(subQ.score ?? 0).toFixed(2)}
+                                                                        </td>
+                                                                    </tr>
+                                                                ))}
+                                                        </React.Fragment>
+                                                    );
+                                                }
+
+                                                // =========================================
+                                                // QUESTION THƯỜNG
+                                                // =========================================
+                                                return (
+                                                    <tr
+                                                        key={q.questionID}
+                                                        className="group hover:bg-primary/5 transition-colors"
+                                                    >
+                                                        <td className="px-8 py-5">
+                                                            <span className="text-xs font-bold text-[#886373]/50">
+                                                                #{q.orderIndex}
+                                                            </span>
+                                                        </td>
+
+                                                        <td className="px-8 py-5">
+                                                            <p className="text-sm font-bold text-[#181114] line-clamp-2">
+                                                                {q.content}
+                                                            </p>
+                                                        </td>
+
+                                                        <td className="px-8 py-5 text-center">
+                                                            <span className="px-2.5 py-1 bg-primary/5 border border-primary/10 rounded-lg text-[10px] font-black text-primary uppercase whitespace-nowrap">
+                                                                {q.skillType}
+                                                            </span>
+                                                        </td>
+
+                                                        <td className="px-8 py-5 text-right font-black text-sm text-[#181114]">
+                                                            {Number(q.score ?? 0).toFixed(2)}
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
                                             {filteredQuestions.length === 0 && (
                                                 <tr>
                                                     <td colSpan={4} className="px-8 py-10 text-center text-xs text-[#886373] italic">
@@ -252,10 +395,37 @@ const ExamDetailPage: React.FC = () => {
                                             </div>
                                             <div>
                                                 <p className="text-[10px] font-bold text-[#886373] uppercase tracking-wider">Tổng số câu</p>
-                                                <p className="text-2xl font-black text-primary leading-none mt-1">{details.questions.length}</p>
+                                                <p className="text-2xl font-black text-primary leading-none mt-1">{totalQuestions}</p>
                                             </div>
                                         </div>
                                         <span className="text-[10px] font-bold text-primary/60 uppercase">Câu</span>
+                                    </div>
+
+                                    <div className="flex items-center justify-between p-4 bg-sky-50 rounded-2xl border border-sky-100">
+                                        <div className="flex items-center gap-3">
+                                            <div className="size-10 rounded-xl bg-white flex items-center justify-center shadow-sm">
+                                                <span className="material-symbols-outlined text-sky-600">timer</span>
+                                            </div>
+                                            <div>
+                                                <p className="text-[10px] font-bold text-[#886373] uppercase tracking-wider">Thời lượng</p>
+                                                <p className="text-2xl font-black text-sky-600 leading-none mt-1">{details.duration ?? 0}</p>
+                                            </div>
+                                        </div>
+                                        <span className="text-[10px] font-bold text-sky-600/60 uppercase">phút</span>
+                                    </div>
+
+                                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                        <div className="flex items-center gap-3">
+                                            <div className="size-10 rounded-xl bg-white flex items-center justify-center shadow-sm">
+                                                <span className="material-symbols-outlined text-slate-700">visibility</span>
+                                            </div>
+                                            <div>
+                                                <p className="text-[10px] font-bold text-[#886373] uppercase tracking-wider">Trả kết quả ngay</p>
+                                                <p className="text-2xl font-black text-slate-700 leading-none mt-1">
+                                                    {details.showResultImmediately ? 'Có' : 'Không'}
+                                                </p>
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <div className="flex items-center justify-between p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
@@ -266,7 +436,7 @@ const ExamDetailPage: React.FC = () => {
                                             <div>
                                                 <p className="text-[10px] font-bold text-[#886373] uppercase tracking-wider">Tổng điểm tối đa</p>
                                                 <p className="text-2xl font-black text-emerald-600 leading-none mt-1">
-                                                    {details.questions.reduce((acc, q) => acc + q.score, 0)}
+                                                    {totalScore}
                                                 </p>
                                             </div>
                                         </div>

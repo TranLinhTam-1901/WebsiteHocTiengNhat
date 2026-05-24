@@ -15,15 +15,20 @@ namespace QuizzTiengNhat.Middlewares
 
         public async Task InvokeAsync(HttpContext context, UserManager<ApplicationUser> userManager)
         {
-            // 1. Bỏ qua các yêu cầu không phải API hoặc yêu cầu tới Hub
-            if (!context.Request.Path.StartsWithSegments("/api") ||
-                context.Request.Path.StartsWithSegments("/presenceHub"))
+            var path = context.Request.Path;
+
+            // Chỉ kiểm tra phiên cho API và negotiate / websocket của SignalR
+            var needsSessionValidation =
+                path.StartsWithSegments("/api")
+                || path.StartsWithSegments("/presenceHub")
+                || path.StartsWithSegments("/chatHub");
+
+            if (!needsSessionValidation)
             {
                 await _next(context);
                 return;
             }
 
-            // 2. Kiểm tra nếu đã đăng nhập
             if (context.User.Identity?.IsAuthenticated == true)
             {
                 var userId = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -32,17 +37,15 @@ namespace QuizzTiengNhat.Middlewares
 
                 if (!string.IsNullOrEmpty(userId) && !string.IsNullOrEmpty(tokenStamp))
                 {
-                    // TÌM USER (Nên dùng Cache nếu có thể để tăng tốc độ)
                     var user = await userManager.FindByIdAsync(userId);
 
-                    // 3. Nếu Stamp trong Token khác Stamp trong DB -> Đã có người đăng nhập mới/Đổi pass
                     if (user != null && user.SecurityStamp != tokenStamp)
                     {
                         context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                         await context.Response.WriteAsJsonAsync(new
                         {
                             message = "Tài khoản đã đăng nhập ở nơi khác.",
-                            isForceLogout = true // Flag quan trọng
+                            isForceLogout = true
                         });
                         return;
                     }

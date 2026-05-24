@@ -138,6 +138,7 @@ namespace QuizzTiengNhat.Controllers.Admins
                             Explanation = qDto.Explanation,
                             Difficulty = qDto.Difficulty,
                             QuestionType = QuestionType.MultipleChoice,
+                            QuestionFormat = QuestionFormat.Passage,
                             SkillType = SkillType.Reading,
                             Status = Status.Published,
                             Answers = qDto.Answers.Select(aDto => new Answers
