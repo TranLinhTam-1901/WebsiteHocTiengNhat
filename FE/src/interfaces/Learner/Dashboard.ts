@@ -38,3 +38,19 @@ export interface DashboardProgressResponse {
   skillProgress: ProgressDetail;
   currentLevelName: string;
 }
+
+export interface UserSkillMatrixItem {
+  skillType: number;
+  skillName: string;
+  proficiencyScore: number;
+  confidence: number;
+  needsReview: boolean;
+  levelName?: string | null;
+  lastUpdated?: string | null;
+}
+
+export interface UserSkillMatrixResponse {
+  skills: UserSkillMatrixItem[];
+  averageProficiency: number;
+  skillsNeedingReview: number;
+}

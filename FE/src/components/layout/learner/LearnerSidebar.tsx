@@ -327,23 +327,51 @@ useEffect(() => {
 
         {/* Thông tin User & Đăng xuất */}
         <div className="mt-auto">
-          <div className="bg-[#fbf9fa] p-4 rounded-xl flex items-center justify-between gap-1 group border border-[#f4f0f2]">
-            <div className="flex items-center gap-3 overflow-hidden">
-              <div 
-                className="size-9 shrink-0 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary text-sm border-2 border-primary/20"
-              >
-                {currentUser?.fullName?.charAt(0).toUpperCase() || 'J'}
-              </div>
-              <div className="flex-1 overflow-hidden">
-                <p className="text-xs font-bold truncate text-[#181114]">{currentUser?.fullName || 'Học viên'}</p>
-                <p className="text-[10px] text-[#886373] truncate">{currentUser?.email || email || 'learner@jquiz.vn'}</p>
-              </div>
-            </div>
-
+          <div 
+            className={`bg-[#fbf9fa] p-3 rounded-xl flex items-center justify-between gap-2 border transition-all duration-200
+              ${
+                location.pathname === '/learner/profile'
+                  ? 'border-primary bg-primary/5'
+                  : 'border-[#f4f0f2]'
+              }
+            `}
+          >
+            {/* Phần thông tin User - Click vào để chuyển hướng sang Profile */}
             <button
+              type="button"
+              onClick={() => navigate('/learner/profile')}
+              className="flex flex-1 items-center gap-3 overflow-hidden text-left group/user"
+            >
+              {/* Avatar */}
+              <div className="size-9 shrink-0 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary text-sm border-2 border-primary/20 overflow-hidden">
+                {currentUser?.avatarUrl ? (
+                  <img
+                    src={currentUser.avatarUrl}
+                    alt="Avatar"
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  currentUser?.fullName?.charAt(0).toUpperCase() || 'J'
+                )}
+              </div>
+
+              {/* Tên & Email */}
+              <div className="flex-1 overflow-hidden">
+                <p className="text-xs font-bold truncate text-[#181114] group-hover/user:text-primary transition-colors">
+                  {currentUser?.fullName || 'Học viên'}
+                </p>
+                <p className="text-[10px] text-[#886373] truncate">
+                  {currentUser?.email || email || 'learner@jquiz.vn'}
+                </p>
+              </div>
+            </button>
+
+            {/* Nút Đăng xuất */}
+            <button
+              type="button"
               onClick={handleLogout}
               title="Đăng xuất"
-              className="p-2 rounded-lg text-red-500 hover:bg-white hover:shadow-sm transition-all duration-200 flex items-center justify-center shrink-0"
+              className="p-2 rounded-lg text-red-500 hover:bg-white hover:shadow-sm hover:text-red-600 transition-all duration-200 flex items-center justify-center shrink-0"
             >
               <span className="material-symbols-outlined text-xl">logout</span>
             </button>

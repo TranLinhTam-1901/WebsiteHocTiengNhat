@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import LearnerHeader from '../../../components/layout/learner/LearnerHeader';
 import { LearnerProfileService } from '../../../services/Learner/learnerProfileService';
+import dashboardService from '../../../services/Learner/progressService';
 import { User } from '../../../interfaces/User';
 
 const LearnerProfile: React.FC = () => {
@@ -12,6 +13,8 @@ const LearnerProfile: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<Partial<User>>({});
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  /** Tiến độ tổng (bài + thi + điểm + flashcard), đồng bộ dashboard */
+  const [totalOverallPercent, setTotalOverallPercent] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -20,9 +23,16 @@ const LearnerProfile: React.FC = () => {
 
   const fetchProfile = async () => {
     try {
-      const data = await LearnerProfileService.getCurrentProfile();
+      const [data, progressRes] = await Promise.all([
+        LearnerProfileService.getCurrentProfile(),
+        dashboardService.getOverallProgress().catch(() => null),
+      ]);
       setProfile(data);
       setEditData(data);
+      const raw = progressRes?.data?.totalPercent;
+      setTotalOverallPercent(
+        raw != null ? Math.min(100, Math.max(0, Number(raw))) : 0,
+      );
     } catch {
       setError('Không thể tải hồ sơ. Vui lòng thử lại sau.');
     } finally {
@@ -199,89 +209,88 @@ const LearnerProfile: React.FC = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-        {/* Thông tin cá nhân */}
-        <section className="bg-white rounded-2xl border border-[#f4f0f2] shadow-sm p-6 sm:p-8 h-full">
-          <h2 className="text-base font-bold text-[#181114] mb-1">Thông tin cá nhân</h2>
-          <p className="text-sm text-[#886373] mb-6">Cập nhật tên hiển thị và ảnh đại diện.</p>
+          {/* Thông tin cá nhân */}
+          <section className="bg-white rounded-2xl border border-[#f4f0f2] shadow-sm p-6 sm:p-8 h-full">
+            <h2 className="text-base font-bold text-[#181114] mb-1">Thông tin cá nhân</h2>
+            <p className="text-sm text-[#886373] mb-6">Cập nhật tên hiển thị và ảnh đại diện.</p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div>
-              <label className="block text-xs font-medium text-[#886373] mb-1.5">Họ và tên</label>
-              {isEditing ? (
-                <input
-                  type="text"
-                  className="w-full rounded-xl border border-[#f4f0f2] bg-[#fbf9fa] px-4 py-3 text-[#181114] text-sm outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/10 transition-all"
-                  value={editData.fullName || ''}
-                  onChange={(e) => setEditData({ ...editData, fullName: e.target.value })}
-                />
-              ) : (
-                <p className="rounded-xl border border-[#f4f0f2] bg-[#fbf9fa] px-4 py-3 text-[#181114] text-sm">
-                  {profile?.fullName}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div>
+                <label className="block text-xs font-medium text-[#886373] mb-1.5">Họ và tên</label>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    className="w-full rounded-xl border border-[#f4f0f2] bg-[#fbf9fa] px-4 py-3 text-[#181114] text-sm outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/10 transition-all"
+                    value={editData.fullName || ''}
+                    onChange={(e) => setEditData({ ...editData, fullName: e.target.value })}
+                  />
+                ) : (
+                  <p className="rounded-xl border border-[#f4f0f2] bg-[#fbf9fa] px-4 py-3 text-[#181114] text-sm">
+                    {profile?.fullName}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-[#886373] mb-1.5">Email</label>
+                <p className="rounded-xl border border-[#f4f0f2] bg-[#fbf9fa] px-4 py-3 text-[#886373] text-sm truncate">
+                  {profile?.email}
                 </p>
-              )}
+                <p className="text-xs text-[#886373]/70 mt-1.5">Email không thể thay đổi.</p>
+              </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-medium text-[#886373] mb-1.5">Email</label>
-              <p className="rounded-xl border border-[#f4f0f2] bg-[#fbf9fa] px-4 py-3 text-[#886373] text-sm truncate">
-                {profile?.email}
-              </p>
-              <p className="text-xs text-[#886373]/70 mt-1.5">Email không thể thay đổi.</p>
+            {isEditing && (
+              <div className="mt-6 flex flex-col-reverse sm:flex-row gap-3 pt-6 border-t border-[#f4f0f2]">
+                <button
+                  type="button"
+                  onClick={handleCancelEdit}
+                  className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl border border-[#f4f0f2] text-sm font-semibold text-[#886373] hover:bg-[#fbf9fa] transition-colors"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveProfile}
+                  disabled={saving}
+                  className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+                >
+                  {saving ? 'Đang lưu...' : 'Lưu thay đổi'}
+                </button>
+              </div>
+            )}
+          </section>
+
+          {/* Tiến độ học tập */}
+          <section className="bg-white rounded-2xl border border-[#f4f0f2] shadow-sm p-6 sm:p-8 h-full flex flex-col">
+            <h2 className="text-base font-bold text-[#181114] mb-1">Tiến độ tổng</h2>
+            <p className="text-sm text-[#886373] mb-6">Lộ trình JLPT {profile?.levelName || 'N5'} của bạn.</p>
+
+            <div className="flex-1 flex flex-col justify-center space-y-5">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-[#886373]">Hoàn thành khóa học</span>
+                <span className="font-semibold text-[#181114]">
+                  {profile?.completedLessons != null && profile?.totalLessons != null
+                    ? `${profile.completedLessons}/${profile.totalLessons} bài`
+                    : `${progressPercent}%`}
+                </span>
+              </div>
+
+              <div className="h-3 w-full rounded-full bg-[#f4f0f2] overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-500 ${getProgressBarColor(totalOverallPercent)}`}
+                  style={{ width: `${totalOverallPercent}%` }}
+                />
+              </div>
+
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-[#886373]">{totalOverallPercent}% hoàn thành tổng</span>
+                <span className={`font-medium ${totalOverallPercent >= 75 ? 'text-emerald-600' : totalOverallPercent >= 40 ? 'text-amber-600' : 'text-rose-600'}`}>
+                  {getProgressLabel(totalOverallPercent)}
+                </span>
+              </div>
             </div>
-          </div>
-
-          {isEditing && (
-            <div className="mt-6 flex flex-col-reverse sm:flex-row gap-3 pt-6 border-t border-[#f4f0f2]">
-              <button
-                type="button"
-                onClick={handleCancelEdit}
-                className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl border border-[#f4f0f2] text-sm font-semibold text-[#886373] hover:bg-[#fbf9fa] transition-colors"
-              >
-                Hủy
-              </button>
-              <button
-                type="button"
-                onClick={handleSaveProfile}
-                disabled={saving}
-                className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
-              >
-                {saving ? 'Đang lưu...' : 'Lưu thay đổi'}
-              </button>
-            </div>
-          )}
-        </section>
-
-        {/* Tiến độ học tập */}
-        <section className="bg-white rounded-2xl border border-[#f4f0f2] shadow-sm p-6 sm:p-8 h-full flex flex-col">
-          <h2 className="text-base font-bold text-[#181114] mb-1">Tiến độ học tập</h2>
-          <p className="text-sm text-[#886373] mb-6">Lộ trình JLPT {profile?.levelName || 'N5'} của bạn.</p>
-
-          <div className="flex-1 flex flex-col justify-center space-y-5">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-[#886373]">Hoàn thành khóa học</span>
-              <span className="font-semibold text-[#181114]">
-                {profile?.completedLessons != null && profile?.totalLessons != null
-                  ? `${profile.completedLessons}/${profile.totalLessons} bài`
-                  : `${progressPercent}%`}
-              </span>
-            </div>
-
-            <div className="h-3 w-full rounded-full bg-[#f4f0f2] overflow-hidden">
-              <div
-                className={`h-full rounded-full transition-all duration-500 ${getProgressBarColor(progressPercent)}`}
-                style={{ width: `${progressPercent}%` }}
-              />
-            </div>
-
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-[#886373]">{progressPercent}% hoàn thành</span>
-              <span className={`font-medium ${progressPercent >= 75 ? 'text-emerald-600' : progressPercent >= 40 ? 'text-amber-600' : 'text-rose-600'}`}>
-                {getProgressLabel(progressPercent)}
-              </span>
-            </div>
-          </div>
-        </section>
-
+          </section>
         </div>
 
         {/* Thông tin tài khoản */}
@@ -308,7 +317,7 @@ const LearnerProfile: React.FC = () => {
             </div>
             <div className="rounded-xl border border-[#f4f0f2] bg-[#fbf9fa] p-4">
               <p className="text-xs text-[#886373] mb-1">Tiến độ</p>
-              <p className="text-sm font-semibold text-[#181114]">{progressPercent}%</p>
+              <p className="text-sm font-semibold text-[#181114]">{totalOverallPercent}%</p>
             </div>
           </div>
         </section>
