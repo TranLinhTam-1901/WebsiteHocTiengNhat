@@ -40,7 +40,8 @@ const Sidebar: React.FC = () => {
             label="Tổng quan" 
             active={location.pathname === '/admin/dashboard'} 
           />
-
+          <NavItem  to="/admin/resource/course"  icon="school"     label="Khóa Học" active={location.pathname === '/admin/resource/course'} />
+          <NavItem  to="/admin/resource/lesson"  icon="menu_book"  label="Bài Học" active={location.pathname === '/admin/resource/lesson'} />
           {/* Menu đa cấp: Nội dung */}
           <div className="flex flex-col gap-1">
             <button 

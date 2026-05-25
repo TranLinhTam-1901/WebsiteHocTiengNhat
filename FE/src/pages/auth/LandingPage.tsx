@@ -21,14 +21,12 @@ const JQuizLanding: React.FC = () => {
             </h2>
           </div>
           <div className="hidden md:flex items-center gap-8">
-            <a className="text-sm font-medium hover:text-primary transition-colors" href="#">Khóa học</a>
-            <a className="text-sm font-medium hover:text-primary transition-colors" href="#">Cộng đồng</a>
-            <a className="text-sm font-medium hover:text-primary transition-colors" href="#">Bảng giá</a>
+            <Link to="/courses" className="text-sm font-medium hover:text-primary transition-colors">Khóa học</Link>
             
             <Link
               to="/login"
               className="bg-primary hover:bg-[#e07198] text-white px-6 py-2.5 rounded-lg text-sm font-bold transition-all shadow-lg shadow-primary/20">
-              Bắt đầu miễn phí
+              Đăng nhập
             </Link>
           </div>
         </header>
@@ -55,12 +53,12 @@ const JQuizLanding: React.FC = () => {
                   Lộ trình cá nhân từ N5 đến N3. Trắc nghiệm tương tác, lộ trình thông minh và phản hồi AI theo thời gian thực.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4">
-                  <button className="bg-primary hover:bg-[#e07198] text-white px-8 py-4 rounded-xl text-lg font-bold transition-all shadow-xl shadow-primary/30 flex items-center justify-center gap-2">
-                    Bắt đầu miễn phí <span className="material-symbols-outlined">arrow_forward</span>
-                  </button>
-                  <button className="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/30 px-8 py-4 rounded-xl text-lg font-bold transition-all">
-                    Xem demo
-                  </button>
+                  <Link to="/register" className="bg-primary hover:bg-[#e07198] text-white px-8 py-4 rounded-xl text-lg font-bold transition-all shadow-xl shadow-primary/30 flex items-center justify-center gap-2">
+                    Tạo tài khoản miễn phí <span className="material-symbols-outlined">arrow_forward</span>
+                  </Link>
+                  <Link to="/courses" className="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/30 px-8 py-4 rounded-xl text-lg font-bold transition-all flex items-center justify-center gap-2">
+                    Xem khóa học <span className="material-symbols-outlined">school</span>
+                  </Link>
                 </div>
                 <div className="mt-12 flex items-center gap-4 text-sm opacity-80">
                   <div className="flex -space-x-2">
@@ -136,8 +134,8 @@ const JQuizLanding: React.FC = () => {
         {/* FOOTER */}
         <footer className="bg-white border-t border-[#f4f0f2] py-16">
           <div className="container mx-auto px-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-12 mb-16">
-              <div className="col-span-2">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-16">
+              <div className="md:col-span-2">
                 <div className="flex items-center gap-2 mb-6">
                   <div className="size-6 text-primary">
                     <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
@@ -148,10 +146,16 @@ const JQuizLanding: React.FC = () => {
                     <span className="font-bold">JQuiz</span>
                   </span>
                 </div>
-                <p className="text-[#886370] max-w-sm">Đưa việc học tiếng Nhật đến gần hơn — thông minh và hiệu quả cho mọi người.</p>
+                <p className="text-[#886370] max-w-sm">Nền tảng học tiếng Nhật AI-powered giúp bạn chinh phục JLPT một cách hiệu quả và thú vị.</p>
               </div>
-              <FooterColumn title="Sản phẩm" links={['Chương trình', 'Tính năng AI', 'Bảng giá']} />
-              <FooterColumn title="Pháp lý" links={['Chính sách bảo mật', 'Điều khoản dịch vụ', 'Chính sách cookie']} />
+              <div>
+                <h4 className="font-bold mb-6 text-[#181114]">Liên kết nhanh</h4>
+                <ul className="space-y-3 text-sm text-[#886370]">
+                  <li><Link to="/courses" className="hover:text-primary transition-colors">Khóa học</Link></li>
+                  <li><Link to="/login" className="hover:text-primary transition-colors">Đăng nhập</Link></li>
+                  <li><Link to="/register" className="hover:text-primary transition-colors">Đăng ký</Link></li>
+                </ul>
+              </div>
             </div>
             <div className="pt-8 border-t border-[#f4f0f2] flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-[#886370]">
               <p>© 2024 JQuiz AI. Bảo lưu mọi quyền.</p>
@@ -193,17 +197,6 @@ const TestimonialCard = ({ avatar, author, role, text }: { avatar: string; autho
       <p className="text-[#181114] italic mb-2 leading-relaxed">"{text}"</p>
       <p className="text-sm font-bold text-primary">— {author}, {role}</p>
     </div>
-  </div>
-);
-
-const FooterColumn = ({ title, links }: { title: string; links: string[] }) => (
-  <div>
-    <h4 className="font-bold mb-6 text-2xs text-[#181114]">{title}</h4>
-    <ul className="space-y-4 text-sm text-[#886370]">
-      {links.map((link) => (
-        <li key={link}><a className="hover:text-primary transition-colors" href="#">{link}</a></li>
-      ))}
-    </ul>
   </div>
 );
 

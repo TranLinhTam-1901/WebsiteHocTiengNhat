@@ -145,12 +145,12 @@ useEffect(() => {
             active={location.pathname === '/learner/dashboard'} 
              onProtectedNavigate={handleProtectedNavigation}
           />
-          <NavItem 
+          {/* <NavItem 
             to="/learner/profile" 
             icon="person" 
             label="Hồ sơ" 
             active={location.pathname === '/learner/profile'} 
-          />
+          /> */}
 
           <NavItem
             to="/learner/courses"
@@ -255,6 +255,7 @@ useEffect(() => {
             icon="history" 
             label="Lịch sử & Tiến độ" 
             active={location.pathname.startsWith('/learner/history')} 
+            onProtectedNavigate={handleProtectedNavigation}
           />
 
           {/* <NavItem 
@@ -271,6 +272,7 @@ useEffect(() => {
             active={location.pathname === '/learner/ai-tutor'} 
             onProtectedNavigate={handleProtectedNavigation}
           />
+
           <NavItem 
             to="/learner/support" 
             icon="chat" 
@@ -325,58 +327,46 @@ useEffect(() => {
           </div>
         </div>
 
-        {/* Thông tin User & Đăng xuất */}
+        {/* Thông tin User */}
         <div className="mt-auto">
-          <div 
-            className={`bg-[#fbf9fa] p-3 rounded-xl flex items-center justify-between gap-2 border transition-all duration-200
+          <button
+            type="button"
+            onClick={() => navigate('/learner/profile')}
+            className={`w-full bg-[#fbf9fa] p-4 rounded-xl flex items-center gap-3 group border transition-all duration-200 text-left
               ${
                 location.pathname === '/learner/profile'
                   ? 'border-primary bg-primary/5'
-                  : 'border-[#f4f0f2]'
+                  : 'border-[#f4f0f2] hover:bg-white hover:shadow-sm'
               }
             `}
           >
-            {/* Phần thông tin User - Click vào để chuyển hướng sang Profile */}
-            <button
-              type="button"
-              onClick={() => navigate('/learner/profile')}
-              className="flex flex-1 items-center gap-3 overflow-hidden text-left group/user"
-            >
-              {/* Avatar */}
-              <div className="size-9 shrink-0 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary text-sm border-2 border-primary/20 overflow-hidden">
-                {currentUser?.avatarUrl ? (
-                  <img
-                    src={currentUser.avatarUrl}
-                    alt="Avatar"
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  currentUser?.fullName?.charAt(0).toUpperCase() || 'J'
-                )}
-              </div>
+            <div className="size-9 shrink-0 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary text-sm border-2 border-primary/20 overflow-hidden">
+              {currentUser?.avatarUrl ? (
+                <img
+                  src={currentUser.avatarUrl}
+                  alt="Avatar"
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                currentUser?.fullName?.charAt(0).toUpperCase() || 'J'
+              )}
+            </div>
 
-              {/* Tên & Email */}
-              <div className="flex-1 overflow-hidden">
-                <p className="text-xs font-bold truncate text-[#181114] group-hover/user:text-primary transition-colors">
-                  {currentUser?.fullName || 'Học viên'}
-                </p>
-                <p className="text-[10px] text-[#886373] truncate">
-                  {currentUser?.email || email || 'learner@jquiz.vn'}
-                </p>
-              </div>
-            </button>
+            <div className="flex-1 overflow-hidden">
+              <p className="text-xs font-bold truncate text-[#181114]">
+                {currentUser?.fullName || 'Học viên'}
+              </p>
+              <p className="text-[10px] text-[#886373] truncate">
+                {currentUser?.email || email || 'learner@jquiz.vn'}
+              </p>
+            </div>
 
-            {/* Nút Đăng xuất */}
-            <button
-              type="button"
-              onClick={handleLogout}
-              title="Đăng xuất"
-              className="p-2 rounded-lg text-red-500 hover:bg-white hover:shadow-sm hover:text-red-600 transition-all duration-200 flex items-center justify-center shrink-0"
-            >
-              <span className="material-symbols-outlined text-xl">logout</span>
-            </button>
-          </div>
+            <span className="material-symbols-outlined text-[#886373] text-lg group-hover:text-primary transition-colors">
+              chevron_right
+            </span>
+          </button>
         </div>
+
       </div>
     </aside>
   );

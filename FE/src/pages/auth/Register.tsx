@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { registerUser } from '../../store/auth.slice';
 import { authService } from '../../services/authService';
 import { JLPTLevel } from '../../interfaces/auth';
-
+import { toast } from 'react-hot-toast';
 const Register: React.FC = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const { loading, error } = useSelector((state: any) => state.auth);
 
   const [fullName, setFullName] = useState('');
@@ -21,6 +22,21 @@ const Register: React.FC = () => {
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const passwordRules = {
+    minLength: password.length >= 6,
+    hasLetter: /[A-Za-z]/.test(password),
+    hasNumber: /\d/.test(password),
+  };
+
+  const isPasswordValid =
+    passwordRules.minLength &&
+    passwordRules.hasLetter &&
+    passwordRules.hasNumber;
+
+  const isConfirmMatched =
+    confirmPassword.length > 0 &&
+    password === confirmPassword;
 
   // Gọi API lấy dữ liệu khi component mount
   useEffect(() => {
@@ -44,8 +60,8 @@ const Register: React.FC = () => {
     if (name.includes('N5')) suffix = " ・ Sơ cấp cơ bản";
     else if (name.includes('N4')) suffix = " ・ Sơ cấp nâng cao";
     else if (name.includes('N3')) suffix = " ・ Trung cấp mục tiêu";
-    else if (name.includes('N2')) suffix = " ・ Thượng cấp chuyên sâu";
-    else if (name.includes('N1')) suffix = " ・ Cao cấp thành thạo";
+    // else if (name.includes('N2')) suffix = " ・ Thượng cấp chuyên sâu";
+    // else if (name.includes('N1')) suffix = " ・ Cao cấp thành thạo";
 
     return `${name}${suffix}`;
   };
@@ -55,10 +71,32 @@ const Register: React.FC = () => {
     
     // Kiểm tra thêm levelId trước khi gửi
     if (!email || !password || !fullName || !levelId) {
-      alert("Vui lòng điền đầy đủ thông tin và chọn trình độ mục tiêu!");
+      toast.error('Vui lòng điền đầy đủ thông tin và chọn mục tiêu JLPT.',
+      {
+        duration: 3000,
+      }
+  );
+
       return;
     }
 
+    if (!isPasswordValid) {
+      toast.error('Mật khẩu phải có ít nhất 6 ký tự, gồm chữ và số.',
+      {
+        duration: 3500,
+      }
+  );
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      toast.error('Mật khẩu xác nhận chưa khớp.',
+      {
+        duration: 3000,
+      }
+  );
+      return;
+    }
     // Thêm levelId vào payload gửi đi
     const result = await dispatch((registerUser as any)({ 
       email, 
@@ -68,9 +106,31 @@ const Register: React.FC = () => {
     }));
 
     if (result?.meta?.requestStatus === 'fulfilled') {
-      navigate('/login');
+
+    toast.success(
+      'Đăng ký thành công. Hãy đăng nhập để bắt đầu học!',
+      {
+        duration: 2000,
+      }
+    );
+
+    setTimeout(() => {
+      navigate(
+        `/login${location.search}`,
+        {
+          replace: true
+        }
+      );
+
+    }, 1200);
     }
   };
+
+  const loginLink =
+  location.search
+    ? `/login${location.search}`
+    : '/login';
+    
 
   return (
     <div className="flex-1 flex items-center justify-center p-6 md:p-12 bg-white">
@@ -85,9 +145,9 @@ const Register: React.FC = () => {
           <h1 className="text-[#181114] tracking-tight text-3xl font-bold leading-tight text-center">
             Tạo tài khoản JQuiz
           </h1>
-          <p className="text-[#886370] text-sm font-normal leading-normal pt-2 text-center">
+          {/* <p className="text-[#886370] text-sm font-normal leading-normal pt-2 text-center">
             Cá nhân hóa bằng AI bắt đầu ngay khi bạn tham gia.
-          </p>
+          </p> */}
         </div>
 
         <form className="px-8 pb-10 space-y-5" onSubmit={handleSubmit}>
@@ -152,6 +212,43 @@ const Register: React.FC = () => {
             </div>
           </div>
 
+          <div className="mt-3 ml-4 space-y-1">
+
+            <div className={`text-xs flex items-center gap-2 ${
+              passwordRules.minLength
+                ? 'text-emerald-600'
+                : 'text-[#886370]'
+            }`}>
+              <span>
+                {passwordRules.minLength ? '✓' : '○'}
+              </span>
+              Tối thiểu 6 ký tự
+            </div>
+
+            <div className={`text-xs flex items-center gap-2 ${
+              passwordRules.hasLetter
+                ? 'text-emerald-600'
+                : 'text-[#886370]'
+            }`}>
+              <span>
+                {passwordRules.hasLetter ? '✓' : '○'}
+              </span>
+              Có ít nhất 1 chữ cái
+            </div>
+
+            <div className={`text-xs flex items-center gap-2 ${
+              passwordRules.hasNumber
+                ? 'text-emerald-600'
+                : 'text-[#886370]'
+            }`}>
+              <span>
+                {passwordRules.hasNumber ? '✓' : '○'}
+              </span>
+              Có ít nhất 1 chữ số
+            </div>
+
+          </div>
+
           {/* Confirm Password Field */}
           <div className="flex flex-col gap-2">
             <div className="flex justify-between items-center px-4">
@@ -189,6 +286,20 @@ const Register: React.FC = () => {
               </button>
             </div>
           </div>
+
+          {confirmPassword && (
+            <p
+              className={`ml-4 mt-2 text-xs font-bold ${
+                isConfirmMatched
+                  ? 'text-emerald-600'
+                  : 'text-red-500'
+              }`}
+            >
+              {isConfirmMatched
+                ? '✓ Mật khẩu khớp'
+                : '✕ Mật khẩu chưa khớp'}
+            </p>
+          )}
 
           {/* Dropdown Goal Field */}
           <div className="flex flex-col gap-2">
@@ -268,12 +379,12 @@ const Register: React.FC = () => {
           </div>
 
           {/* AI Visual Hint */}
-          <div className="flex items-start gap-3 p-4 bg-primary/5 rounded-lg border border-primary/20">
+          {/* <div className="flex items-start gap-3 p-4 bg-primary/5 rounded-lg border border-primary/20">
             <span className="material-symbols-outlined text-primary text-xl">psychology</span>
             <p className="text-xs text-[#886370] leading-relaxed">
               AI phân tích trình độ xuất phát của bạn để xây lộ trình học phù hợp, kèm ôn tập cách quãng theo tốc độ học của bạn.
             </p>
-          </div>
+          </div> */}
 
           {/* Error Message */}
           {error && (
@@ -295,7 +406,7 @@ const Register: React.FC = () => {
           <div className="text-center pt-2">
             <p className="text-sm text-[#886370]">
               Đã có tài khoản?{' '}
-              <Link className="text-primary font-semibold hover:underline" to="/login">
+              <Link className="text-primary font-semibold hover:underline" to={loginLink}>
                 Quay lại đăng nhập
               </Link>
             </p>

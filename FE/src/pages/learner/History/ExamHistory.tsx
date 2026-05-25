@@ -50,20 +50,11 @@ function FilterPills<T extends string>({ options, value, onChange }: FilterPills
 const getExamTypeConfig = (examType: number) => {
   switch (examType) {
     case 0:
-      return {
-        name: 'JLPT Mock Test',
-        badgeClass: 'bg-primary/10 text-primary',
-      };
+      return 'Đề thi thử JLPT';
     case 1:
-      return {
-        name: 'Skill Practice',
-        badgeClass: 'bg-indigo-50 text-indigo-600',
-      };
+      return 'Luyện kỹ năng';
     case 2:
-      return {
-        name: 'Lesson Practice',
-        badgeClass: 'bg-amber-50 text-amber-600',
-      };
+      return 'Luyện bài học';
     default:
       return {
         name: 'Exam',
@@ -137,14 +128,25 @@ const ExamHistory = () => {
   }, [results, sortBy]);
 
   const totalDone = results.length;
-  const averageScore =
-    results.length > 0
-      ? Math.round(
-          results.reduce((sum, item) => sum + item.score, 0) / results.length
-        )
-      : 0;
-  const totalHours = (results.reduce((s, i) => s + i.timeSpent, 0) / 3600).toFixed(1);
-  const passedCount = results.filter((item) => item.isPassed === true).length;
+
+  const jlptResults = results.filter(r => r.examType === 0);
+ const averageScore =
+  jlptResults.length > 0
+    ? Math.round(
+        jlptResults.reduce(
+          (sum, item) => sum + item.score,
+          0
+        ) / jlptResults.length
+      )
+    : '-';
+
+  const totalSeconds = results.reduce(
+    (sum, item) => sum + item.timeSpent,
+    0
+  );
+
+  const totalHours = (totalSeconds / 3600).toFixed(1);
+
 
   const getResultPath = (item: ExamResultListItemDTO) => {
     if (item.examType === 0) {
@@ -215,21 +217,44 @@ const ExamHistory = () => {
                   <span className="text-[10px] font-bold text-[#886373]">
                     ({sortedResults.length})
                   </span>
-                )}
-              </div>
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-                <FilterPills
-                  options={EXAM_TYPE_FILTERS}
-                  value={examTypeFilter}
-                  onChange={setExamTypeFilter}
-                />
-                <FilterPills
-                  options={SORT_OPTIONS}
-                  value={sortBy}
-                  onChange={setSortBy}
-                />
+                  <select
+                    value={examTypeFilter}
+                    onChange={(e) => setExamTypeFilter(e.target.value)}
+                    className="bg-transparent border-none text-xs font-bold text-[#181114] cursor-pointer p-0 pr-6 outline-none uppercase"
+                  >
+                    <option value="all">Tất cả</option>
+                    <option value="0">Đề thi thử JLPT</option>
+                    <option value="1">Luyện kỹ năng</option>
+                    <option value="2">Luyện bài học</option>
+                  </select>
+                </div>
               </div>
             </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <StatCard
+              icon="quiz"
+              label="Tổng bài đã làm"
+              value={totalDone}
+              iconColorClass="text-primary"
+              bgColorClass="bg-primary/10"
+            />
+            <StatCard
+              icon="trending_up"
+              label="Điểm trung bình (JLPT)"
+              value={averageScore}
+              iconColorClass="text-emerald-600"
+              bgColorClass="bg-emerald-50"
+            />
+            <StatCard
+              icon="timer"
+              label="Tổng thời gian"
+              value={`${totalHours} giờ`}
+              iconColorClass="text-amber-600"
+              bgColorClass="bg-amber-50"
+            />
+          </div>
 
             {loading ? (
               <div className="py-20 flex flex-col items-center gap-4">
@@ -361,17 +386,42 @@ const ExamHistory = () => {
                               >
                                 {typeConfig.name}
                               </span>
-                              {item.isPassed != null && (
-                                <span
-                                  className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase shrink-0 ${
-                                    item.isPassed
-                                      ? 'bg-emerald-50 text-emerald-700'
-                                      : 'bg-rose-50 text-rose-700'
-                                  }`}
-                                >
-                                  {item.isPassed ? 'Đạt' : 'Chưa đạt'}
-                                </span>
+                              <p className="text-sm font-bold text-[#181114] group-hover:text-primary transition-colors">
+                                {item.examTitle}
+                              </p>
+                            </div>
+                          </td>
+
+                         <td className="px-8 py-5">
+                            <div className="flex flex-col gap-1">
+
+                              {/* Chỉ hiện điểm với JLPT */}
+                              {item.examType === 0 && (
+                                <>
+                                  <p className="text-sm font-black text-[#181114]">
+                                    {item.score.toFixed(2)} điểm
+                                  </p>
+
+                                  {item.isPassed !== null &&
+                                    item.isPassed !== undefined && (
+                                      <span
+                                        className={`w-fit px-2 py-0.5 rounded-full text-[10px] font-black ${
+                                          item.isPassed
+                                            ? 'bg-emerald-50 text-emerald-700'
+                                            : 'bg-rose-50 text-rose-700'
+                                        }`}
+                                      >
+                                        {item.isPassed ? 'Đạt' : 'Chưa đạt'}
+                                      </span>
+                                    )}
+                                </>
                               )}
+
+                              {/* Luôn hiện số câu đúng */}
+                              <p className="text-xs font-bold text-[#886373]">
+                                Đúng {item.correctAnswers}/{item.totalQuestions} câu · {accuracy}%
+                              </p>
+
                             </div>
                             <p className="text-sm font-bold text-[#181114] truncate group-hover:text-primary transition-colors">
                               {item.examTitle}
