@@ -12,8 +12,8 @@ using QuizzTiengNhat.Models;
 namespace QuizzTiengNhat.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260524150004_TEST")]
-    partial class TEST
+    [Migration("20260525181209_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -1058,14 +1058,8 @@ namespace QuizzTiengNhat.Migrations
                     b.Property<Guid>("CourseID")
                         .HasColumnType("uuid");
 
-                    b.Property<int>("Difficulty")
-                        .HasColumnType("integer");
-
                     b.Property<Guid?>("JLPT_LevelLevelID")
                         .HasColumnType("uuid");
-
-                    b.Property<int>("SkillType")
-                        .HasColumnType("integer");
 
                     b.Property<int>("SortOrder")
                         .HasColumnType("integer")

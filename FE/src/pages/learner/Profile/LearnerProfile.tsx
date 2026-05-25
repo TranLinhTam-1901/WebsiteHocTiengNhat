@@ -1,15 +1,16 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import LearnerHeader from '../../../components/layout/learner/LearnerHeader';
 import { LearnerProfileService } from '../../../services/Learner/learnerProfileService';
 import dashboardService from '../../../services/Learner/progressService';
 import { User } from '../../../interfaces/User';
-import { useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
 import { logout } from '../../../store/auth.slice';
 import { AppDispatch } from '../../../store';
-import dashboardService from '../../../services/Learner/progressService';
-import { DashboardProgressResponse } from '../../../interfaces/Learner/Dashboard';
+
 const LearnerProfile: React.FC = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
   const [profile, setProfile] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -21,12 +22,6 @@ const LearnerProfile: React.FC = () => {
   /** Tiến độ tổng (bài + thi + điểm + flashcard), đồng bộ dashboard */
   const [totalOverallPercent, setTotalOverallPercent] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const hasPendingChanges = isEditing || previewImage !== null;
-  const [dashboardData, setDashboardData] = useState<DashboardProgressResponse | null>(null);
-
-  const totalPercent = dashboardData?.totalPercent ?? 0;
-  const currentLevelName = dashboardData?.currentLevelName ?? profile?.levelName ?? 'N5';
 
   useEffect(() => {
     fetchProfile();
@@ -56,9 +51,7 @@ const LearnerProfile: React.FC = () => {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-
         const imageData = reader.result as string;
-        
         setPreviewImage(imageData);
         setEditData((prev) => ({ ...prev, avatarUrl: imageData }));
       };
@@ -91,6 +84,11 @@ const LearnerProfile: React.FC = () => {
     setIsEditing(false);
     setPreviewImage(null);
     setEditData(profile ?? {});
+  };
+
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate('/login', { replace: true });
   };
 
   const getLevelColor = (levelName?: string) => {
@@ -332,6 +330,22 @@ const LearnerProfile: React.FC = () => {
               <p className="text-xs text-[#886373] mb-1">Tiến độ</p>
               <p className="text-sm font-semibold text-[#181114]">{totalOverallPercent}%</p>
             </div>
+          </div>
+
+          <div className="mt-6 pt-6 border-t border-[#f4f0f2] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <p className="text-sm font-semibold text-[#181114]">Phiên đăng nhập</p>
+              <p className="text-xs text-[#886373] mt-0.5">Đăng xuất khỏi tài khoản trên thiết bị này.</p>
+            </div>
+            <button
+              type="button"
+              onClick={handleLogout}
+              title="Đăng xuất"
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border border-rose-100 text-red-500 text-sm font-semibold hover:bg-rose-50 transition-colors shrink-0 self-start sm:self-auto"
+            >
+              <span className="material-symbols-outlined text-[18px]">logout</span>
+              Đăng xuất
+            </button>
           </div>
         </section>
 

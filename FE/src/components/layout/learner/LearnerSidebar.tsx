@@ -251,10 +251,10 @@ useEffect(() => {
           />
 
           <NavItem 
-            to="/learner/history" 
+            to="/learner/exams/history" 
             icon="history" 
             label="Lịch sử & Tiến độ" 
-            active={location.pathname.startsWith('/learner/history')} 
+            active={location.pathname.startsWith('/learner/exams/history')} 
             onProtectedNavigate={handleProtectedNavigation}
           />
 
