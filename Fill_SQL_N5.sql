@@ -4420,6 +4420,16 @@ END $$;
 
 BEGIN;
 
+-- 1. LEVEL / COURSE / LESSON DUY NHẤT
+INSERT INTO public."JLPT_Levels" ("LevelID", "LevelName") VALUES
+('91e47292-b3eb-5965-9d01-45f9b3681fc6', 'N5 TEST');
+
+INSERT INTO public."Courses" ("CourseID", "CourseName", "Description", "LevelID") VALUES
+('72f02178-3772-5e5e-86f0-f897bbab39cc', 'Khóa N5 Mock Test Seed', 'Course duy nhất phục vụ test fill cấu trúc đề JLPT N5.', '91e47292-b3eb-5965-9d01-45f9b3681fc6');
+
+INSERT INTO public."Lessons" ("LessonID", "CourseID", "Title", "SkillType", "Difficulty", "Priority") VALUES
+('bdff3452-6099-5556-ba16-1cb8673e726c', '72f02178-3772-5e5e-86f0-f897bbab39cc', 'Bài seed tổng hợp JLPT N5', 0, 1, 1);
+
 -- 2. DỮ LIỆU BẢNG CON KỸ NĂNG (tạo nếu bảng/cột đúng như schema hiện tại)
 DO $$
 DECLARE

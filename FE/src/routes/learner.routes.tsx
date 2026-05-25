@@ -20,10 +20,8 @@ import DeckDetailPage from '../pages/learner/Flashcards/DeckDetailPage';
 import DeckCreatePage from '../pages/learner/Flashcards/DeckCreatePage';
 // History
 import ExamHistory from '../pages/learner/History/ExamHistory';
-// Quiz
-import Exam from '../pages/learner/Exam/ExamDetailPage';
 // import Practice from '../pages/learner/Exam/Practice';
-import Result from '../pages/learner/Exam/Result';
+import Result from '../pages/learner/Exam/Skills/Result';
 // Chat Support
 import LearnerChatPage from '../pages/learner/Support/LearnerChatPage';
 // Courses (học theo khóa)
@@ -36,7 +34,7 @@ import StudyVocabularyListPage from '../pages/learner/StudyResource/Vocabulary/V
 import StudyVocabularyDetailPage from '../pages/learner/StudyResource/Vocabulary/VocabularyDetailPage';
 import StudyKanjiListPage from '../pages/learner/StudyResource/Kanji/KanjiListPage';
 import StudyKanjiDetailPage from '../pages/learner/StudyResource/Kanji/KanjiDetailPage';
-import ExamDetailPage from '../pages/learner/Exam/ExamDetailPage';
+import ExamDetailPage from '../pages/learner/Exam/Skills/ExamDetailPage';
 //JLPT Exam
 import JLPTExamListPage from '../pages/learner/Exam/JLPT/JLPTExamListPage';
 import JLPTExamSummaryPage from '../pages/learner/Exam/JLPT/JLPTExamSummaryPage';

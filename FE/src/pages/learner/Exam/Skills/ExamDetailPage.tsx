@@ -1,11 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import LearnerHeader from '../../../components/layout/learner/LearnerHeader';
-import { LearnerExamService } from '../../../services/Learner/examService';
-import { AnswerOptionDTO, ExamDisplayDTO, ExamTreeItemDTO, QuestionDisplayDTO, UserAnswerSelectionDTO } from '../../../interfaces/Learner/Exam';
+import LearnerHeader from '../../../../components/layout/learner/LearnerHeader';
+import { LearnerExamService } from '../../../../services/Learner/examService';
+import { AnswerOptionDTO, ExamDisplayDTO, ExamTreeItemDTO, QuestionDisplayDTO, UserAnswerSelectionDTO } from '../../../../interfaces/Learner/Exam';
 import { toast } from 'react-hot-toast';
-import { getSkillHubConfig, SkillHubConfig } from './Skills/skillHubTheme';
-import { resolveMediaUrl } from '../../../utils/resolveMediaUrl';
+import { getSkillHubConfig, SkillHubConfig } from './skillHubTheme';
+import { resolveMediaUrl } from '../../../../utils/resolveMediaUrl';
 
 const OPTION_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
 
@@ -197,6 +197,12 @@ const ExamDetailPage = () => {
   }, [exam]);
 
   const useListeningFlow = isListeningMode && realQuestions.length > 0;
+  const useSectionFlow = realQuestions.length > 0;
+
+  const navQuestions = useMemo(
+    () => realQuestions.map((item) => item.question),
+    [realQuestions],
+  );
 
   const questionStartRef = useRef<Record<string, number>>({});
   const questionPanelRef = useRef<HTMLDivElement>(null);
@@ -242,26 +248,27 @@ const ExamDetailPage = () => {
   useEffect(() => {
     if (!exam) return;
 
-    if (useListeningFlow) {
-      const item = realQuestions[currentIndex];
-      if (!item) return;
-      const qid = item.question.questionID;
-      if (!questionStartRef.current[qid]) {
-        questionStartRef.current[qid] = Date.now();
-      }
-      return;
+    const item = realQuestions[currentIndex];
+    if (!item) return;
+
+    const qid = item.question.questionID;
+    if (!questionStartRef.current[qid]) {
+      questionStartRef.current[qid] = Date.now();
     }
 
-    const currentQuestion = exam.questions[currentIndex];
-    if (!currentQuestion) return;
-    const allInCurrent = [currentQuestion.questionID, ...currentQuestion.subQuestions.map((sq) => sq.questionID)];
+    if (!useSectionFlow) return;
+
+    const allInCurrent = [
+      item.question.questionID,
+      ...item.question.subQuestions.map((sq) => sq.questionID),
+    ];
     const now = Date.now();
-    allInCurrent.forEach((qid) => {
-      if (!questionStartRef.current[qid]) {
-        questionStartRef.current[qid] = now;
+    allInCurrent.forEach((id) => {
+      if (!questionStartRef.current[id]) {
+        questionStartRef.current[id] = now;
       }
     });
-  }, [exam, currentIndex, useListeningFlow, realQuestions]);
+  }, [exam, currentIndex, useSectionFlow, realQuestions]);
 
   const getElapsedSeconds = (questionID: string) => {
     const start = questionStartRef.current[questionID] ?? Date.now();
@@ -282,26 +289,23 @@ const ExamDetailPage = () => {
     }));
   };
 
-  const isQuestionAnswered = (question: QuestionDisplayDTO) => {
-    if (userAnswers[question.questionID]?.selectedAnswerID) return true;
-    return question.subQuestions.some((sq) => !!userAnswers[sq.questionID]?.selectedAnswerID);
-  };
-
   const isListeningQuestionAnswered = (questionID: string) =>
     !!userAnswers[questionID]?.selectedAnswerID;
 
   const totalQuestionCount = useMemo(() => {
     if (!exam) return 0;
-    return useListeningFlow ? realQuestions.length : exam.questions.length;
-  }, [exam, useListeningFlow, realQuestions.length]);
+    return useSectionFlow ? realQuestions.length : 0;
+  }, [exam, useSectionFlow, realQuestions.length]);
 
   const answeredCount = useMemo(() => {
     if (!exam) return 0;
-    if (useListeningFlow) {
-      return realQuestions.filter((item) => isListeningQuestionAnswered(item.question.questionID)).length;
+    if (useSectionFlow) {
+      return realQuestions.filter((item) =>
+        isListeningQuestionAnswered(item.question.questionID),
+      ).length;
     }
-    return exam.questions.filter(isQuestionAnswered).length;
-  }, [exam, userAnswers, useListeningFlow, realQuestions]);
+    return 0;
+  }, [exam, userAnswers, useSectionFlow, realQuestions]);
 
   /** Nộp bài buộc khi hết giờ — không kiểm tra đủ câu, gửi tất cả đáp án đã chọn */
   const handleForceSubmit = async () => {
@@ -480,14 +484,13 @@ const ExamDetailPage = () => {
     );
   }
 
-  const currentListeningItem = useListeningFlow ? realQuestions[currentIndex] : null;
+  const currentListeningItem = useSectionFlow ? realQuestions[currentIndex] : null;
   const parentQuestion = currentListeningItem?.parentQuestion ?? null;
-  const currentQuestion = useListeningFlow
-    ? currentListeningItem?.question
-    : exam.questions[currentIndex];
-  const navQuestions = useListeningFlow
-    ? realQuestions.map((item) => item.question)
-    : exam.questions;
+  const currentQuestion = currentListeningItem?.question ?? null;
+  const readingPassageContent =
+    parentQuestion?.type === 'Reading'
+      ? parentQuestion.content
+      : currentQuestion?.readingContent;
 
   if (!currentQuestion) {
     return (
@@ -623,9 +626,9 @@ const ExamDetailPage = () => {
                     </div>
                   )}
 
-                  {currentQuestion.readingContent ? (
+                  {readingPassageContent ? (
                     <article className="whitespace-pre-wrap rounded-xl border border-[#e8e2e6] bg-[#faf9fa] px-6 py-6 text-[16px] leading-[2.1] text-[#2e2230]">
-                      {currentQuestion.readingContent}
+                      {readingPassageContent}
                     </article>
                   ) : (
                     <div className="rounded-xl border border-dashed border-[#d8d0d5] bg-[#faf9fa] px-6 py-16 text-center text-sm text-[#9a8890]">
@@ -653,7 +656,7 @@ const ExamDetailPage = () => {
             {passageSplitLayout && (
               useListeningFlow && parentQuestion
                 ? (parentQuestion.content || parentQuestion.audioUrl || parentQuestion.script || currentQuestion.imageURL)
-                : (currentQuestion.readingContent || currentQuestion.audioURL)
+                : (readingPassageContent || currentQuestion.audioURL)
             ) && (
               <div className="mb-5 lg:hidden">
                 <details className="overflow-hidden rounded-2xl border border-[#e8e2e6] bg-white shadow-sm">
@@ -684,7 +687,7 @@ const ExamDetailPage = () => {
                           <audio controls className="mb-3 w-full" src={resolveMediaUrl(currentQuestion.audioURL)} />
                         )}
                         <p className="whitespace-pre-wrap text-sm leading-[1.9] text-[#3d2f36]">
-                          {currentQuestion.readingContent}
+                          {readingPassageContent}
                         </p>
                       </>
                     )}
@@ -695,10 +698,8 @@ const ExamDetailPage = () => {
 
             {/* Mobile: question nav pills */}
             <div className="mb-5 flex gap-1.5 overflow-x-auto pb-1 scrollbar-none lg:hidden">
-              {navQuestions.map((q, i) => {
-                const answered = useListeningFlow
-                  ? isListeningQuestionAnswered(q.questionID)
-                  : isQuestionAnswered(q);
+              {navQuestions.map((q: QuestionDisplayDTO, i: number) => {
+                const answered = isListeningQuestionAnswered(q.questionID);
                 return (
                 <button
                   key={q.questionID}
@@ -761,7 +762,7 @@ const ExamDetailPage = () => {
               {/* Sub-questions (reading / grouped questions — not used in listening flow) */}
               {!useListeningFlow && currentQuestion.subQuestions?.length > 0 && (
                 <div className="mt-9 space-y-9 border-t border-[#ede7eb] pt-9">
-                  {currentQuestion.subQuestions.map((subQ, subIndex) => (
+                  {currentQuestion.subQuestions.map((subQ: QuestionDisplayDTO, subIndex: number) => (
                     <div key={subQ.questionID}>
                       {/* Sub-question header */}
                       <div className="mb-5 flex items-start gap-3">
@@ -897,10 +898,8 @@ const ExamDetailPage = () => {
                 Danh sách câu
               </p>
               <div className="grid grid-cols-5 gap-1.5">
-                {navQuestions.map((q, i) => {
-                  const answered = useListeningFlow
-                    ? isListeningQuestionAnswered(q.questionID)
-                    : isQuestionAnswered(q);
+                {navQuestions.map((q: QuestionDisplayDTO, i: number) => {
+                  const answered = isListeningQuestionAnswered(q.questionID);
                   return (
                   <button
                     key={q.questionID}

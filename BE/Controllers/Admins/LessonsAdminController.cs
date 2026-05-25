@@ -35,7 +35,7 @@ namespace QuizzTiengNhat.Controllers.Admins
                         title = l.Title,
                         skillType = l.SkillType,
                         difficulty = l.Difficulty,
-                        priority = l.Priority,
+                        priority = l.SortOrder,
                         questionCount = l.Questions.Count
                     })
                     .OrderBy(l => l.priority)
@@ -68,7 +68,7 @@ namespace QuizzTiengNhat.Controllers.Admins
                         title = l.Title,
                         skillType = l.SkillType,
                         difficulty = l.Difficulty,
-                        priority = l.Priority,
+                        priority = l.SortOrder,
                         questionCount = l.Questions.Count
                     })
                     .OrderBy(l => l.priority)
@@ -108,7 +108,7 @@ namespace QuizzTiengNhat.Controllers.Admins
                         title = lesson.Title,
                         skillType = lesson.SkillType,
                         difficulty = lesson.Difficulty,
-                        priority = lesson.Priority,
+                        priority = lesson.SortOrder,
                         topics = lesson.LessonTopics.Select(lt => new
                         {
                             topicID = lt.TopicID,
@@ -149,7 +149,7 @@ namespace QuizzTiengNhat.Controllers.Admins
                     Title = dto.Title,
                     SkillType = dto.SkillType,
                     Difficulty = dto.Difficulty,
-                    Priority = dto.Priority
+                    SortOrder = dto.Priority
                 };
 
                 _context.Lessons.Add(lesson);
@@ -189,7 +189,7 @@ namespace QuizzTiengNhat.Controllers.Admins
                 lesson.Title = dto.Title;
                 lesson.SkillType = dto.SkillType;
                 lesson.Difficulty = dto.Difficulty;
-                lesson.Priority = dto.Priority;
+                lesson.SortOrder = dto.Priority;
 
                 await _context.SaveChangesAsync();
                 return Ok(new { success = true, message = "Cập nhật bài học thành công" });
