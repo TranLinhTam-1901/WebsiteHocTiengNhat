@@ -9,9 +9,9 @@ import LearnerDashboard from '../pages/learner/Dashboard/Home';
 import SkillPracticeListPage from '../pages/learner/Exam/Skills/SkillPracticeListPage';
 import SkillHubPage from '../pages/learner/Exam/Skills/SkillHubPage';
 
-import PracticeResultPage from '../pages/learner/Skills/PracticeResultPage';
-import SkillFilterPage from '../pages/learner/Skills/SkillFilterPage';
-import SkillPracticeView from '../pages/learner/Skills/SkillPracticeView';
+// import PracticeResultPage from '../pages/learner/Skills/PracticeResultPage';
+// import SkillFilterPage from '../pages/learner/Skills/SkillFilterPage';
+// import SkillPracticeView from '../pages/learner/Skills/SkillPracticeView';
 import LearnerProfile from '../pages/learner/Profile/LearnerProfile';
 // Flashcards
 import DeckListPage from '../pages/learner/Flashcards/DeckListPage';
@@ -54,8 +54,8 @@ export const learnerRoutes: RouteObject = {
     { path: 'courses/:courseId', element: <CourseDetailPage /> },
     { path: 'lessons/:lessonId/learn', element: <LessonLearnPage /> },
     { path: 'profile', element: <LearnerProfile /> },
-    { path: 'history', element: <ExamHistory /> },
-     // Exam(Lesson)
+    // { path: 'history', element: <ExamHistory /> },
+    //  // Exam(Lesson)
     { path: 'quiz/exam/:id', element: <ExamDetailPage /> },
     { path: 'quiz/result/:resultId', element: <Result /> },
     // JLPT Mock Test

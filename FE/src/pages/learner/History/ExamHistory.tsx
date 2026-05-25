@@ -4,50 +4,19 @@ import LearnerHeader from '../../../components/layout/learner/LearnerHeader';
 import { LearnerExamService } from '../../../services/Learner/examService';
 import { ExamResultListItemDTO } from '../../../interfaces/Learner/Exam';
 
-const EXAM_TYPE_FILTERS = [
-  { value: 'all', label: 'Tất cả' },
-  { value: '0', label: 'JLPT' },
-  { value: '1', label: 'Kỹ năng' },
-  { value: '2', label: 'Bài học' },
-] as const;
-
-const SORT_OPTIONS = [
-  { value: 'latest', label: 'Mới nhất' },
-  { value: 'score', label: 'Điểm cao' },
-  { value: 'time', label: 'Thời gian' },
-] as const;
-
-type FilterPillsProps<T extends string> = {
-  options: readonly { value: T; label: string }[];
-  value: T;
-  onChange: (value: T) => void;
-};
-
-function FilterPills<T extends string>({ options, value, onChange }: FilterPillsProps<T>) {
-  return (
-    <div className="inline-flex flex-wrap gap-1 p-0.5 bg-[#fbf9fa] rounded-lg border border-[#f4f0f2]">
-      {options.map((opt) => {
-        const active = value === opt.value;
-        return (
-          <button
-            key={opt.value}
-            type="button"
-            onClick={() => onChange(opt.value)}
-            className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-colors whitespace-nowrap ${
-              active
-                ? 'bg-white text-primary shadow-sm'
-                : 'text-[#886373] hover:text-[#534248]'
-            }`}
-          >
-            {opt.label}
-          </button>
-        );
-      })}
+const StatCard = ({ icon, label, value, iconColorClass, bgColorClass }: any) => (
+  <div className="bg-white p-6 rounded-2xl border border-[#f4f0f2] shadow-sm flex items-center gap-4">
+    <div className={`size-12 rounded-full ${bgColorClass} flex items-center justify-center`}>
+      <span className={`material-symbols-outlined ${iconColorClass}`}>{icon}</span>
     </div>
-  );
-}
+    <div>
+      <p className="text-[10px] text-[#886373] font-bold uppercase tracking-widest">{label}</p>
+      <p className="text-2xl font-black text-[#181114] leading-tight">{value}</p>
+    </div>
+  </div>
+);
 
-const getExamTypeConfig = (examType: number) => {
+const getExamTypeName = (examType: number) => {
   switch (examType) {
     case 0:
       return 'Đề thi thử JLPT';
@@ -56,32 +25,27 @@ const getExamTypeConfig = (examType: number) => {
     case 2:
       return 'Luyện bài học';
     default:
-      return {
-        name: 'Exam',
-        badgeClass: 'bg-[#fbf9fa] text-[#886373]',
-      };
+      return 'Exam';
   }
 };
 
-const formatDate = (value: string) =>
-  new Date(value).toLocaleDateString('vi-VN', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  });
+const formatDate = (value: string) => {
+  const date = new Date(value);
+  return date.toLocaleDateString('vi-VN');
+};
 
-const formatTime = (value: string) =>
-  new Date(value).toLocaleTimeString('vi-VN', {
+const formatTime = (value: string) => {
+  const date = new Date(value);
+  return date.toLocaleTimeString('vi-VN', {
     hour: '2-digit',
     minute: '2-digit',
   });
+};
 
 const formatDuration = (seconds: number) => {
   const mm = Math.floor(seconds / 60);
   const ss = seconds % 60;
-  if (mm === 0) return `${ss}s`;
-  if (ss === 0) return `${mm} phút`;
-  return `${mm}p ${ss}s`;
+  return `${mm}:${ss.toString().padStart(2, '0')} phút`;
 };
 
 const ExamHistory = () => {
@@ -96,11 +60,14 @@ const ExamHistory = () => {
     const loadHistory = async () => {
       try {
         setLoading(true);
+
         const params =
           examTypeFilter === 'all'
             ? undefined
             : { examType: Number(examTypeFilter) };
+
         const data = await LearnerExamService.getMyExamResults(params);
+
         setResults(data);
       } catch (error) {
         console.error('Không tải được lịch sử làm bài:', error);
@@ -118,12 +85,15 @@ const ExamHistory = () => {
     if (sortBy === 'score') {
       return copied.sort((a, b) => b.score - a.score);
     }
+
     if (sortBy === 'time') {
       return copied.sort((a, b) => b.timeSpent - a.timeSpent);
     }
+
     return copied.sort(
       (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        new Date(b.createdAt).getTime() -
+        new Date(a.createdAt).getTime()
     );
   }, [results, sortBy]);
 
@@ -149,73 +119,68 @@ const ExamHistory = () => {
 
 
   const getResultPath = (item: ExamResultListItemDTO) => {
-    if (item.examType === 0) {
-      return `/learner/exams/jlpt-exams/result/${item.resultID}`;
-    }
-    return `/learner/quiz/result/${item.resultID}`;
+  if (item.examType === 0) {
+    return `/learner/exams/jlpt-exams/result/${item.resultID}`;
+  }
+  return `/learner/quiz/result/${item.resultID}`;
   };
 
-  const stats = [
-    { icon: 'quiz', label: 'Bài đã làm', value: totalDone, color: 'text-primary', bg: 'bg-primary/10' },
-    { icon: 'trending_up', label: 'Điểm TB', value: averageScore, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-    { icon: 'timer', label: 'Tổng giờ', value: `${totalHours}h`, color: 'text-amber-600', bg: 'bg-amber-50' },
-    { icon: 'verified', label: 'Đạt yêu cầu', value: passedCount, color: 'text-sky-600', bg: 'bg-sky-50' },
-  ];
-
   return (
-    <div className="flex flex-col h-full bg-[#fbf9fa]">
+    <div className="flex flex-col h-full bg-background-light">
       <LearnerHeader>
         <div className="flex flex-col">
           <h2 className="text-[#181114] text-xl font-bold tracking-tight uppercase">
             Lịch sử kiểm tra
           </h2>
+          <nav className="flex text-[10px] text-[#886373] font-medium gap-1 uppercase tracking-wider">
+            <span>Học tập</span> /{' '}
+            <span className="text-primary font-bold">
+              Lịch sử bài làm
+            </span>
+          </nav>
         </div>
       </LearnerHeader>
 
       <main className="flex-1 overflow-y-auto">
-        <div className="max-w-5xl mx-auto px-6 md:px-8 py-6 md:py-8 space-y-6">
-          {/* Page title */}
-          <div>
-            <h1 className="text-2xl md:text-3xl font-black text-[#181114] tracking-tight">
-              Kết quả học tập
-            </h1>
-            <p className="text-[#886373] text-sm md:text-base font-medium mt-1">
-              Xem lại toàn bộ bài kiểm tra bạn đã hoàn thành.
-            </p>
-          </div>
+        <div className="p-8 max-w-7xl mx-auto space-y-8">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div className="flex flex-col gap-1">
+              <h1 className="text-[#181114] text-3xl font-black tracking-tight uppercase">
+                Kết quả học tập
+              </h1>
+              <p className="text-[#886373] text-lg font-medium">
+                Theo dõi toàn bộ lịch sử làm bài của bạn.
+              </p>
+            </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-            {stats.map((s) => (
-              <div
-                key={s.label}
-                className="bg-white rounded-2xl border border-[#f4f0f2] p-4 md:p-5 flex items-center gap-3 md:gap-4"
-              >
-                <div className={`size-10 md:size-11 rounded-xl ${s.bg} flex items-center justify-center shrink-0`}>
-                  <span className={`material-symbols-outlined text-xl ${s.color}`}>{s.icon}</span>
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[9px] md:text-[10px] font-black text-[#886373] uppercase tracking-wider truncate">
-                    {s.label}
-                  </p>
-                  <p className="text-xl md:text-2xl font-black text-[#181114] leading-tight">
-                    {s.value}
-                  </p>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 bg-white px-4 py-2.5 rounded-2xl border border-[#f4f0f2] shadow-sm">
+                <span className="material-symbols-outlined text-[18px] text-primary">
+                  filter_list
+                </span>
+                <div className="flex flex-col">
+                  <span className="text-[9px] uppercase font-black text-[#bcaab2] leading-none tracking-wider">
+                    Sắp xếp
+                  </span>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="bg-transparent border-none text-xs font-bold text-[#181114] cursor-pointer p-0 pr-6 outline-none uppercase"
+                  >
+                    <option value="latest">Ngày gần nhất</option>
+                    <option value="score">Điểm cao nhất</option>
+                    <option value="time">Thời gian làm bài</option>
+                  </select>
                 </div>
               </div>
-            ))}
-          </div>
 
-          {/* Results */}
-          <div className="bg-white rounded-2xl border border-[#f4f0f2] overflow-hidden">
-            <div className="px-4 md:px-5 py-3 border-b border-[#f4f0f2] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
-              <div className="flex items-center gap-2 shrink-0">
-                <h2 className="text-sm font-black text-[#181114] uppercase tracking-wider">
-                  Danh sách bài làm
-                </h2>
-                {!loading && (
-                  <span className="text-[10px] font-bold text-[#886373]">
-                    ({sortedResults.length})
+              <div className="flex items-center gap-3 bg-white px-4 py-2.5 rounded-2xl border border-[#f4f0f2] shadow-sm">
+                <span className="material-symbols-outlined text-[18px] text-primary">
+                  school
+                </span>
+                <div className="flex flex-col">
+                  <span className="text-[9px] uppercase font-black text-[#bcaab2] leading-none tracking-wider">
+                    Loại bài
                   </span>
                   <select
                     value={examTypeFilter}
@@ -256,135 +221,71 @@ const ExamHistory = () => {
             />
           </div>
 
-            {loading ? (
-              <div className="py-20 flex flex-col items-center gap-4">
-                <div className="size-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-                <p className="text-xs font-bold text-[#886373] uppercase tracking-wider">
-                  Đang tải...
-                </p>
-              </div>
-            ) : sortedResults.length === 0 ? (
-              <div className="py-16 px-6 flex flex-col items-center gap-4 text-center">
-                <div className="size-16 rounded-2xl bg-[#fbf9fa] flex items-center justify-center">
-                  <span className="material-symbols-outlined text-4xl text-[#bcaab2]">
-                    inventory_2
-                  </span>
-                </div>
-                <div>
-                  <p className="text-base font-black text-[#181114]">Chưa có bài làm nào</p>
-                  <p className="text-sm text-[#886373] mt-1">
-                    Hoàn thành bài kiểm tra để xem kết quả tại đây.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => navigate('/learner/exams')}
-                  className="mt-1 inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-white text-xs font-bold hover:bg-primary/90 transition-colors"
-                >
-                  <span className="material-symbols-outlined text-base">play_arrow</span>
-                  Làm bài ngay
-                </button>
-              </div>
-            ) : (
-              <>
-                {/* Desktop table header */}
-                <div className="hidden md:grid md:grid-cols-[140px_1fr_120px_100px_100px] gap-4 px-6 py-3 bg-[#fbf9fa] border-b border-[#f4f0f2]">
-                  {['Ngày', 'Bài kiểm tra', 'Kết quả', 'Thời gian', ''].map((col) => (
-                    <span
-                      key={col || 'action'}
-                      className="text-[10px] font-black text-[#886373] uppercase tracking-wider"
-                    >
-                      {col}
-                    </span>
-                  ))}
-                </div>
+          <div className="bg-white rounded-2xl overflow-hidden border border-[#f4f0f2] shadow-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-[#fbf9fa] border-b border-[#f4f0f2]">
+                    <th className="px-8 py-5 text-[10px] font-bold text-[#886373] uppercase tracking-[0.2em]">
+                      Ngày thực hiện
+                    </th>
+                    <th className="px-8 py-5 text-[10px] font-bold text-[#886373] uppercase tracking-[0.2em]">
+                      Tên bài kiểm tra
+                    </th>
+                    <th className="px-8 py-5 text-[10px] font-bold text-[#886373] uppercase tracking-[0.2em]">
+                      Kết quả
+                    </th>
+                    <th className="px-8 py-5 text-[10px] font-bold text-[#886373] uppercase tracking-[0.2em]">
+                      Thời gian
+                    </th>
+                    <th className="px-8 py-5 text-[10px] font-bold text-[#886373] uppercase tracking-[0.2em] text-right">
+                      Hành động
+                    </th>
+                  </tr>
+                </thead>
 
-                <div className="divide-y divide-[#f4f0f2]">
-                  {sortedResults.map((item) => {
-                    const typeConfig = getExamTypeConfig(item.examType);
-                    const accuracy =
-                      item.totalQuestions > 0
-                        ? Math.round(
-                            (item.correctAnswers / item.totalQuestions) * 100
-                          )
-                        : 0;
+                <tbody>
+                  {loading ? (
+                    <tr>
+                      <td colSpan={5} className="px-8 py-10 text-center text-[#886373] font-bold">
+                        Đang tải lịch sử làm bài...
+                      </td>
+                    </tr>
+                  ) : sortedResults.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-8 py-10 text-center text-[#886373] font-bold">
+                        Chưa có lịch sử làm bài.
+                      </td>
+                    </tr>
+                  ) : (
+                    sortedResults.map((item) => {
+                      const accuracy =
+                        item.totalQuestions > 0
+                          ? Math.round(
+                              (item.correctAnswers /
+                                item.totalQuestions) *
+                                100
+                            )
+                          : 0;
 
-                    return (
-                      <div
-                        key={item.resultID}
-                        className="group px-5 md:px-6 py-4 md:py-5 hover:bg-[#fbf9fa]/60 transition-colors"
-                      >
-                        {/* Mobile layout */}
-                        <div className="md:hidden space-y-3">
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="min-w-0 flex-1">
-                              <div className="flex items-center gap-2 flex-wrap mb-1.5">
-                                <span
-                                  className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase ${typeConfig.badgeClass}`}
-                                >
-                                  {typeConfig.name}
-                                </span>
-                                {item.isPassed != null && (
-                                  <span
-                                    className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase ${
-                                      item.isPassed
-                                        ? 'bg-emerald-50 text-emerald-700'
-                                        : 'bg-rose-50 text-rose-700'
-                                    }`}
-                                  >
-                                    {item.isPassed ? 'Đạt' : 'Chưa đạt'}
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-sm font-black text-[#181114] leading-snug">
-                                {item.examTitle}
-                              </p>
-                            </div>
-                            <p className="text-lg font-black text-primary shrink-0">
-                              {item.score.toFixed(1)}
-                            </p>
-                          </div>
-                          <div className="flex items-center justify-between text-[11px] font-bold text-[#886373]">
-                            <span>
-                              {formatDate(item.createdAt)} · {formatTime(item.createdAt)}
-                            </span>
-                            <span>
-                              {item.correctAnswers}/{item.totalQuestions} câu · {accuracy}%
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-[11px] font-bold text-[#886373] flex items-center gap-1">
-                              <span className="material-symbols-outlined text-sm">schedule</span>
-                              {formatDuration(item.timeSpent)}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => navigate(getResultPath(item))}
-                              className="text-xs font-bold text-primary flex items-center gap-0.5"
-                            >
-                              Xem lại
-                              <span className="material-symbols-outlined text-sm">chevron_right</span>
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Desktop layout */}
-                        <div className="hidden md:grid md:grid-cols-[140px_1fr_120px_100px_100px] md:items-center gap-4">
-                          <div>
+                      return (
+                        <tr
+                          key={item.resultID}
+                          className="hover:bg-[#fbf9fa] transition-colors border-b border-[#f4f0f2] last:border-0 group"
+                        >
+                          <td className="px-8 py-5">
                             <p className="text-sm font-bold text-[#181114]">
                               {formatDate(item.createdAt)}
                             </p>
-                            <p className="text-[11px] text-[#886373] font-medium mt-0.5">
+                            <p className="text-[10px] text-[#886373] font-medium uppercase">
                               {formatTime(item.createdAt)}
                             </p>
-                          </div>
+                          </td>
 
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span
-                                className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase shrink-0 ${typeConfig.badgeClass}`}
-                              >
-                                {typeConfig.name}
+                          <td className="px-8 py-5">
+                            <div className="flex items-center gap-3">
+                              <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-primary/10 text-primary border border-primary/20">
+                                {getExamTypeName(item.examType)}
                               </span>
                               <p className="text-sm font-bold text-[#181114] group-hover:text-primary transition-colors">
                                 {item.examTitle}
@@ -423,42 +324,39 @@ const ExamHistory = () => {
                               </p>
 
                             </div>
-                            <p className="text-sm font-bold text-[#181114] truncate group-hover:text-primary transition-colors">
-                              {item.examTitle}
-                            </p>
-                          </div>
+                          </td>
 
-                          <div>
-                            <p className="text-base font-black text-[#181114]">
-                              {item.score.toFixed(1)}
-                              <span className="text-[10px] font-bold text-[#886373] ml-0.5">đ</span>
-                            </p>
-                            <p className="text-[10px] font-bold text-[#886373] mt-0.5">
-                              {item.correctAnswers}/{item.totalQuestions} · {accuracy}%
-                            </p>
-                          </div>
+                          <td className="px-8 py-5">
+                            <span className="text-xs font-bold text-[#886373] uppercase tracking-wider">
+                              {formatDuration(item.timeSpent)}
+                            </span>
+                          </td>
 
-                          <p className="text-xs font-bold text-[#886373]">
-                            {formatDuration(item.timeSpent)}
-                          </p>
-
-                          <div className="text-right">
+                          <td className="px-8 py-5 text-right">
                             <button
-                              type="button"
-                              onClick={() => navigate(getResultPath(item))}
-                              className="inline-flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-bold text-primary bg-primary/10 hover:bg-primary hover:text-white transition-colors"
+                               onClick={() => navigate(getResultPath(item))
+                              }
+                              className="inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:underline group/btn"
                             >
                               Xem lại
-                              <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                              <span className="material-symbols-outlined text-[18px] group-hover/btn:translate-x-0.5 transition-transform">
+                                arrow_forward
+                              </span>
                             </button>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </>
-            )}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="px-8 py-4 bg-[#fbf9fa] flex items-center justify-between border-t border-[#f4f0f2]">
+              <p className="text-[10px] font-bold text-[#886373] uppercase tracking-wider">
+                Hiển thị {sortedResults.length} bài làm
+              </p>
+            </div>
           </div>
         </div>
       </main>

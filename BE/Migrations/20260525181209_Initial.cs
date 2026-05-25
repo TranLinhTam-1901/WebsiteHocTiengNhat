@@ -489,8 +489,6 @@ namespace QuizzTiengNhat.Migrations
                     LessonID = table.Column<Guid>(type: "uuid", nullable: false),
                     CourseID = table.Column<Guid>(type: "uuid", nullable: false),
                     Title = table.Column<string>(type: "text", nullable: false),
-                    SkillType = table.Column<int>(type: "integer", nullable: false),
-                    Difficulty = table.Column<int>(type: "integer", nullable: false),
                     Priority = table.Column<int>(type: "integer", nullable: false),
                     JLPT_LevelLevelID = table.Column<Guid>(type: "uuid", nullable: true)
                 },
