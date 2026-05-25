@@ -8,6 +8,10 @@ import LearnerDashboard from '../pages/learner/Dashboard/Home';
 // Skill Learning
 import SkillPracticeListPage from '../pages/learner/Exam/Skills/SkillPracticeListPage';
 import SkillHubPage from '../pages/learner/Exam/Skills/SkillHubPage';
+
+import PracticeResultPage from '../pages/learner/Skills/PracticeResultPage';
+import SkillFilterPage from '../pages/learner/Skills/SkillFilterPage';
+import SkillPracticeView from '../pages/learner/Skills/SkillPracticeView';
 import LearnerProfile from '../pages/learner/Profile/LearnerProfile';
 // Flashcards
 import DeckListPage from '../pages/learner/Flashcards/DeckListPage';

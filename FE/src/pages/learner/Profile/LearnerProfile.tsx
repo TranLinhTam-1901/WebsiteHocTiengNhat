@@ -3,7 +3,12 @@ import LearnerHeader from '../../../components/layout/learner/LearnerHeader';
 import { LearnerProfileService } from '../../../services/Learner/learnerProfileService';
 import dashboardService from '../../../services/Learner/progressService';
 import { User } from '../../../interfaces/User';
-
+import { useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { logout } from '../../../store/auth.slice';
+import { AppDispatch } from '../../../store';
+import dashboardService from '../../../services/Learner/progressService';
+import { DashboardProgressResponse } from '../../../interfaces/Learner/Dashboard';
 const LearnerProfile: React.FC = () => {
   const [profile, setProfile] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -16,6 +21,12 @@ const LearnerProfile: React.FC = () => {
   /** Tiến độ tổng (bài + thi + điểm + flashcard), đồng bộ dashboard */
   const [totalOverallPercent, setTotalOverallPercent] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const hasPendingChanges = isEditing || previewImage !== null;
+  const [dashboardData, setDashboardData] = useState<DashboardProgressResponse | null>(null);
+
+  const totalPercent = dashboardData?.totalPercent ?? 0;
+  const currentLevelName = dashboardData?.currentLevelName ?? profile?.levelName ?? 'N5';
 
   useEffect(() => {
     fetchProfile();
@@ -45,7 +56,9 @@ const LearnerProfile: React.FC = () => {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
+
         const imageData = reader.result as string;
+        
         setPreviewImage(imageData);
         setEditData((prev) => ({ ...prev, avatarUrl: imageData }));
       };
