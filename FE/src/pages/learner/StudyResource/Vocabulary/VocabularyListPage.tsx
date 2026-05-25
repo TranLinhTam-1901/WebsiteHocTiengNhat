@@ -100,7 +100,7 @@ const StudyVocabularyListPage: React.FC = () => {
   return (
     <div className="flex flex-col h-full bg-background-light font-display text-[#181114]">
       <LearnerHeader>
-        <div className="flex items-center gap-4 w-full flex-wrap">
+        <div className="flex items-center gap-240 w-full flex-wrap">
           <div className="flex items-center gap-4 flex-1 min-w-[200px]">
             <h2 className="text-xl font-bold text-[#181114]">TỪ VỰNG</h2>
           </div>

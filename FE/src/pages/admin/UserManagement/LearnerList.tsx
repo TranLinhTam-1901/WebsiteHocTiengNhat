@@ -3,33 +3,29 @@ import AdminHeader from '../../../components/layout/admin/AdminHeader';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../../../store'; 
 import { fetchUsers, toggleUserLock, updateUserRole } from '../../../store/admin.slice';
-import { User } from '../../../interfaces/User';
-import  adminService  from '../../../services/Admin/adminService';
+import adminService from '../../../services/Admin/adminService';
 import { DashboardProgressResponse } from '../../../interfaces/Admin/ProgressDetail';
+import { User } from '../../../interfaces/User';
 
 const ROLE_OPTIONS = [
-  { value: 'Learner', label: 'Học viên' },
   { value: 'Admin', label: 'Quản trị viên' },
+  { value: 'Learner', label: 'Học viên' },
 ] as const;
 
-function normalizeRole(role: string | undefined): string {
-  const r = role?.trim() || '';
-  if (r.toLowerCase() === 'admin') return 'Admin';
-  if (r.toLowerCase() === 'learner') return 'Learner';
-  return ROLE_OPTIONS.some((o) => o.value === r) ? r : 'Learner';
-}
+const normalizeRole = (role: string): string =>
+  role === 'Admin' ? 'Admin' : 'Learner';
 
-function isAdminUser(u: User): boolean {
-  return normalizeRole(u.role) === 'Admin';
-}
+const isAdminUser = (user: User): boolean =>
+  normalizeRole(user.role) === 'Admin';
 
-function matchesUserSearch(u: User, query: string): boolean {
+const matchesUserSearch = (user: User, query: string): boolean => {
   const q = query.trim().toLowerCase();
   if (!q) return true;
-  const name = u.fullName?.toLowerCase() ?? '';
-  const email = u.email?.toLowerCase() ?? '';
-  return name.includes(q) || email.includes(q);
-}
+  return (
+    user.fullName?.toLowerCase().includes(q) ||
+    user.email?.toLowerCase().includes(q)
+  );
+};
 
 const LearnerList: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -198,7 +194,7 @@ const LearnerList: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm text-slate-500 font-medium">Tiến độ trung bình</p>
-                {/* <h3 className="text-2xl font-bold">{totalProgress}%</h3> */}
+                <h3 className="text-2xl font-bold">{totalProgress}%</h3>
               </div>
             </div>
           </div>
@@ -207,7 +203,6 @@ const LearnerList: React.FC = () => {
         {/* Main Table - Giữ nguyên h-172 */}
         <div className="flex-1 overflow-hidden mt-8">
           <div className="bg-white rounded-2xl border border-[#f4f0f2] shadow-sm overflow-hidden flex flex-col h-172">
-
             <div className="overflow-hidden flex-1 no-scrollbar">
               <table className="w-full text-left border-collapse table-fixed">
                 <thead className='h-15'>
@@ -338,132 +333,6 @@ const LearnerList: React.FC = () => {
                   )}
                 </tbody>
               </table>
-            {isModalOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-    
-            <div className="bg-white w-full max-w-2xl rounded-2xl p-6 shadow-2xl relative">
-
-              {/* Nút đóng */}
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="absolute top-4 right-4 text-slate-500 hover:text-red-500"
-              >
-                ✕
-              </button>
-
-              <h2 className="text-xl font-bold mb-6">
-                Chi tiết tiến độ học viên
-              </h2>
-             <div className="space-y-4"> 
-                {/* Lesson */}
-                <div className="p-4 bg-zinc-50 rounded-xl border border-zinc-100">
-                  <div className="flex justify-between mb-2">
-                    <span className="text-xs font-bold text-[#181114]">
-                      📚 BÀI HỌC (35%)
-                    </span>
-
-                    <span className="text-xs font-bold text-primary">
-                      {selectedProgress?.courseProgress.percentage}%
-                    </span>
-                  </div>
-
-                  <div className="w-full bg-zinc-200 h-2 rounded-full overflow-hidden">
-                    <div
-                      className="bg-primary h-full"
-                      style={{
-                        width: `${selectedProgress?.courseProgress.percentage}%`
-                      }}
-                    />
-                  </div>
-
-                  <p className="text-[10px] text-slate-500 mt-2 italic">
-                    Hoàn thành {selectedProgress?.courseProgress.completed}/
-                    {selectedProgress?.courseProgress.total} bài học.
-                  </p>
-                </div>
-
-                {/* Exam Pass */}
-                <div className="p-4 bg-zinc-50 rounded-xl border border-zinc-100">
-                  <div className="flex justify-between mb-2">
-                    <span className="text-xs font-bold text-[#181114]">
-                      ✅ Bài thi luyện tập (35%)
-                    </span>
-
-                    <span className="text-xs font-bold text-emerald-600">
-                      {selectedProgress?.examProgress?.passRate}%
-                    </span>
-                  </div>
-
-                  <div className="w-full bg-zinc-200 h-2 rounded-full overflow-hidden">
-                    <div
-                      className="bg-emerald-500 h-full"
-                      style={{
-                        width: `${selectedProgress?.examProgress?.passRate}%`
-                      }}
-                    />
-                  </div>
-
-                  <p className="text-[10px] text-slate-500 mt-2 italic">
-                    Đã vượt qua {selectedProgress?.examProgress?.passedExams}/
-                    {selectedProgress?.examProgress?.totalExams} bài luyện tập.
-                  </p>
-                </div>
-
-                {/* Average Score */}
-                <div className="p-4 bg-zinc-50 rounded-xl border border-zinc-100">
-                  <div className="flex justify-between mb-2">
-                    <span className="text-xs font-bold text-[#181114]">
-                      📊 ĐIỂM TRUNG BÌNH (20%)
-                    </span>
-
-                    <span className="text-xs font-bold text-blue-600">
-                      {selectedProgress?.examProgress?.averageScore}/10
-                    </span>
-                  </div>
-
-                  <div className="w-full bg-zinc-200 h-2 rounded-full overflow-hidden">
-                    <div
-                      className="bg-blue-500 h-full"
-                      style={{
-                       width: `${(selectedProgress?.examProgress?.averageScore || 0) * 10}%`
-                      }}
-                    />
-                  </div>
-
-                  <p className="text-[10px] text-slate-500 mt-2 italic">
-                    Điểm trung bình các bài thi đã làm.
-                  </p>
-                </div>
-
-                {/* Flashcard */}
-                <div className="p-4 bg-zinc-50 rounded-xl border border-zinc-100">
-                  <div className="flex justify-between mb-2">
-                    <span className="text-xs font-bold text-[#181114]">
-                      💎 FLASHCARD (10%)
-                    </span>
-
-                    <span className="text-xs font-bold text-amber-600">
-                      {selectedProgress?.skillProgress.percentage}%
-                    </span>
-                  </div>
-
-                  <div className="w-full bg-zinc-200 h-2 rounded-full overflow-hidden">
-                    <div
-                      className="bg-amber-500 h-full"
-                      style={{
-                        width: `${selectedProgress?.skillProgress.percentage}%`
-                      }}
-                    />
-                  </div>
-
-                  <p className="text-[10px] text-slate-500 mt-2 italic">
-                    Đã ghi nhớ {selectedProgress?.skillProgress.completed}/
-                    {selectedProgress?.skillProgress.total} flashcard.
-                  </p>
-                </div>
-              </div>
-              </div>
-              </div>)}
             </div>
 
             {/* Pagination Footer */}
@@ -483,8 +352,6 @@ const LearnerList: React.FC = () => {
           </div>
         </div>
       </div>
-
-
     </div>
   );
 };

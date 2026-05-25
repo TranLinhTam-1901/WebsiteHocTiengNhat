@@ -96,6 +96,7 @@ namespace QuizzTiengNhat.DTOs.Learner
     {
         public Guid QuestionID { get; set; }
         public string Content { get; set; } = string.Empty;
+        public string? ImageURL { get; set; }
         public List<AnswerOptionDTO> Options { get; set; } = new List<AnswerOptionDTO>();
     }
 

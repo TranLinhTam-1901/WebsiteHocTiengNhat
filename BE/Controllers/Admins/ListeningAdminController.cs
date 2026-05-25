@@ -204,6 +204,10 @@ namespace QuizzTiengNhat.Controllers.Admins
                 {
                     listening.AudioURL = await FileHelper.SaveBase64Image(dto.AudioURL, "listening-audios", $"audio_{id}", _env.WebRootPath);
                 }
+                else if (!string.IsNullOrEmpty(dto.AudioURL))
+                {
+                    listening.AudioURL = FileHelper.NormalizeStoredMediaPath(dto.AudioURL) ?? listening.AudioURL;
+                }
 
                 listening.Title = dto.Title;
                 listening.Script = dto.Script;
@@ -232,7 +236,7 @@ namespace QuizzTiengNhat.Controllers.Admins
                     for (int i = 0; i < dto.Questions.Count; i++)
                     {
                         var qDto = dto.Questions[i];
-                        string currentImagePath = qDto.ImageURL;
+                        string? currentImagePath = FileHelper.NormalizeStoredMediaPath(qDto.ImageURL);
                         if (!string.IsNullOrEmpty(qDto.ImageURL) && qDto.ImageURL.StartsWith("data:"))
                         {
                             currentImagePath = await FileHelper.SaveBase64Image(qDto.ImageURL, "listening-questions", $"q_{id}_{i}", _env.WebRootPath);

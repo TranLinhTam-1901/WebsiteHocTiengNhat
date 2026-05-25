@@ -63,7 +63,7 @@ namespace QuizzTiengNhat.Controllers.Auth
             var user = await _userManager.FindByEmailAsync(dto.Email);
 
             if (user == null || !await _userManager.CheckPasswordAsync(user, dto.Password))
-                return Unauthorized();
+                return Unauthorized(new { message = "Email hoặc mật khẩu không đúng." });
 
             if (await _userManager.IsLockedOutAsync(user))
             {

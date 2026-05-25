@@ -208,6 +208,13 @@ app.UseStaticFiles(new StaticFileOptions
     OnPrepareResponse = ctx => {
         ctx.Context.Response.Headers.Append("Access-Control-Allow-Origin", "*");
         ctx.Context.Response.Headers.Append("Accept-Ranges", "bytes");
+
+        var physicalPath = ctx.File.PhysicalPath ?? string.Empty;
+        if (physicalPath.Contains("listening-audios", StringComparison.OrdinalIgnoreCase)
+            || physicalPath.Contains("vocab-audios", StringComparison.OrdinalIgnoreCase))
+        {
+            ctx.Context.Response.ContentType = "audio/mpeg";
+        }
     }
 });
 

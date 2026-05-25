@@ -4,10 +4,10 @@ import {
   ExamReviewQuestionDTO,
   ExamReviewTreeItemDTO,
   SubmitExamResultDTO,
-} from '../../../interfaces/Learner/Exam';
-import { LearnerExamService } from '../../../services/Learner/examService';
-import LearnerHeader from '../../../components/layout/learner/LearnerHeader';
-import { getSkillHubConfig } from './Skills/skillHubTheme';
+} from '../../../../interfaces/Learner/Exam';
+import { LearnerExamService } from '../../../../services/Learner/examService';
+import LearnerHeader from '../../../../components/layout/learner/LearnerHeader';
+import { getSkillHubConfig } from './skillHubTheme';
 
 const OPTION_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
 

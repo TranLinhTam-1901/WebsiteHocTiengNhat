@@ -155,7 +155,7 @@ const JLPTExamSummaryPage: React.FC = () => {
                                 </p>
                             </div>
 
-                            <div className="size-20 rounded-[2rem] bg-primary/10 flex items-center justify-center text-primary shadow-lg shadow-primary/5">
+                            <div className="size-20 rounded-4xl bg-primary/10 flex items-center justify-center text-primary shadow-lg shadow-primary/5">
                                 <span className="material-symbols-outlined text-5xl">
                                     school
                                 </span>
