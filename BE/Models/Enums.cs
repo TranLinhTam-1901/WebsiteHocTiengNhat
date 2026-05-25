@@ -46,13 +46,13 @@ namespace QuizzTiengNhat.Models.Enums
     public enum QuestionType
     {
         MultipleChoice = 0,
-        FillInBlank = 1,
-        Ordering = 2,
-        Synonym = 3,
-        Usage = 4,
-        TextCompletion = 5,
-        ListeningComp = 6,  // Nghe hiểu
-        ReadingComp = 7     // Đọc hiểu
+        Ordering = 1, // Sắp xếp câu (Dạng bài dấu sao ★ cực kỳ quan trọng)
+        // FillInBlank = 1,      
+        // Synonym = 3,
+        // Usage = 4,
+        // TextCompletion = 5,
+        // ListeningComp = 6,  // Nghe hiểu
+        // ReadingComp = 7     // Đọc hiểu
     }
 
     // Định nghĩa trạng thái
@@ -63,6 +63,14 @@ namespace QuizzTiengNhat.Models.Enums
         Archived = 2
     }
 
+    public enum QuestionFormat
+    {
+        StandardChoice = 0,     // Câu hỏi trắc nghiệm thông thường
+        StarSentence = 1,       // Câu hỏi có dấu ★ (文の組み立て - JLPT N1/N2)
+        Passage = 2,            // Đọc đoạn văn (Reading comprehension)
+        AudioChoice = 3         // Câu hỏi nghe (Audio-based multiple choice)
+    }
+
     public enum ExamType
     {
         MockTest = 0,    // Đề thi thử JLPT chuẩn (Theo cấu trúc Template)
@@ -70,4 +78,16 @@ namespace QuizzTiengNhat.Models.Enums
         SkillPractice = 2   // Luyện tập chuyên sâu kỹ năng (Theo QuestionType)
     }
 
+    public enum CourseTimelineItemType
+    {
+        Lesson = 0,
+        Exam = 1
+    }
+
+    public enum SessionStatus
+    {
+        InProgress = 0, // Đang làm
+        Submitted = 1, // Đã submit
+        Abandoned = 2 // Bỏ dở
+    }
 }

@@ -1,3 +1,4 @@
+-- Active: 1775385514712@@127.0.0.1@8080@Japanese
 -------------------------------------------------------
 -- 0. DỌN DẸP VÀ CẤU HÌNH RÀNG BUỘC
 -------------------------------------------------------
@@ -24,6 +25,8 @@ BEGIN
     -- 2. Reset dữ liệu bao gồm cả các bảng mới bổ sung
     -- Thứ tự bảng trong TRUNCATE không quan trọng khi dùng CASCADE, nhưng liệt kê đủ là cần thiết
     EXECUTE 'TRUNCATE TABLE 
+        "UserAnswerHistories", "Exam_Result_Details", "Exam_Results", "Exam_Questions", "Exams",
+        "ExamTemplateDetails", "ExamTemplates", "User_Skill_Matrices",
         "Answers", "Questions", "Questions_Topics",
         "VocabularyKanjis", "VocabWordTypes", "Vocabularies", 
         "Grammars", "GrammarGroups", "Kanjis", "RadicalVariants", "Radicals", "WordTypes",
@@ -180,6 +183,7 @@ END $$;
 -------------------------------------------------------
 -- 2. KHỞI TẠO DANH MỤC HỆ THỐNG (LEVELS, COURSES, TYPES)
 -------------------------------------------------------
+
 DO $$
 DECLARE 
     -- 1. ID cố định cho Levels
@@ -3994,9 +3998,9 @@ BEGIN
 
     -- Câu hỏi 1 cho bài 1
     q_id := gen_random_uuid();
-    INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
-    VALUES (q_id, '家族は何人ですか？ (Gia đình có mấy người?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
-	
+    INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "QuestionFormat", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
+    VALUES (q_id, '家族は何人ですか？ (Gia đình có mấy người?)', 0, 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
+
 	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
     
     INSERT INTO "Answers" ("AnswerID", "QuestionID", "AnswerText", "IsCorrect") VALUES 
@@ -4008,8 +4012,8 @@ BEGIN
 
     -- Câu hỏi 2 cho bài 1
     q_id := gen_random_uuid();
-	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
-    VALUES (q_id, 'お母さんの仕事は何ですか？ (Công việc của mẹ là gì?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
+	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "QuestionFormat", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
+    VALUES (q_id, 'お母さんの仕事は何ですか？ (Công việc của mẹ là gì?)', 0, 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
 
 	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
 	
@@ -4036,8 +4040,8 @@ BEGIN
 
     -- Câu hỏi 1 cho bài 2
     q_id := gen_random_uuid();
-	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
-    VALUES (q_id, '何時に起きますか？ (Thức dậy lúc mấy giờ?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
+	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "QuestionFormat", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
+    VALUES (q_id, '何時に起きますか？ (Thức dậy lúc mấy giờ?)', 0, 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
 
 	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
 	
@@ -4049,8 +4053,9 @@ BEGIN
 
     -- Câu hỏi 2 cho bài 2
     q_id := gen_random_uuid();
-	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
-    VALUES (q_id, '学校へ行きますか？ (Có đi đến trường không?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
+	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "QuestionFormat", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
+    VALUES (q_id, '学校へ行きますか？ (Có đi đến trường không?)', 0, 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
+
 
 	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
 	
@@ -4077,8 +4082,9 @@ BEGIN
 
     -- Câu hỏi 1 cho bài 3
     q_id := gen_random_uuid();
-	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
-    VALUES (q_id, '時計はどこにありますか？ (Cái đồng hồ ở đâu?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
+	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "QuestionFormat", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
+    VALUES (q_id, '時計はどこにありますか？ (Cái đồng hồ ở đâu?)', 0, 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
+
 
 	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
 	
@@ -4090,8 +4096,9 @@ BEGIN
 
     -- Câu hỏi 2 cho bài 3
     q_id := gen_random_uuid();
-	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
-    VALUES (q_id, '学生は何人いますか？ (Có bao nhiêu học sinh?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
+	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "QuestionFormat", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
+    VALUES (q_id, '学生は何人いますか？ (Có bao nhiêu học sinh?)', 0, 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
+
 
 	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
 	
@@ -4118,8 +4125,9 @@ BEGIN
 
     -- Câu hỏi 1 cho bài 4
     q_id := gen_random_uuid();
-	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
-    VALUES (q_id, '趣味は何ですか？ (Sở thích là gì?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
+	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "QuestionFormat", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
+    VALUES (q_id, '趣味は何ですか？ (Sở thích là gì?)', 0, 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
+
 
 	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
 	
@@ -4131,8 +4139,9 @@ BEGIN
 
     -- Câu hỏi 2 cho bài 4
 	q_id := gen_random_uuid();
-	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
-    VALUES (q_id, '休みの日にどこへ行きますか？ (Ngày nghỉ đi đâu?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
+	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "QuestionFormat", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
+    VALUES (q_id, '休みの日にどこへ行きますか？ (Ngày nghỉ đi đâu?)', 0, 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
+
 
 	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
 	
@@ -4159,8 +4168,9 @@ BEGIN
 
     -- Câu hỏi 1 cho bài 5
     q_id := gen_random_uuid();
-	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
-    VALUES (q_id, '何が大好きですか？ (Thích cái gì nhất?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
+	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "QuestionFormat", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
+    VALUES (q_id, '何が大好きですか？ (Thích cái gì nhất?)', 0, 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
+
 
 	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
 	
@@ -4172,8 +4182,8 @@ BEGIN
 
     -- Câu hỏi 2 cho bài 5
     q_id := gen_random_uuid();
-	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
-    VALUES (q_id, 'だれと食べましたか？ (Đã ăn cùng với ai?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
+	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "QuestionFormat", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
+    VALUES (q_id, 'だれと食べましたか？ (Đã ăn cùng với ai?)', 0, 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
 
 	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
 	
@@ -4200,8 +4210,8 @@ BEGIN
 
     -- Câu hỏi 1 bài 6
     q_id := gen_random_uuid();
-	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
-    VALUES (q_id, '今日の天気はどうですか？ (Thời tiết hôm nay thế nào?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
+	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "QuestionFormat", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
+    VALUES (q_id, '今日の天気はどうですか？ (Thời tiết hôm nay thế nào?)', 0, 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
 
 	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
 	
@@ -4213,8 +4223,8 @@ BEGIN
 
     -- Câu hỏi 2 bài 6
     q_id := gen_random_uuid();
-        INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
-    VALUES (q_id, '明日の天気は何ですか？ (Thời tiết ngày mai là gì?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
+        INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "QuestionFormat", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
+    VALUES (q_id, '明日の天気は何ですか？ (Thời tiết ngày mai là gì?)', 0, 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
 
 	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
 	
@@ -4241,8 +4251,8 @@ BEGIN
 
     -- Câu hỏi 1 bài 7
     q_id := gen_random_uuid();
-	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
-    VALUES (q_id, '何を買いましたか？ (Đã mua cái gì?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
+	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "QuestionFormat", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
+    VALUES (q_id, '何を買いましたか？ (Đã mua cái gì?)', 0, 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
 
 	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
 	
@@ -4254,8 +4264,8 @@ BEGIN
 
     -- Câu hỏi 2 bài 7
     q_id := gen_random_uuid();
-	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
-    VALUES (q_id, '全部でいくらでしたか？ (Tổng cộng bao nhiêu tiền?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
+	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "QuestionFormat", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
+    VALUES (q_id, '全部でいくらでしたか？ (Tổng cộng bao nhiêu tiền?)', 0, 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
 
 	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
 	
@@ -4282,8 +4292,8 @@ BEGIN
 
     -- Câu hỏi 1 bài 8
     q_id := gen_random_uuid();
-	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
-    VALUES (q_id, 'どんな家ですか？ (Ngôi nhà như thế nào?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
+	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "QuestionFormat", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
+    VALUES (q_id, 'どんな家ですか？ (Ngôi nhà như thế nào?)', 0, 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
 
 	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
 	
@@ -4295,8 +4305,8 @@ BEGIN
 
     -- Câu hỏi 2 bài 8
     q_id := gen_random_uuid();
-	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
-    VALUES (q_id, '庭に何がありますか？ (Ở sân có cái gì?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
+	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "QuestionFormat", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
+    VALUES (q_id, '庭に何がありますか？ (Ở sân có cái gì?)', 0, 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
 
 	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
 	
@@ -4323,8 +4333,8 @@ BEGIN
 
     -- Câu hỏi 1 bài 9
     q_id := gen_random_uuid();
-	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
-    VALUES (q_id, '土曜日にどこへ行きますか？ (Thứ Bảy đi đâu?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
+	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "QuestionFormat", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
+    VALUES (q_id, '土曜日にどこへ行きますか？ (Thứ Bảy đi đâu?)', 0, 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
 
 	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
 	
@@ -4336,8 +4346,8 @@ BEGIN
 
     -- Câu hỏi 2 bài 9
     q_id := gen_random_uuid();
-	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
-    VALUES (q_id, '日曜日は何をしますか？ (Chủ Nhật làm gì?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
+	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "QuestionFormat", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
+    VALUES (q_id, '日曜日は何をしますか？ (Chủ Nhật làm gì?)', 0, 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
 
 	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
 	INSERT INTO "Answers" ("AnswerID", "QuestionID", "AnswerText", "IsCorrect") VALUES 
@@ -4363,8 +4373,8 @@ BEGIN
 
     -- Câu hỏi 1 bài 10
     q_id := gen_random_uuid();
-	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
-    VALUES (q_id, 'どのくらい勉強しましたか？ (Đã học được bao lâu rồi?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
+	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "QuestionFormat", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
+    VALUES (q_id, 'どのくらい勉強しましたか？ (Đã học được bao lâu rồi?)', 0, 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
 
 	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
 	
@@ -4376,8 +4386,8 @@ BEGIN
 
     -- Câu hỏi 2 bài 10
     q_id := gen_random_uuid();
-	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
-    VALUES (q_id, '漢字はどうですか？ (Chữ Hán thì thế nào?)', 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
+	INSERT INTO "Questions" ("QuestionID", "Content", "QuestionType", "QuestionFormat", "SkillType", "Difficulty", "Status", "LessonID", "ReadingID", "ListeningID", "CreatedAt", "UpdatedAt")
+    VALUES (q_id, '漢字はどうですか？ (Chữ Hán thì thế nào?)', 0, 0, 4, 1, 1, l_id, r_id, NULL, NOW(), NOW());
 
 	INSERT INTO temp_new_q_ids (id_vua_tao) VALUES (q_id);
 	
@@ -4396,19 +4406,604 @@ BEGIN
 
 END $$;
 
--- -- Thay UserID tương ứng của ông vào
-DELETE FROM "FlashcardDecks" WHERE "UserID" = '2aed63c2-ce50-4194-a9af-2fafa255df5a';
+-- =========================================================
+-- SEED TEST JLPT N5 MOCK TEST
+-- Mục tiêu: reset dữ liệu test và tạo 1 Level N5 + 1 Course + 1 Lesson + 1 đề JLPT đầy đủ.
+-- Enum dùng theo hệ thống hiện tại:
+-- SkillType: Vocabulary=1, Grammar=2, Kanji=3, Reading=4, Listening=5
+-- QuestionType: MultipleChoice=0
+-- QuestionFormat: StandardChoice=0, StarSentence=1, Passage=2, AudioChoice=3
+-- Status: Published=1
+-- ExamType: MockTest=0
+-- Lưu ý: AudioURL/ImageURL của Listening đang để rỗng để bạn tự cập nhật sau.
+-- =========================================================
 
-TRUNCATE TABLE "Kanjis" RESTART IDENTITY CASCADE;
-TRUNCATE TABLE "Radicals" RESTART IDENTITY CASCADE;
-TRUNCATE TABLE "RadicalVariants" RESTART IDENTITY CASCADE;
+BEGIN;
 
--------------------------------------------------------
--- SELECT VD
--------------------------------------------------------
-SELECT * FROM "GrammarGroups"
-WHERE "VocabID" = '014415d9-f006-4558-9a09-f4dcdee4a742';
+-- 1. LEVEL / COURSE / LESSON DUY NHẤT
+INSERT INTO public."JLPT_Levels" ("LevelID", "LevelName") VALUES
+('91e47292-b3eb-5965-9d01-45f9b3681fc6', 'N5 TEST');
 
+INSERT INTO public."Courses" ("CourseID", "CourseName", "Description", "LevelID") VALUES
+('72f02178-3772-5e5e-86f0-f897bbab39cc', 'Khóa N5 Mock Test Seed', 'Course duy nhất phục vụ test fill cấu trúc đề JLPT N5.', '91e47292-b3eb-5965-9d01-45f9b3681fc6');
 
-SELECT * FROM "Vocabularies"
-WHERE "Word" = '置く';
+INSERT INTO public."Lessons" ("LessonID", "CourseID", "Title", "SkillType", "Difficulty", "Priority") VALUES
+('bdff3452-6099-5556-ba16-1cb8673e726c', '72f02178-3772-5e5e-86f0-f897bbab39cc', 'Bài seed tổng hợp JLPT N5', 0, 1, 1);
+
+-- 2. DỮ LIỆU BẢNG CON KỸ NĂNG (tạo nếu bảng/cột đúng như schema hiện tại)
+DO $$
+DECLARE
+    v_level uuid := '91e47292-b3eb-5965-9d01-45f9b3681fc6';
+    v_lesson uuid := 'bdff3452-6099-5556-ba16-1cb8673e726c';
+BEGIN
+    IF to_regclass('public."Vocabularies"') IS NOT NULL THEN
+        BEGIN
+        INSERT INTO public."Vocabularies" ("VocabID", "Word", "Reading", "Meaning", "IsCommon", "Priority", "Status", "LevelID", "LessonID", "CreatedAt", "UpdatedAt", "AudioURL") VALUES
+        ('1cfbad62-0713-543d-a493-06ee2da648ee', '私', 'わたし', 'Tôi', true, 1, 1, v_level, v_lesson, NOW(), NOW(), ''),
+        ('769135b2-b1ad-53a4-9204-6b3eb70fc96e', '学生', 'がくせい', 'Học sinh/sinh viên', true, 2, 1, v_level, v_lesson, NOW(), NOW(), ''),
+        ('0d0336a8-efa0-52a0-b055-0d8f80fbee47', '先生', 'せんせい', 'Giáo viên', true, 3, 1, v_level, v_lesson, NOW(), NOW(), ''),
+        ('89367015-92a6-52a8-b025-be993eb7f6fc', '学校', 'がっこう', 'Trường học', true, 4, 1, v_level, v_lesson, NOW(), NOW(), ''),
+        ('2b8ee1ac-b57b-530a-b858-3c98e7e546cb', '本', 'ほん', 'Sách', true, 5, 1, v_level, v_lesson, NOW(), NOW(), '')
+        ON CONFLICT DO NOTHING;
+        EXCEPTION WHEN OTHERS THEN RAISE NOTICE 'Bỏ qua insert Vocabularies: %', SQLERRM;
+        END;
+    END IF;
+
+    IF to_regclass('public."Grammars"') IS NOT NULL THEN
+        BEGIN
+        INSERT INTO public."Grammars" ("GrammarID", "Title", "Structure", "Meaning", "Explanation", "Formality", "GrammarType", "GrammarGroupID", "Status", "LevelID", "LessonID", "CreatedAt", "UpdatedAt") VALUES
+        ('e2647061-a9ba-5da6-8fa9-718521f8a240', 'は', 'N は ...', 'Trợ từ chủ đề', 'Trợ từ chủ đề', 0, 0, NULL, 1, v_level, v_lesson, NOW(), NOW()),
+        ('52703ad7-c849-58cb-affa-6d853d676dc2', 'を', 'N を Vます', 'Đánh dấu tân ngữ', 'Đánh dấu tân ngữ', 0, 0, NULL, 1, v_level, v_lesson, NOW(), NOW()),
+        ('9e7c5def-e9e2-5cae-97bb-ada22e4f64ec', 'で', 'Nで Vます', 'Nơi thực hiện hành động', 'Nơi thực hiện hành động', 0, 0, NULL, 1, v_level, v_lesson, NOW(), NOW()),
+        ('2b5e3e7b-7922-589b-88b9-2e16827ad293', 'に', 'Time に Vます', 'Thời điểm', 'Thời điểm', 0, 0, NULL, 1, v_level, v_lesson, NOW(), NOW()),
+        ('ca51868f-f68d-5190-bd4c-d3b540f6e26e', 'の', 'N の N', 'Sở hữu/liên kết danh từ', 'Sở hữu/liên kết danh từ', 0, 0, NULL, 1, v_level, v_lesson, NOW(), NOW())
+        ON CONFLICT DO NOTHING;
+        EXCEPTION WHEN OTHERS THEN RAISE NOTICE 'Bỏ qua insert Grammars: %', SQLERRM;
+        END;
+    END IF;
+
+    IF to_regclass('public."Kanjis"') IS NOT NULL THEN
+        BEGIN
+        INSERT INTO public."Kanjis" ("KanjiID", "Character", "Onyomi", "Kunyomi", "Meaning", "StrokeCount", "RadicalID", "Popularity", "Status", "TopicID", "LevelID", "LessonID", "CreatedAt", "UpdatedAt", "StrokeGif") VALUES
+        ('62e70eb9-c765-59b1-adfd-306b11c096e2', '人', 'ジン, ニン', 'ひと', 'Người', 2, NULL, 1, 1, NULL, v_level, v_lesson, NOW(), NOW(), ''),
+        ('abb28424-184d-5688-a94a-8706f7f6052e', '日', 'ニチ', 'ひ', 'Ngày/Mặt trời', 4, NULL, 2, 1, NULL, v_level, v_lesson, NOW(), NOW(), ''),
+        ('a38b1139-a2d0-5725-8be9-776bb772bca0', '月', 'ゲツ, ガツ', 'つき', 'Tháng/Mặt trăng', 4, NULL, 3, 1, NULL, v_level, v_lesson, NOW(), NOW(), ''),
+        ('24cb6ae6-46e6-50e9-a329-91430a931bfa', '水', 'スイ', 'みず', 'Nước', 4, NULL, 4, 1, NULL, v_level, v_lesson, NOW(), NOW(), ''),
+        ('456c2593-f952-561b-9a39-20d3a95805a5', '車', 'シャ', 'くるま', 'Xe', 7, NULL, 5, 1, NULL, v_level, v_lesson, NOW(), NOW(), '')
+        ON CONFLICT DO NOTHING;
+        EXCEPTION WHEN OTHERS THEN RAISE NOTICE 'Bỏ qua insert Kanjis: %', SQLERRM;
+        END;
+    END IF;
+END $$;
+
+-- 3. READING PARENTS: 2 bài đọc, mỗi bài 3 câu
+INSERT INTO public."Readings" ("ReadingID", "Title", "Content", "Translation", "WordCount", "EstimatedTime", "Status", "CreatedAt", "UpdatedAt", "LevelID", "LessonID") VALUES
+('21ea58a5-2311-5ad3-9806-1dd8059bb61e', 'N5 Reading 1 - わたしの一日', '私は毎朝六時に起きます。七時に朝ごはんを食べます。八時に学校へ行きます。学校で日本語を勉強します。午後四時に家へ帰ります。', 'Tôi thức dậy lúc 6 giờ mỗi sáng...', 90, 5, 1, NOW(), NOW(), '91e47292-b3eb-5965-9d01-45f9b3681fc6', 'bdff3452-6099-5556-ba16-1cb8673e726c'),
+('f0a2c372-fbaa-5eb3-91f2-422720b24e68', 'N5 Reading 2 - 週末', '土曜日に友だちと駅で会いました。私たちは電車で町へ行きました。町で映画を見て、レストランで昼ごはんを食べました。とても楽しかったです。', 'Thứ bảy tôi gặp bạn ở ga...', 95, 5, 1, NOW(), NOW(), '91e47292-b3eb-5965-9d01-45f9b3681fc6', 'bdff3452-6099-5556-ba16-1cb8673e726c');
+
+-- 4. LISTENING PARENTS: 20 bài nghe, audio để rỗng
+INSERT INTO public."Listenings" ("ListeningID", "Title", "AudioURL", "Script", "Transcript", "Duration", "SpeedCategory", "Status", "CreatedAt", "UpdatedAt", "LevelID", "LessonID") VALUES
+('cfe60b4d-9b44-5891-adf7-49782be4e119', 'N5 Listening 01', '/listening-audios/JLPTAudio.mp4', 'これはN5聴解テスト01のスクリプトです。', '', 30, 'Normal', 1, NOW(), NOW(), '91e47292-b3eb-5965-9d01-45f9b3681fc6', 'bdff3452-6099-5556-ba16-1cb8673e726c'),
+('e61ed20e-dc54-5071-bad5-8a7f807bee53', 'N5 Listening 02', '/listening-audios/JLPTAudio.mp4', 'これはN5聴解テスト02のスクリプトです。', '', 30, 'Normal', 1, NOW(), NOW(), '91e47292-b3eb-5965-9d01-45f9b3681fc6', 'bdff3452-6099-5556-ba16-1cb8673e726c'),
+('79fe3bfa-6a24-5779-bf67-317738181fdc', 'N5 Listening 03', '/listening-audios/JLPTAudio.mp4', 'これはN5聴解テスト03のスクリプトです。', '', 30, 'Normal', 1, NOW(), NOW(), '91e47292-b3eb-5965-9d01-45f9b3681fc6', 'bdff3452-6099-5556-ba16-1cb8673e726c'),
+('58ddee31-2fa8-5ed3-80b1-c67027e81c31', 'N5 Listening 04', '/listening-audios/JLPTAudio.mp4', 'これはN5聴解テスト04のスクリプトです。', '', 30, 'Normal', 1, NOW(), NOW(), '91e47292-b3eb-5965-9d01-45f9b3681fc6', 'bdff3452-6099-5556-ba16-1cb8673e726c'),
+('17cc484f-eb1d-5d87-b7d8-2b537306d451', 'N5 Listening 05', '/listening-audios/JLPTAudio.mp4', 'これはN5聴解テスト05のスクリプトです。', '', 30, 'Normal', 1, NOW(), NOW(), '91e47292-b3eb-5965-9d01-45f9b3681fc6', 'bdff3452-6099-5556-ba16-1cb8673e726c'),
+('1dfca429-43e4-5da5-958b-20ba6d95caf0', 'N5 Listening 06', '/listening-audios/JLPTAudio.mp4', 'これはN5聴解テスト06のスクリプトです。', '', 30, 'Normal', 1, NOW(), NOW(), '91e47292-b3eb-5965-9d01-45f9b3681fc6', 'bdff3452-6099-5556-ba16-1cb8673e726c'),
+('cb86d6aa-d6cc-5c37-9e13-0654605cf5a6', 'N5 Listening 07', '/listening-audios/JLPTAudio.mp4', 'これはN5聴解テスト07のスクリプトです。', '', 30, 'Normal', 1, NOW(), NOW(), '91e47292-b3eb-5965-9d01-45f9b3681fc6', 'bdff3452-6099-5556-ba16-1cb8673e726c'),
+('407776cf-3bd7-58eb-be37-eae89a5db175', 'N5 Listening 08', '/listening-audios/JLPTAudio.mp4', 'これはN5聴解テスト08のスクリプトです。', '', 30, 'Normal', 1, NOW(), NOW(), '91e47292-b3eb-5965-9d01-45f9b3681fc6', 'bdff3452-6099-5556-ba16-1cb8673e726c'),
+('4741ebed-bc26-5f96-877d-59072f406aeb', 'N5 Listening 09', '/listening-audios/JLPTAudio.mp4', 'これはN5聴解テスト09のスクリプトです。', '', 30, 'Normal', 1, NOW(), NOW(), '91e47292-b3eb-5965-9d01-45f9b3681fc6', 'bdff3452-6099-5556-ba16-1cb8673e726c'),
+('acc5797e-d48b-53ee-a808-9f359f6323b4', 'N5 Listening 10', '/listening-audios/JLPTAudio.mp4', 'これはN5聴解テスト10のスクリプトです。', '', 30, 'Normal', 1, NOW(), NOW(), '91e47292-b3eb-5965-9d01-45f9b3681fc6', 'bdff3452-6099-5556-ba16-1cb8673e726c'),
+('14701068-910b-56db-aa67-117928508847', 'N5 Listening 11', '/listening-audios/JLPTAudio.mp4', 'これはN5聴解テスト11のスクリプトです。', '', 30, 'Normal', 1, NOW(), NOW(), '91e47292-b3eb-5965-9d01-45f9b3681fc6', 'bdff3452-6099-5556-ba16-1cb8673e726c'),
+('c5f998fb-f7c7-59c8-ad41-a5ee516119f7', 'N5 Listening 12', '/listening-audios/JLPTAudio.mp4', 'これはN5聴解テスト12のスクリプトです。', '', 30, 'Normal', 1, NOW(), NOW(), '91e47292-b3eb-5965-9d01-45f9b3681fc6', 'bdff3452-6099-5556-ba16-1cb8673e726c'),
+('d30a9bef-2f1b-56a4-ac98-d921d56d48ca', 'N5 Listening 13', '/listening-audios/JLPTAudio.mp4', 'これはN5聴解テスト13のスクリプトです。', '', 30, 'Normal', 1, NOW(), NOW(), '91e47292-b3eb-5965-9d01-45f9b3681fc6', 'bdff3452-6099-5556-ba16-1cb8673e726c'),
+('029dcc09-b051-59d5-b671-32bc874bc154', 'N5 Listening 14', '/listening-audios/JLPTAudio.mp4', 'これはN5聴解テスト14のスクリプトです。', '', 30, 'Normal', 1, NOW(), NOW(), '91e47292-b3eb-5965-9d01-45f9b3681fc6', 'bdff3452-6099-5556-ba16-1cb8673e726c'),
+('2be75180-9b30-56a7-9a3d-9d82e7e3d6f3', 'N5 Listening 15', '/listening-audios/JLPTAudio.mp4', 'これはN5聴解テスト15のスクリプトです。', '', 30, 'Normal', 1, NOW(), NOW(), '91e47292-b3eb-5965-9d01-45f9b3681fc6', 'bdff3452-6099-5556-ba16-1cb8673e726c'),
+('7c488529-8294-579a-b022-65e6a950e545', 'N5 Listening 16', '/listening-audios/JLPTAudio.mp4', 'これはN5聴解テスト16のスクリプトです。', '', 30, 'Normal', 1, NOW(), NOW(), '91e47292-b3eb-5965-9d01-45f9b3681fc6', 'bdff3452-6099-5556-ba16-1cb8673e726c'),
+('652e0b99-b752-58b8-a09f-ecfe0481d043', 'N5 Listening 17', '/listening-audios/JLPTAudio.mp4', 'これはN5聴解テスト17のスクリプトです。', '', 30, 'Normal', 1, NOW(), NOW(), '91e47292-b3eb-5965-9d01-45f9b3681fc6', 'bdff3452-6099-5556-ba16-1cb8673e726c'),
+('2dfbbe0d-0f4f-5dee-8dff-55512bf489c3', 'N5 Listening 18', '/listening-audios/JLPTAudio.mp4', 'これはN5聴解テスト18のスクリプトです。', '', 30, 'Normal', 1, NOW(), NOW(), '91e47292-b3eb-5965-9d01-45f9b3681fc6', 'bdff3452-6099-5556-ba16-1cb8673e726c'),
+('12e225ba-f3bd-54f9-85e4-1e52bbdad8b7', 'N5 Listening 19', '/listening-audios/JLPTAudio.mp4', 'これはN5聴解テスト19のスクリプトです。', '', 30, 'Normal', 1, NOW(), NOW(), '91e47292-b3eb-5965-9d01-45f9b3681fc6', 'bdff3452-6099-5556-ba16-1cb8673e726c'),
+('39c303ce-8e05-5f51-aaf9-308cc4c6f0c9', 'N5 Listening 20', '/listening-audios/JLPTAudio.mp4', 'これはN5聴解テスト20のスクリプトです。', '', 30, 'Normal', 1, NOW(), NOW(), '91e47292-b3eb-5965-9d01-45f9b3681fc6', 'bdff3452-6099-5556-ba16-1cb8673e726c');
+
+-- 5. QUESTIONS
+INSERT INTO public."Questions" ("QuestionID", "ReadingID", "ListeningID", "LessonID", "Content", "QuestionType", "QuestionFormat", "SkillType", "AudioURL", "ImageURL", "Difficulty", "Explanation", "Status", "EquivalentID", "MediaTimestamp", "DisplayOrder", "CreatedAt", "UpdatedAt", "SourceID", "ParentID") VALUES
+('eb5cca3b-0065-5408-ad17-80cbb390811f', NULL, NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', '「本」の読み方はどれですか。', 0, 0, 1, NULL, NULL, 1, '本 = ほん, nghĩa là sách.', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('7621c0bf-eeaf-50b2-856b-e9a1f80013bf', NULL, NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', '「学校」の読み方はどれですか。', 0, 0, 1, NULL, NULL, 1, '学校 = がっこう.', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('5469a658-25a7-5c72-92c8-ce9e22650995', NULL, NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', '「水」の意味はどれですか。', 0, 0, 1, NULL, NULL, 1, '水 nghĩa là nước.', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('28c14c41-21e9-5f7b-9207-d6158ef42a5f', NULL, NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', '「明日」の読み方はどれですか。', 0, 0, 1, NULL, NULL, 1, '明日 = あした.', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('8fdb5ce0-a1f8-5ef6-b5c8-71d943e1b3f4', NULL, NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', '「電車」の意味はどれですか。', 0, 0, 1, NULL, NULL, 1, '電車 nghĩa là tàu điện.', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('adf593d3-abb9-597c-97d9-08b6fe739f74', NULL, NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', '「友だち」の意味 là gì?', 0, 0, 1, NULL, NULL, 1, '友だち nghĩa là bạn bè.', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('49e47085-a830-5e65-87d2-68e03d535c6f', NULL, NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', '「食べます」の nghĩa là gì?', 0, 0, 1, NULL, NULL, 1, '食べます nghĩa là ăn.', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('4edf3654-7d30-5333-983c-1c19601cf244', NULL, NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', '「飲みます」の nghĩa là gì?', 0, 0, 1, NULL, NULL, 1, '飲みます nghĩa là uống.', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('bb254cfb-64dc-51f5-8a24-9d53e3e4656e', NULL, NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', '「大きい」の nghĩa là gì?', 0, 0, 1, NULL, NULL, 1, '大きい nghĩa là to/lớn.', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('f5985592-2ba6-5ded-8a0c-ae79406ef161', NULL, NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', '「安い」の nghĩa là gì?', 0, 0, 1, NULL, NULL, 1, '安い nghĩa là rẻ.', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('f840f31e-a39a-5c55-b7c2-ce60c88790d8', NULL, NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', '「駅」の読み方はどれですか。', 0, 0, 1, NULL, NULL, 1, '駅 = えき.', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('16b861fb-2ca5-59b5-8499-b67a6ebae9a4', NULL, NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', '「毎日」の nghĩa là gì?', 0, 0, 1, NULL, NULL, 1, '毎日 nghĩa là mỗi ngày.', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('7c156578-6201-56fe-a62d-3eb128a3052e', NULL, NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', '「右」の読み方はどれですか。', 0, 0, 1, NULL, NULL, 1, '右 = みぎ.', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('db339b39-4ed8-50a9-a187-226fd9958f98', NULL, NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', '「午前」の nghĩa là gì?', 0, 0, 1, NULL, NULL, 1, '午前 là trước 12 giờ trưa.', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('4b113a3b-cf63-5bed-ad0f-090270bc7d1b', NULL, NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', '「名前」の読み方はどれですか。', 0, 0, 1, NULL, NULL, 1, '名前 = なまえ.', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('6ccc07f6-0d10-56e7-8871-8c54e487396a', NULL, NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', 'わたし___学生です。', 0, 0, 2, NULL, NULL, 1, 'Chủ đề của câu dùng は.', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('a85508e0-2215-5fc0-aa6c-33c4d820d0c7', NULL, NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', '学校___行きます。', 0, 0, 2, NULL, NULL, 1, 'Đi đến nơi nào dùng へ/に.', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('a04de25d-4937-584a-a0af-817e879c8178', NULL, NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', 'パン___食べます。', 0, 0, 2, NULL, NULL, 1, 'Tân ngữ của động từ dùng を.', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('9ee0c25d-75c5-515e-a90f-90f8b9fbf7b0', NULL, NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', '図書館___本を読みます。', 0, 0, 2, NULL, NULL, 1, 'Nơi thực hiện hành động dùng で.', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('82578b24-9ca1-50c6-8501-2a840945b3d8', NULL, NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', '田中さん___来ました。', 0, 0, 2, NULL, NULL, 1, 'Chủ ngữ mới thường dùng が.', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('9a9577ac-e486-5c27-9504-c35c50bfc7ac', NULL, NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', 'これは私___本です。', 0, 0, 2, NULL, NULL, 1, 'Sở hữu dùng の.', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('dfaef71e-1a9a-5a97-b175-7277b3d387c5', NULL, NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', '日曜日___映画を見ます。', 0, 0, 2, NULL, NULL, 1, 'Thời điểm cụ thể dùng に.', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('829d57c5-4fa7-59e5-8031-7a9d14bacf1e', NULL, NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', '友だち___駅へ行きます。', 0, 0, 2, NULL, NULL, 1, 'Đi cùng ai dùng と.', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('4218414e-e920-5531-9a19-50b2b45b977b', NULL, NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', 'コーヒー___お茶、どちらが好きですか。', 0, 0, 2, NULL, NULL, 1, 'Liệt kê lựa chọn dùng と.', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('3e7a61a8-84a7-59f2-9f08-1675e9b792b3', NULL, NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', 'このかばんは高く___ありません。', 0, 0, 2, NULL, NULL, 1, 'Tính từ い phủ định: 高くない.', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('750d4d19-eb61-5988-bb36-c2317f5fcc3c', NULL, NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', 'きのう学校へ行き___。', 0, 0, 2, NULL, NULL, 1, 'Quá khứ lịch sự dùng ました.', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('411e7e70-8875-599c-8fb9-4bbc7e9e3865', NULL, NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', 'ここで写真を撮って___。', 0, 0, 2, NULL, NULL, 1, 'Yêu cầu: Vてください.', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('367c24bc-66ce-5de6-8eee-b8a11b44a77f', NULL, NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', '私は日本語___少しわかります。', 0, 0, 2, NULL, NULL, 1, 'Với わかります thường dùng が.', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('7aec7f7e-79e6-5843-9b90-f8010439332e', NULL, NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', 'この部屋は静か___。', 0, 0, 2, NULL, NULL, 1, 'Tính từ な kết câu với です.', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('ab670466-d23e-5f7e-90d8-e2d63fc49da7', NULL, NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', '毎朝六時___起きます。', 0, 0, 2, NULL, NULL, 1, 'Giờ cụ thể dùng に.', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('54f24e33-3ad1-588b-836f-f93e5f0af4bf', NULL, NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', '「人」の意味はどれですか。', 0, 0, 3, NULL, NULL, 1, '人 nghĩa là người.', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('4e56550d-ee60-5aab-856e-3ec6d6054051', NULL, NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', '「日」の意味はどれですか。', 0, 0, 3, NULL, NULL, 1, '日 nghĩa là ngày hoặc mặt trời.', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('f29910fa-f258-5636-bd00-6e8e3a435edd', NULL, NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', '「月」の意味はどれですか。', 0, 0, 3, NULL, NULL, 1, '月 nghĩa là tháng hoặc mặt trăng.', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('09d66d9c-4650-58e8-8e87-28ee67f3b09b', NULL, NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', '「火」の意味はどれですか。', 0, 0, 3, NULL, NULL, 1, '火 nghĩa là lửa.', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('c393bcf4-5e1c-57ac-b396-a16adbc806b8', NULL, NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', '「水」の意味はどれですか。', 0, 0, 3, NULL, NULL, 1, '水 nghĩa là nước.', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('ee2a8815-9172-5c42-8c62-9c51837b69f4', NULL, NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', '「木」の意味はどれですか。', 0, 0, 3, NULL, NULL, 1, '木 nghĩa là cây.', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('34806753-cdb1-5b99-8a6f-56cdd90e3f5e', NULL, NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', '「山」の意味はどれですか。', 0, 0, 3, NULL, NULL, 1, '山 nghĩa là núi.', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('cc55919d-6aac-5f03-9f90-867aa5d733f7', NULL, NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', '「川」の意味はどれですか。', 0, 0, 3, NULL, NULL, 1, '川 nghĩa là sông.', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('dde2dd8e-fec0-51c7-add7-8998d642bbf7', NULL, NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', '「田」の意味 là gì?', 0, 0, 3, NULL, NULL, 1, '田 nghĩa là ruộng.', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('1ca9207b-f20c-5d4a-a76f-493f6a142c87', NULL, NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', '「口」の意味 là gì?', 0, 0, 3, NULL, NULL, 1, '口 nghĩa là miệng.', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('786b30fb-8f9a-5bfb-8735-663a25136888', NULL, NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', '「目」の意味 là gì?', 0, 0, 3, NULL, NULL, 1, '目 nghĩa là mắt.', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('85a9ff76-6d39-5080-9d3e-af070746336d', NULL, NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', '「耳」の意味 là gì?', 0, 0, 3, NULL, NULL, 1, '耳 nghĩa là tai.', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('ac1b2b00-3237-5a5e-b2bd-234f23a11ddd', NULL, NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', '「手」の意味 là gì?', 0, 0, 3, NULL, NULL, 1, '手 nghĩa là tay.', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('0049db6e-0a9e-5b0e-ad0a-ccefc982fa53', NULL, NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', '「足」の意味 là gì?', 0, 0, 3, NULL, NULL, 1, '足 nghĩa là chân.', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('53f168bc-a364-5951-821b-0173637b0625', NULL, NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', '「車」の意味 là gì?', 0, 0, 3, NULL, NULL, 1, '車 nghĩa là xe.', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('bfede2c1-5f1c-577d-a63a-7e89a6760186', '21ea58a5-2311-5ad3-9806-1dd8059bb61e', NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', '私は毎朝何時に起きますか。', 0, 2, 4, NULL, NULL, 1, 'Trong bài có câu 六時に起きます。', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('73fb6582-d96e-5e0a-8c90-f9556a5ec4da', '21ea58a5-2311-5ad3-9806-1dd8059bb61e', NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', '私はどこで日本語を勉強しますか。', 0, 2, 4, NULL, NULL, 1, '学校で日本語を勉強します。', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('6eae996f-c4ad-5b7f-acf2-e983fc869b5b', '21ea58a5-2311-5ad3-9806-1dd8059bb61e', NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', '午後四時に何をしますか。', 0, 2, 4, NULL, NULL, 1, '午後四時に家へ帰ります。', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('b3f00191-6b19-5f58-bebf-38edc5fce795', 'f0a2c372-fbaa-5eb3-91f2-422720b24e68', NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', '土曜日にだれと会いましたか。', 0, 2, 4, NULL, NULL, 1, '友だちと駅で会いました。', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('8edf76ed-f55a-5e54-9ba1-556c4e2c4591', 'f0a2c372-fbaa-5eb3-91f2-422720b24e68', NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', '何で町へ行きましたか。', 0, 2, 4, NULL, NULL, 1, '電車で町へ行きました。', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('5c30e54d-c10a-56df-a3f8-0352eae99919', 'f0a2c372-fbaa-5eb3-91f2-422720b24e68', NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', '町で何を見ましたか。', 0, 2, 4, NULL, NULL, 1, '町で映画を見ました。', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('abe20793-92e1-57cd-b304-6c733cae6c28', NULL, NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', '「今日は暑いです。」この文の意味はどれですか。', 0, 0, 4, NULL, NULL, 1, '暑い = nóng.', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('21bdcfa0-c722-5230-996b-4299a28206ec', NULL, NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', '「私は毎日日本語を勉強します。」何を勉強しますか。', 0, 0, 4, NULL, NULL, 1, '日本語を勉強します。', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('4f2df790-e1df-5dd9-aaa2-6f5366573878', NULL, NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', '「スーパーは駅の前です。」スーパーはどこですか。', 0, 0, 4, NULL, NULL, 1, '駅の前 = trước nhà ga.', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('2340a85c-1983-508b-8539-4b7d3546e268', NULL, NULL, 'bdff3452-6099-5556-ba16-1cb8673e726c', '「この本はおもしろいです。」本はどうですか。', 0, 0, 4, NULL, NULL, 1, 'おもしろい = thú vị.', 1, NULL, NULL, NULL, NOW(), NOW(), NULL, NULL),
+('8f69ee4e-b869-5f25-92cb-600e1458c176', NULL, 'cfe60b4d-9b44-5891-adf7-49782be4e119', 'bdff3452-6099-5556-ba16-1cb8673e726c', 'Nghe đoạn hội thoại 01 và chọn đáp án đúng.', 0, 3, 5, NULL, '/listening-questions/JLPTTestImage.jpg', 1, 'Placeholder đáp án đúng cho bài nghe 01.', 1, NULL, '', 1, NOW(), NOW(), NULL, NULL),
+('914e8f71-087e-580f-ab57-040874351cb5', NULL, 'e61ed20e-dc54-5071-bad5-8a7f807bee53', 'bdff3452-6099-5556-ba16-1cb8673e726c', 'Nghe đoạn hội thoại 02 và chọn đáp án đúng.', 0, 3, 5, NULL, '/listening-questions/JLPTTestImage.jpg', 1, 'Placeholder đáp án đúng cho bài nghe 02.', 1, NULL, '', 1, NOW(), NOW(), NULL, NULL),
+('67179377-5910-5cbd-b597-3444f1b312da', NULL, '79fe3bfa-6a24-5779-bf67-317738181fdc', 'bdff3452-6099-5556-ba16-1cb8673e726c', 'Nghe đoạn hội thoại 03 và chọn đáp án đúng.', 0, 3, 5, NULL, '/listening-questions/JLPTTestImage.jpg', 1, 'Placeholder đáp án đúng cho bài nghe 03.', 1, NULL, '', 1, NOW(), NOW(), NULL, NULL),
+('4543dc08-996e-535c-88f2-1569f0332d8e', NULL, '58ddee31-2fa8-5ed3-80b1-c67027e81c31', 'bdff3452-6099-5556-ba16-1cb8673e726c', 'Nghe đoạn hội thoại 04 và chọn đáp án đúng.', 0, 3, 5, NULL, '/listening-questions/JLPTTestImage.jpg', 1, 'Placeholder đáp án đúng cho bài nghe 04.', 1, NULL, '', 1, NOW(), NOW(), NULL, NULL),
+('9d8aea1a-2f07-5ab8-8f8a-08bb17f5a156', NULL, '17cc484f-eb1d-5d87-b7d8-2b537306d451', 'bdff3452-6099-5556-ba16-1cb8673e726c', 'Nghe đoạn hội thoại 05 và chọn đáp án đúng.', 0, 3, 5, NULL, '/listening-questions/JLPTTestImage.jpg', 1, 'Placeholder đáp án đúng cho bài nghe 05.', 1, NULL, '', 1, NOW(), NOW(), NULL, NULL),
+('26f6bcfe-3e4f-5789-be8f-8068d8db8ffd', NULL, '1dfca429-43e4-5da5-958b-20ba6d95caf0', 'bdff3452-6099-5556-ba16-1cb8673e726c', 'Nghe đoạn hội thoại 06 và chọn đáp án đúng.', 0, 3, 5, NULL, '/listening-questions/JLPTTestImage.jpg', 1, 'Placeholder đáp án đúng cho bài nghe 06.', 1, NULL, '', 1, NOW(), NOW(), NULL, NULL),
+('aff70e6d-36ed-5a2a-a2e0-71f2c2256777', NULL, 'cb86d6aa-d6cc-5c37-9e13-0654605cf5a6', 'bdff3452-6099-5556-ba16-1cb8673e726c', 'Nghe đoạn hội thoại 07 và chọn đáp án đúng.', 0, 3, 5, NULL, '/listening-questions/JLPTTestImage.jpg', 1, 'Placeholder đáp án đúng cho bài nghe 07.', 1, NULL, '', 1, NOW(), NOW(), NULL, NULL),
+('744952cb-b4ac-5bda-9056-2097bc189deb', NULL, '407776cf-3bd7-58eb-be37-eae89a5db175', 'bdff3452-6099-5556-ba16-1cb8673e726c', 'Nghe đoạn hội thoại 08 và chọn đáp án đúng.', 0, 3, 5, NULL, '/listening-questions/JLPTTestImage.jpg', 1, 'Placeholder đáp án đúng cho bài nghe 08.', 1, NULL, '', 1, NOW(), NOW(), NULL, NULL),
+('35c1905b-455f-5f4b-8e7a-e5bc9f5552b6', NULL, '4741ebed-bc26-5f96-877d-59072f406aeb', 'bdff3452-6099-5556-ba16-1cb8673e726c', 'Nghe đoạn hội thoại 09 và chọn đáp án đúng.', 0, 3, 5, NULL, '/listening-questions/JLPTTestImage.jpg', 1, 'Placeholder đáp án đúng cho bài nghe 09.', 1, NULL, '', 1, NOW(), NOW(), NULL, NULL),
+('d69167cf-717b-56c5-bdc3-850eda6ae4e3', NULL, 'acc5797e-d48b-53ee-a808-9f359f6323b4', 'bdff3452-6099-5556-ba16-1cb8673e726c', 'Nghe đoạn hội thoại 10 và chọn đáp án đúng.', 0, 3, 5, NULL, '/listening-questions/JLPTTestImage.jpg', 1, 'Placeholder đáp án đúng cho bài nghe 10.', 1, NULL, '', 1, NOW(), NOW(), NULL, NULL),
+('efd7e4a9-163e-5a63-a96b-84af04e0f265', NULL, '14701068-910b-56db-aa67-117928508847', 'bdff3452-6099-5556-ba16-1cb8673e726c', 'Nghe đoạn hội thoại 11 và chọn đáp án đúng.', 0, 3, 5, NULL, '/listening-questions/JLPTTestImage.jpg', 1, 'Placeholder đáp án đúng cho bài nghe 11.', 1, NULL, '', 1, NOW(), NOW(), NULL, NULL),
+('9190b874-3f14-53df-ac43-c73d614e948e', NULL, 'c5f998fb-f7c7-59c8-ad41-a5ee516119f7', 'bdff3452-6099-5556-ba16-1cb8673e726c', 'Nghe đoạn hội thoại 12 và chọn đáp án đúng.', 0, 3, 5, NULL, '/listening-questions/JLPTTestImage.jpg', 1, 'Placeholder đáp án đúng cho bài nghe 12.', 1, NULL, '', 1, NOW(), NOW(), NULL, NULL),
+('f11a688f-de1c-59f6-b7fd-1c0e7ddf2d75', NULL, 'd30a9bef-2f1b-56a4-ac98-d921d56d48ca', 'bdff3452-6099-5556-ba16-1cb8673e726c', 'Nghe đoạn hội thoại 13 và chọn đáp án đúng.', 0, 3, 5, NULL, '/listening-questions/JLPTTestImage.jpg', 1, 'Placeholder đáp án đúng cho bài nghe 13.', 1, NULL, '', 1, NOW(), NOW(), NULL, NULL),
+('84df2fbb-dba5-5389-91e0-78f4dbe55514', NULL, '029dcc09-b051-59d5-b671-32bc874bc154', 'bdff3452-6099-5556-ba16-1cb8673e726c', 'Nghe đoạn hội thoại 14 và chọn đáp án đúng.', 0, 3, 5, NULL, '/listening-questions/JLPTTestImage.jpg', 1, 'Placeholder đáp án đúng cho bài nghe 14.', 1, NULL, '', 1, NOW(), NOW(), NULL, NULL),
+('d5f65a82-e106-50b7-b39b-0d3d31c211bd', NULL, '2be75180-9b30-56a7-9a3d-9d82e7e3d6f3', 'bdff3452-6099-5556-ba16-1cb8673e726c', 'Nghe đoạn hội thoại 15 và chọn đáp án đúng.', 0, 3, 5, NULL, '/listening-questions/JLPTTestImage.jpg', 1, 'Placeholder đáp án đúng cho bài nghe 15.', 1, NULL, '', 1, NOW(), NOW(), NULL, NULL),
+('567f4de7-97ae-58c6-ad80-59d9ddd041dd', NULL, '7c488529-8294-579a-b022-65e6a950e545', 'bdff3452-6099-5556-ba16-1cb8673e726c', 'Nghe đoạn hội thoại 16 và chọn đáp án đúng.', 0, 3, 5, NULL, '/listening-questions/JLPTTestImage.jpg', 1, 'Placeholder đáp án đúng cho bài nghe 16.', 1, NULL, '', 1, NOW(), NOW(), NULL, NULL),
+('1e2a75ac-ab92-5cea-bdb6-298cc2b5e219', NULL, '652e0b99-b752-58b8-a09f-ecfe0481d043', 'bdff3452-6099-5556-ba16-1cb8673e726c', 'Nghe đoạn hội thoại 17 và chọn đáp án đúng.', 0, 3, 5, NULL, '/listening-questions/JLPTTestImage.jpg', 1, 'Placeholder đáp án đúng cho bài nghe 17.', 1, NULL, '', 1, NOW(), NOW(), NULL, NULL),
+('83212584-4c07-56dc-a056-cb42d8faf29c', NULL, '2dfbbe0d-0f4f-5dee-8dff-55512bf489c3', 'bdff3452-6099-5556-ba16-1cb8673e726c', 'Nghe đoạn hội thoại 18 và chọn đáp án đúng.', 0, 3, 5, NULL, '/listening-questions/JLPTTestImage.jpg', 1, 'Placeholder đáp án đúng cho bài nghe 18.', 1, NULL, '', 1, NOW(), NOW(), NULL, NULL),
+('02d977b7-6696-5e88-aef0-88fe34f79797', NULL, '12e225ba-f3bd-54f9-85e4-1e52bbdad8b7', 'bdff3452-6099-5556-ba16-1cb8673e726c', 'Nghe đoạn hội thoại 19 và chọn đáp án đúng.', 0, 3, 5, NULL, '/listening-questions/JLPTTestImage.jpg', 1, 'Placeholder đáp án đúng cho bài nghe 19.', 1, NULL, '', 1, NOW(), NOW(), NULL, NULL),
+('98abf35d-9c36-57a5-9ce7-59500a59a1f5', NULL, '39c303ce-8e05-5f51-aaf9-308cc4c6f0c9', 'bdff3452-6099-5556-ba16-1cb8673e726c', 'Nghe đoạn hội thoại 20 và chọn đáp án đúng.', 0, 3, 5, NULL, '/listening-questions/JLPTTestImage.jpg', 1, 'Placeholder đáp án đúng cho bài nghe 20.', 1, NULL, '', 1, NOW(), NOW(), NULL, NULL);
+
+-- 6. ANSWERS: đáp án đầu tiên của mỗi câu là đáp án đúng
+INSERT INTO public."Answers" ("AnswerID", "QuestionID", "AnswerText", "IsCorrect") VALUES
+('caa9bb8c-6ce8-5e2d-a98b-e9fdb76fb06f', 'eb5cca3b-0065-5408-ad17-80cbb390811f', 'ほん', true),
+('00a4bbb2-f9c5-57b1-8dbb-a4c19babaf74', 'eb5cca3b-0065-5408-ad17-80cbb390811f', 'やま', false),
+('ccd29e82-17b3-5c46-a9d5-d826f6723d11', 'eb5cca3b-0065-5408-ad17-80cbb390811f', 'ひと', false),
+('e5266770-7ee6-520b-94c9-9acbe46c00f6', 'eb5cca3b-0065-5408-ad17-80cbb390811f', 'みず', false),
+('2c5f8326-24ab-57f0-a718-91d3c5f3f728', '7621c0bf-eeaf-50b2-856b-e9a1f80013bf', 'がっこう', true),
+('4470b217-b088-551d-b4a7-208531849443', '7621c0bf-eeaf-50b2-856b-e9a1f80013bf', 'がくせい', false),
+('fcff7269-32b7-564c-89dd-b76657fee488', '7621c0bf-eeaf-50b2-856b-e9a1f80013bf', 'せんせい', false),
+('ec72b0c2-b9e2-540e-93fb-a72d2035e21d', '7621c0bf-eeaf-50b2-856b-e9a1f80013bf', 'かいしゃ', false),
+('e4b88949-5562-5a0d-b4c1-c53b01997e9a', '5469a658-25a7-5c72-92c8-ce9e22650995', 'nước', true),
+('c796d31a-5344-5dbb-a1d5-b64c13d92815', '5469a658-25a7-5c72-92c8-ce9e22650995', 'lửa', false),
+('24610069-055d-5ea3-8789-3dd59746e6db', '5469a658-25a7-5c72-92c8-ce9e22650995', 'sách', false),
+('bf408485-6d8d-5219-8e5b-6cd84931965d', '5469a658-25a7-5c72-92c8-ce9e22650995', 'người', false),
+('d2f6831f-6230-53ac-aca9-79f3cdeebe48', '28c14c41-21e9-5f7b-9207-d6158ef42a5f', 'あした', true),
+('6c6067d4-fbce-5155-b8c9-f8ba269778e7', '28c14c41-21e9-5f7b-9207-d6158ef42a5f', 'きのう', false),
+('669d8107-30cc-5252-b022-0691e12428e4', '28c14c41-21e9-5f7b-9207-d6158ef42a5f', 'きょう', false),
+('6a10c0e4-649b-56fa-bf06-6169fd43b595', '28c14c41-21e9-5f7b-9207-d6158ef42a5f', 'まいにち', false),
+('8df159d4-c356-5aba-b0ec-641ca0665f43', '8fdb5ce0-a1f8-5ef6-b5c8-71d943e1b3f4', 'tàu điện', true),
+('4c2a35af-0435-56de-8c41-e00e3e1f4334', '8fdb5ce0-a1f8-5ef6-b5c8-71d943e1b3f4', 'xe đạp', false),
+('a50b008f-5ee2-503a-8ffb-5dbf88bd51fa', '8fdb5ce0-a1f8-5ef6-b5c8-71d943e1b3f4', 'máy bay', false),
+('9a454706-ef0f-5760-9200-16547315abcb', '8fdb5ce0-a1f8-5ef6-b5c8-71d943e1b3f4', 'nhà ga', false),
+('03c51e06-c4ed-5ea5-a87c-a68efafaa9e7', 'adf593d3-abb9-597c-97d9-08b6fe739f74', 'bạn bè', true),
+('d6cda8ad-cfbe-5ffc-8703-b0eafd3e6a17', 'adf593d3-abb9-597c-97d9-08b6fe739f74', 'giáo viên', false),
+('ec0e18d9-c83b-5402-9eae-c0b97f4a9a71', 'adf593d3-abb9-597c-97d9-08b6fe739f74', 'học sinh', false),
+('ab487e20-eb5a-5b83-8e88-ef5ab0f3ed0d', 'adf593d3-abb9-597c-97d9-08b6fe739f74', 'gia đình', false),
+('e967da79-f040-5492-b971-19b9cd668225', '49e47085-a830-5e65-87d2-68e03d535c6f', 'ăn', true),
+('88d460d6-17b5-58cc-96d9-3af2b03392c2', '49e47085-a830-5e65-87d2-68e03d535c6f', 'uống', false),
+('14646d8f-b186-5d9c-974f-29e8488b97e2', '49e47085-a830-5e65-87d2-68e03d535c6f', 'đọc', false),
+('ce75bb60-2a1b-5d7a-9a9f-ceaa180a9412', '49e47085-a830-5e65-87d2-68e03d535c6f', 'nghe', false),
+('6f1ad21e-88e1-5f61-b34c-ae1cc48c7f4b', '4edf3654-7d30-5333-983c-1c19601cf244', 'uống', true),
+('c5bf26b5-85b3-51c6-ac55-0333b2ec28b6', '4edf3654-7d30-5333-983c-1c19601cf244', 'đi', false),
+('d4bd7e5b-33fd-524c-942f-e6e02116a91e', '4edf3654-7d30-5333-983c-1c19601cf244', 'xem', false),
+('3f75471e-f4ef-52d2-8170-7eabf39371fa', '4edf3654-7d30-5333-983c-1c19601cf244', 'viết', false),
+('390b184f-950a-5d04-bde3-69d0da2f9685', 'bb254cfb-64dc-51f5-8a24-9d53e3e4656e', 'to/lớn', true),
+('c4aeea1c-e9b4-5295-9e03-3353b618306b', 'bb254cfb-64dc-51f5-8a24-9d53e3e4656e', 'nhỏ', false),
+('24c511f8-6a41-5b35-8e54-42557e644035', 'bb254cfb-64dc-51f5-8a24-9d53e3e4656e', 'mới', false),
+('d137519d-e935-5264-8f98-79b644837f10', 'bb254cfb-64dc-51f5-8a24-9d53e3e4656e', 'rẻ', false),
+('3ae77913-6e64-5538-9bb8-3307e6b08b00', 'f5985592-2ba6-5ded-8a0c-ae79406ef161', 'rẻ', true),
+('8bbf9991-6312-5db2-bbd3-6f1215c51782', 'f5985592-2ba6-5ded-8a0c-ae79406ef161', 'đắt', false),
+('f556e80d-ea14-5c00-94f6-b9f9067a9243', 'f5985592-2ba6-5ded-8a0c-ae79406ef161', 'cao', false),
+('671e4fef-60be-5905-8247-47da088ba0a1', 'f5985592-2ba6-5ded-8a0c-ae79406ef161', 'xa', false),
+('53808264-58ec-51fc-a86c-3e6070ef4a30', 'f840f31e-a39a-5c55-b7c2-ce60c88790d8', 'えき', true),
+('3e32f4c2-abb7-5431-9d2d-ebba33e85b17', 'f840f31e-a39a-5c55-b7c2-ce60c88790d8', 'いえ', false),
+('4231ce14-222f-5680-9fb5-01986d0f25eb', 'f840f31e-a39a-5c55-b7c2-ce60c88790d8', 'みせ', false),
+('ab28d379-128b-5ed9-b42d-eccd959dcea0', 'f840f31e-a39a-5c55-b7c2-ce60c88790d8', 'へや', false),
+('0c7464c6-f960-50ff-a66d-9d6e48385033', '16b861fb-2ca5-59b5-8499-b67a6ebae9a4', 'mỗi ngày', true),
+('98f1efa2-df8d-5e36-ba39-a432123c117e', '16b861fb-2ca5-59b5-8499-b67a6ebae9a4', 'mỗi tuần', false),
+('34fa98dc-e793-584c-a1b2-cfddc3d2054f', '16b861fb-2ca5-59b5-8499-b67a6ebae9a4', 'hôm qua', false),
+('753850f8-a30f-5fbe-b09e-bbd243e10952', '16b861fb-2ca5-59b5-8499-b67a6ebae9a4', 'ngày mai', false),
+('257f30be-e3ee-5483-b106-ebbc4d0b3d1a', '7c156578-6201-56fe-a62d-3eb128a3052e', 'みぎ', true),
+('d681bc82-2e8c-5215-b450-748500816353', '7c156578-6201-56fe-a62d-3eb128a3052e', 'ひだり', false),
+('464c6076-ea09-5a94-bce5-9b84f257a029', '7c156578-6201-56fe-a62d-3eb128a3052e', 'うえ', false),
+('e568c779-01aa-5f9f-9481-d577a12484d8', '7c156578-6201-56fe-a62d-3eb128a3052e', 'した', false),
+('864b4b41-7a32-5d71-8bdf-c01eb457b8b3', 'db339b39-4ed8-50a9-a187-226fd9958f98', 'buổi sáng/trước trưa', true),
+('3930497e-93ed-5b3d-91db-188a44b3e17d', 'db339b39-4ed8-50a9-a187-226fd9958f98', 'buổi tối', false),
+('ce33938b-2104-5ce5-8df2-a66a2222c1a7', 'db339b39-4ed8-50a9-a187-226fd9958f98', 'sau trưa', false),
+('c173001d-e41e-505a-a4b4-b23b2dab4e05', 'db339b39-4ed8-50a9-a187-226fd9958f98', 'cuối tuần', false),
+('e3727846-c7a7-5761-939e-2cb05e98d2a4', '4b113a3b-cf63-5bed-ad0f-090270bc7d1b', 'なまえ', true),
+('60e885d0-6319-5468-a682-ace933aaa736', '4b113a3b-cf63-5bed-ad0f-090270bc7d1b', 'せんせい', false),
+('2d1c4272-cb40-5fdd-86f1-bfddbde361fc', '4b113a3b-cf63-5bed-ad0f-090270bc7d1b', 'でんわ', false),
+('0485ef67-5ee7-5c88-8c9e-57bdce669c4d', '4b113a3b-cf63-5bed-ad0f-090270bc7d1b', 'くるま', false),
+('96751046-7d7f-5755-beb4-80c221448425', '6ccc07f6-0d10-56e7-8871-8c54e487396a', 'は', true),
+('570be31c-0369-56c0-ba8f-e230cb86acdd', '6ccc07f6-0d10-56e7-8871-8c54e487396a', 'を', false),
+('6cb5fbea-6b37-50ca-9ff3-eef2bbfec2b6', '6ccc07f6-0d10-56e7-8871-8c54e487396a', 'で', false),
+('d258d32a-07f2-5e5b-9569-2dc9bc410c78', '6ccc07f6-0d10-56e7-8871-8c54e487396a', 'に', false),
+('40beccb3-a281-5ec2-8c24-d538e293dd7e', 'a85508e0-2215-5fc0-aa6c-33c4d820d0c7', 'へ', true),
+('63a37ea4-b490-5d94-a13e-6851dc959e2e', 'a85508e0-2215-5fc0-aa6c-33c4d820d0c7', 'を', false),
+('a3bb7151-4417-53d3-81d4-9ed7d7c1f9b1', 'a85508e0-2215-5fc0-aa6c-33c4d820d0c7', 'が', false),
+('0185b888-0bd3-5a84-abf7-d631093469ae', 'a85508e0-2215-5fc0-aa6c-33c4d820d0c7', 'と', false),
+('bae57a71-debc-5fc4-9561-42b6ebbb00bd', 'a04de25d-4937-584a-a0af-817e879c8178', 'を', true),
+('741f0c09-f29d-5d9f-b557-bda0a15fd63c', 'a04de25d-4937-584a-a0af-817e879c8178', 'に', false),
+('a9fb8eb3-fbe2-520a-a613-ebe918407f97', 'a04de25d-4937-584a-a0af-817e879c8178', 'で', false),
+('33baa3c2-db11-5a02-adc4-481ef34ecbb5', 'a04de25d-4937-584a-a0af-817e879c8178', 'は', false),
+('32f3621e-98a4-5ee0-81d2-d7129a823c2c', '9ee0c25d-75c5-515e-a90f-90f8b9fbf7b0', 'で', true),
+('b75197d5-7e99-50dd-97e3-95f0449b1aab', '9ee0c25d-75c5-515e-a90f-90f8b9fbf7b0', 'に', false),
+('ee39c919-54d3-5b9e-a3d9-a8301d233319', '9ee0c25d-75c5-515e-a90f-90f8b9fbf7b0', 'を', false),
+('61f8b155-9c1d-507a-9862-c52562bf38d7', '9ee0c25d-75c5-515e-a90f-90f8b9fbf7b0', 'が', false),
+('9ebbdcbd-7e9a-547b-95d4-cb018d7b0389', '82578b24-9ca1-50c6-8501-2a840945b3d8', 'が', true),
+('eb84e2a3-ab1a-5501-9401-a312b7abea10', '82578b24-9ca1-50c6-8501-2a840945b3d8', 'を', false),
+('a39b1c82-1681-5d8a-be86-04c5bbb6ff12', '82578b24-9ca1-50c6-8501-2a840945b3d8', 'で', false),
+('c8909dd5-4432-5de4-99f7-05b77e8cce47', '82578b24-9ca1-50c6-8501-2a840945b3d8', 'へ', false),
+('61956046-ee30-5377-b420-813a76cfe678', '9a9577ac-e486-5c27-9504-c35c50bfc7ac', 'の', true),
+('5c14512d-1f67-5d2f-8070-c4e649dc8ccb', '9a9577ac-e486-5c27-9504-c35c50bfc7ac', 'は', false),
+('4f34f1e5-d104-59c4-bc22-2ca69a89618b', '9a9577ac-e486-5c27-9504-c35c50bfc7ac', 'を', false),
+('5ff4e407-17a1-597e-b773-27369e3bae3f', '9a9577ac-e486-5c27-9504-c35c50bfc7ac', 'で', false),
+('5be0cef2-34ea-5491-a05c-22ffbd9b8d47', 'dfaef71e-1a9a-5a97-b175-7277b3d387c5', 'に', true),
+('f994e781-5526-52a8-85d9-0221135bece8', 'dfaef71e-1a9a-5a97-b175-7277b3d387c5', 'を', false),
+('f743703f-cea9-543f-b6d1-fd30ad13584c', 'dfaef71e-1a9a-5a97-b175-7277b3d387c5', 'が', false),
+('ac61c81d-7f85-5bf8-9307-f2700d86c8d6', 'dfaef71e-1a9a-5a97-b175-7277b3d387c5', 'で', false),
+('203c01d1-15f5-51a4-b0bb-517a51326e95', '829d57c5-4fa7-59e5-8031-7a9d14bacf1e', 'と', true),
+('5693b47a-fe20-5147-8e86-6c43616c572b', '829d57c5-4fa7-59e5-8031-7a9d14bacf1e', 'を', false),
+('05fd0557-b280-5990-a829-200186288f5a', '829d57c5-4fa7-59e5-8031-7a9d14bacf1e', 'に', false),
+('26802464-1104-59cf-822b-b48f5269c653', '829d57c5-4fa7-59e5-8031-7a9d14bacf1e', 'は', false),
+('e06b9f09-8ca7-59cc-b852-d6324645e890', '4218414e-e920-5531-9a19-50b2b45b977b', 'と', true),
+('df1a13ec-77ed-5611-afc8-6e34abd99d5d', '4218414e-e920-5531-9a19-50b2b45b977b', 'を', false),
+('d0cfca67-c987-5bb9-b539-7fc735038dcb', '4218414e-e920-5531-9a19-50b2b45b977b', 'に', false),
+('21665974-47ef-553a-a27f-31535c59fd1f', '4218414e-e920-5531-9a19-50b2b45b977b', 'で', false),
+('85d7fb90-a04b-5418-9a77-9af2dcc77793', '3e7a61a8-84a7-59f2-9f08-1675e9b792b3', 'ない', true),
+('59a0779a-9f26-5751-9b78-ca1264447abc', '3e7a61a8-84a7-59f2-9f08-1675e9b792b3', 'なく', false),
+('8a8589fc-5f19-5fda-bbff-64d8d24f204b', '3e7a61a8-84a7-59f2-9f08-1675e9b792b3', 'ません', false),
+('fdf8db73-1d79-52b2-86a9-1a838c442ea0', '3e7a61a8-84a7-59f2-9f08-1675e9b792b3', 'では', false),
+('ee2daedf-4493-59d2-8b98-891295dc6bc7', '750d4d19-eb61-5988-bb36-c2317f5fcc3c', 'ました', true),
+('6cb94e2f-b85d-514f-b3ce-a7db2a3e1adb', '750d4d19-eb61-5988-bb36-c2317f5fcc3c', 'ます', false),
+('fce92c30-4634-5b14-8a98-27572c17ba85', '750d4d19-eb61-5988-bb36-c2317f5fcc3c', 'ません', false),
+('dbaf8db5-e5a5-5062-b1e8-f32881de1fb1', '750d4d19-eb61-5988-bb36-c2317f5fcc3c', 'です', false),
+('a531a27d-176d-5749-b927-187a153546f1', '411e7e70-8875-599c-8fb9-4bbc7e9e3865', 'ください', true),
+('81fff2fb-4012-53b1-93e0-aadb3e4d1a5a', '411e7e70-8875-599c-8fb9-4bbc7e9e3865', 'です', false),
+('71b059db-a61a-5643-9c3e-e55dfb557f73', '411e7e70-8875-599c-8fb9-4bbc7e9e3865', 'ます', false),
+('83f01726-1241-55f8-88f0-361e2d3ef45a', '411e7e70-8875-599c-8fb9-4bbc7e9e3865', 'でした', false),
+('8cf5c66e-cf0b-5881-aa02-ad4a7e1e1419', '367c24bc-66ce-5de6-8eee-b8a11b44a77f', 'が', true),
+('6ab12c10-1647-5d5f-b336-d112b87be857', '367c24bc-66ce-5de6-8eee-b8a11b44a77f', 'を', false),
+('9c883217-b79a-536b-95e8-bd9f4cf7743d', '367c24bc-66ce-5de6-8eee-b8a11b44a77f', 'で', false),
+('b1ddc4ab-d8cd-5782-beab-902bbfc1d3d4', '367c24bc-66ce-5de6-8eee-b8a11b44a77f', 'へ', false),
+('865c17dc-ea8b-545d-832f-9705a7b79050', '7aec7f7e-79e6-5843-9b90-f8010439332e', 'です', true),
+('d538f697-ca15-5ce7-8577-dfc7be6680f2', '7aec7f7e-79e6-5843-9b90-f8010439332e', 'ます', false),
+('2a7fb2a9-d9eb-5582-9673-ee2f95ae08f8', '7aec7f7e-79e6-5843-9b90-f8010439332e', 'ました', false),
+('60684165-f572-5abb-8c1c-b9cae661e6ac', '7aec7f7e-79e6-5843-9b90-f8010439332e', 'ありません', false),
+('d49452d5-96e2-5ae2-b54c-8c98ce5259cb', 'ab670466-d23e-5f7e-90d8-e2d63fc49da7', 'に', true),
+('4a7be37c-826e-5586-9c85-074f4937ae1f', 'ab670466-d23e-5f7e-90d8-e2d63fc49da7', 'を', false),
+('dba58419-01e5-5812-9de0-3e69c0b34540', 'ab670466-d23e-5f7e-90d8-e2d63fc49da7', 'で', false),
+('5672d2bd-ba6d-5f9c-a6a4-d0350a10f772', 'ab670466-d23e-5f7e-90d8-e2d63fc49da7', 'が', false),
+('231b1360-8bb5-5238-8ed0-9b9dbe6b2bde', '54f24e33-3ad1-588b-836f-f93e5f0af4bf', 'người', true),
+('f36df114-8ef5-579e-a421-65985e4178ef', '54f24e33-3ad1-588b-836f-f93e5f0af4bf', 'ngày', false),
+('0a496ba7-3457-5bdc-987c-f8133e6e6db0', '54f24e33-3ad1-588b-836f-f93e5f0af4bf', 'sách', false),
+('868cb934-7a2b-5f64-8385-cd2e1a085177', '54f24e33-3ad1-588b-836f-f93e5f0af4bf', 'nước', false),
+('f833eaf7-84bb-5282-b3ec-e562b2285a9b', '4e56550d-ee60-5aab-856e-3ec6d6054051', 'ngày/mặt trời', true),
+('90e0ed64-f9d4-5b04-b0a3-22754f10fa4a', '4e56550d-ee60-5aab-856e-3ec6d6054051', 'tháng', false),
+('aaffc142-6b07-59ff-8487-571ab598031b', '4e56550d-ee60-5aab-856e-3ec6d6054051', 'lửa', false),
+('4cd1a2fc-aad4-5703-a4e4-f225eddd15c8', '4e56550d-ee60-5aab-856e-3ec6d6054051', 'cây', false),
+('ca4868d2-b0c6-5449-8b2a-9ea386449593', 'f29910fa-f258-5636-bd00-6e8e3a435edd', 'tháng/mặt trăng', true),
+('a6813fb5-a1a8-55f5-91ca-e8a9e30e6af5', 'f29910fa-f258-5636-bd00-6e8e3a435edd', 'năm', false),
+('1158edcd-d111-5b2b-98fe-a117a76106c5', 'f29910fa-f258-5636-bd00-6e8e3a435edd', 'nước', false),
+('524093e6-d4b4-592c-882d-b7ac9679c31c', 'f29910fa-f258-5636-bd00-6e8e3a435edd', 'núi', false),
+('83b77698-3c31-59bf-bd81-829366d04adf', '09d66d9c-4650-58e8-8e87-28ee67f3b09b', 'lửa', true),
+('1a673067-2aa8-5429-8878-3f48d6192615', '09d66d9c-4650-58e8-8e87-28ee67f3b09b', 'nước', false),
+('c2217b73-1cf7-5d0b-b207-d9ee427e0586', '09d66d9c-4650-58e8-8e87-28ee67f3b09b', 'đất', false),
+('8e8afa3b-4021-513a-9897-7fd42da79e97', '09d66d9c-4650-58e8-8e87-28ee67f3b09b', 'tiền', false),
+('94d07bf8-1b57-587d-807e-360727dc0eb0', 'c393bcf4-5e1c-57ac-b396-a16adbc806b8', 'nước', true),
+('efec1b51-176b-54fe-b951-f35259ed1387', 'c393bcf4-5e1c-57ac-b396-a16adbc806b8', 'lửa', false),
+('ee6c4a87-5565-580c-a30c-49096ccc2f2a', 'c393bcf4-5e1c-57ac-b396-a16adbc806b8', 'người', false),
+('729d565b-9602-564e-8045-8a4a55f3f221', 'c393bcf4-5e1c-57ac-b396-a16adbc806b8', 'xe', false),
+('0fb5765b-4975-5c26-b079-93baa76c17e6', 'ee2a8815-9172-5c42-8c62-9c51837b69f4', 'cây', true),
+('4ca81928-187c-56d9-8843-357188852b21', 'ee2a8815-9172-5c42-8c62-9c51837b69f4', 'sách', false),
+('0ad72704-220d-5097-806d-f1e055113364', 'ee2a8815-9172-5c42-8c62-9c51837b69f4', 'trường', false),
+('240e77ad-6576-5d8a-bedb-479edfbffa93', 'ee2a8815-9172-5c42-8c62-9c51837b69f4', 'điện', false),
+('5a118410-fc8b-517c-a89f-3761d74bb078', '34806753-cdb1-5b99-8a6f-56cdd90e3f5e', 'núi', true),
+('9e79dfa3-8a04-5336-89b8-aa324d720491', '34806753-cdb1-5b99-8a6f-56cdd90e3f5e', 'sông', false),
+('4b79eddf-aa0d-5f95-9868-e3a3db12eec8', '34806753-cdb1-5b99-8a6f-56cdd90e3f5e', 'biển', false),
+('32eae827-a155-5faa-80fd-6f6bd81e4793', '34806753-cdb1-5b99-8a6f-56cdd90e3f5e', 'đường', false),
+('8a45917b-ff4f-5b64-a98b-d413bd8dd3e7', 'cc55919d-6aac-5f03-9f90-867aa5d733f7', 'sông', true),
+('f4a12a28-f0ff-5644-8a92-78b5ae9bd180', 'cc55919d-6aac-5f03-9f90-867aa5d733f7', 'núi', false),
+('36e4f882-0fa2-503c-a181-d0cf6ae30d7a', 'cc55919d-6aac-5f03-9f90-867aa5d733f7', 'mưa', false),
+('df59d1c0-fc9c-5684-84ad-e40d45154498', 'cc55919d-6aac-5f03-9f90-867aa5d733f7', 'cửa', false),
+('044a405d-0cff-5865-b829-d8a6da4b6a27', 'dde2dd8e-fec0-51c7-add7-8998d642bbf7', 'ruộng', true),
+('e0898c5b-ba9d-5cfd-aba1-a15993c1c224', 'dde2dd8e-fec0-51c7-add7-8998d642bbf7', 'người', false),
+('7b79e841-6add-537d-abf6-7e4a74f5de5f', 'dde2dd8e-fec0-51c7-add7-8998d642bbf7', 'miệng', false),
+('a75ed8c5-e9fe-5094-9da6-48adf7f1a0c7', 'dde2dd8e-fec0-51c7-add7-8998d642bbf7', 'trời', false),
+('c72219fd-6e46-58e6-b230-3cdff10c3584', '1ca9207b-f20c-5d4a-a76f-493f6a142c87', 'miệng', true),
+('5d6dfe2a-90a8-5b49-a8f0-22552b212885', '1ca9207b-f20c-5d4a-a76f-493f6a142c87', 'mắt', false),
+('39e21a58-dc8f-54cf-bbea-612dfe0d8b81', '1ca9207b-f20c-5d4a-a76f-493f6a142c87', 'tai', false),
+('2ad9900f-61bb-54a9-9de4-d0f3407bebbd', '1ca9207b-f20c-5d4a-a76f-493f6a142c87', 'tay', false),
+('0521afe2-4af1-5ee9-871e-5830051d20d2', '786b30fb-8f9a-5bfb-8735-663a25136888', 'mắt', true),
+('4bad80bd-a297-552e-8a29-4a67fa1f9755', '786b30fb-8f9a-5bfb-8735-663a25136888', 'tai', false),
+('8ffc4180-9baf-5e32-8844-2f38973dae65', '786b30fb-8f9a-5bfb-8735-663a25136888', 'chân', false),
+('3d63e195-ed22-5edf-be41-168ad8b33672', '786b30fb-8f9a-5bfb-8735-663a25136888', 'tay', false),
+('a4146761-e2c4-5416-917b-8431294de44c', '85a9ff76-6d39-5080-9d3e-af070746336d', 'tai', true),
+('31bfa8e7-a5eb-579d-935a-62a88fcbc9c0', '85a9ff76-6d39-5080-9d3e-af070746336d', 'mắt', false),
+('31b560ad-c4e0-5308-bb65-a7376ed87080', '85a9ff76-6d39-5080-9d3e-af070746336d', 'miệng', false),
+('6c914618-7da8-5f58-841e-8ff5d7665105', '85a9ff76-6d39-5080-9d3e-af070746336d', 'đầu', false),
+('368d51aa-d3fc-5018-8b52-5d2540f59e83', 'ac1b2b00-3237-5a5e-b2bd-234f23a11ddd', 'tay', true),
+('303b4a05-a9d8-55eb-9c74-7506de461e9a', 'ac1b2b00-3237-5a5e-b2bd-234f23a11ddd', 'chân', false),
+('ef6d348a-bc2c-506b-8d71-0e6a6fbfe3f1', 'ac1b2b00-3237-5a5e-b2bd-234f23a11ddd', 'tai', false),
+('2e3ae297-c37f-551c-b0a2-7b4392a29674', 'ac1b2b00-3237-5a5e-b2bd-234f23a11ddd', 'mắt', false),
+('ab1671ec-f0d8-5189-bc74-6ae2e8255963', '0049db6e-0a9e-5b0e-ad0a-ccefc982fa53', 'chân', true),
+('7de951be-f1bd-590e-9d36-b48580a7f6b8', '0049db6e-0a9e-5b0e-ad0a-ccefc982fa53', 'tay', false),
+('bda9c9b0-844f-520b-aae4-8d1bb4a7d162', '0049db6e-0a9e-5b0e-ad0a-ccefc982fa53', 'mắt', false),
+('92d55157-aa11-5897-b185-3ec96043e2ae', '0049db6e-0a9e-5b0e-ad0a-ccefc982fa53', 'tai', false),
+('4251d561-0efd-5d1c-8cce-e1ea2a595ab9', '53f168bc-a364-5951-821b-0173637b0625', 'xe', true),
+('3afcdd13-88f5-535c-9b17-255207d57ca2', '53f168bc-a364-5951-821b-0173637b0625', 'sách', false),
+('b3a143cd-b4fb-5cfd-b449-377f99a82306', '53f168bc-a364-5951-821b-0173637b0625', 'trường', false),
+('2ddbe823-9b5b-54ff-a34c-0fa9ae472616', '53f168bc-a364-5951-821b-0173637b0625', 'tiền', false),
+('65156978-7f68-53d6-8ecb-4081324a2815', 'bfede2c1-5f1c-577d-a63a-7e89a6760186', '六時', true),
+('74b38967-bc2d-59d9-a1e9-ab9d65363e81', 'bfede2c1-5f1c-577d-a63a-7e89a6760186', '七時', false),
+('bdd6ad4b-c960-5c84-b5a0-8c52b8fa523c', 'bfede2c1-5f1c-577d-a63a-7e89a6760186', '八時', false),
+('551d7591-733b-5d9f-aaca-aee5eb8cef89', 'bfede2c1-5f1c-577d-a63a-7e89a6760186', '四時', false),
+('ccba2114-24b3-5592-bfde-83a4ab22b8c7', '73fb6582-d96e-5e0a-8c90-f9556a5ec4da', '学校', true),
+('eefe667b-f03e-5cfb-aecc-6110f26cb800', '73fb6582-d96e-5e0a-8c90-f9556a5ec4da', '家', false),
+('841c90bf-ec78-5150-9d2a-8508d6becaa5', '73fb6582-d96e-5e0a-8c90-f9556a5ec4da', '駅', false),
+('57600846-506d-5b2a-be33-c5bcbb0033d9', '73fb6582-d96e-5e0a-8c90-f9556a5ec4da', 'レストラン', false),
+('8fde9207-8b49-5d62-8265-5daed5d376b4', '6eae996f-c4ad-5b7f-acf2-e983fc869b5b', '家へ帰ります', true),
+('213fd98f-0275-5120-adb7-1ad9b1c138ad', '6eae996f-c4ad-5b7f-acf2-e983fc869b5b', '朝ごはんを食べます', false),
+('b8bf50f7-bb4f-5481-95df-49f5ca29c91d', '6eae996f-c4ad-5b7f-acf2-e983fc869b5b', '学校へ行きます', false),
+('e6a853a4-932a-5032-9f39-d32c7ef4e4e3', '6eae996f-c4ad-5b7f-acf2-e983fc869b5b', '映画を見ます', false),
+('eb8ecdaa-ff41-5a61-b78a-dbc7007b74f6', 'b3f00191-6b19-5f58-bebf-38edc5fce795', '友だち', true),
+('64668ed3-531d-5ef7-b397-d743572e7b63', 'b3f00191-6b19-5f58-bebf-38edc5fce795', '先生', false),
+('184d636e-8c0c-55e4-8895-c082333ab63f', 'b3f00191-6b19-5f58-bebf-38edc5fce795', '家族', false),
+('e89dce93-fc80-5048-be36-4545f89d0315', 'b3f00191-6b19-5f58-bebf-38edc5fce795', '学生', false),
+('d019be95-dd40-5ae1-b5c9-bcdf6e5b4e72', '8edf76ed-f55a-5e54-9ba1-556c4e2c4591', '電車', true),
+('6a1f1548-7e9d-5906-949b-8db9d21ba5de', '8edf76ed-f55a-5e54-9ba1-556c4e2c4591', '車', false),
+('8ce38b66-8712-5e68-9d1b-e2a1de65ca63', '8edf76ed-f55a-5e54-9ba1-556c4e2c4591', '自転車', false),
+('52c0d6a1-8d8f-5e70-a3dc-ace33130ca64', '8edf76ed-f55a-5e54-9ba1-556c4e2c4591', 'バス', false),
+('a452ca05-d8ab-5f13-8189-1b5950a20cfe', '5c30e54d-c10a-56df-a3f8-0352eae99919', '映画', true),
+('9c278365-4bc3-578f-a158-3ef4d7371f6c', '5c30e54d-c10a-56df-a3f8-0352eae99919', '本', false),
+('c8e7bdd3-2db3-5186-aca3-b9c2b3fa37f0', '5c30e54d-c10a-56df-a3f8-0352eae99919', '学校', false),
+('2d75c62e-d5d3-5789-96a4-7a72fd4f3326', '5c30e54d-c10a-56df-a3f8-0352eae99919', '山', false),
+('b42c5814-bfdd-5205-ab67-c270d3376cb3', 'abe20793-92e1-57cd-b304-6c733cae6c28', 'Hôm nay nóng.', true),
+('8f33b13f-8c23-54b6-903a-011014cab8a3', 'abe20793-92e1-57cd-b304-6c733cae6c28', 'Hôm qua lạnh.', false),
+('d061876b-408c-561d-ad7c-9430511e98fa', 'abe20793-92e1-57cd-b304-6c733cae6c28', 'Ngày mai mưa.', false),
+('7ae1fadc-40e5-56c5-822b-11fade19e3bc', 'abe20793-92e1-57cd-b304-6c733cae6c28', 'Hôm nay rẻ.', false),
+('7a38b075-fd33-5b4c-8bdc-e76f04746e70', '21bdcfa0-c722-5230-996b-4299a28206ec', '日本語', true),
+('4941b78b-c14e-5343-ba58-df2b866d6de8', '21bdcfa0-c722-5230-996b-4299a28206ec', '英語', false),
+('30ad9ec1-7a46-5bad-9c85-2f4f6c4fdf90', '21bdcfa0-c722-5230-996b-4299a28206ec', '数学', false),
+('bcf12b4e-54ed-564f-993d-292dbc658eda', '21bdcfa0-c722-5230-996b-4299a28206ec', '音楽', false),
+('f63b7102-e712-5fec-9bf3-47e19f98451c', '4f2df790-e1df-5dd9-aaa2-6f5366573878', '駅の前', true),
+('dbb0e873-b23d-5b18-96ad-7732a649c330', '4f2df790-e1df-5dd9-aaa2-6f5366573878', '学校の中', false),
+('4b1af4ca-97a3-5342-84ca-7b36bf475ed6', '4f2df790-e1df-5dd9-aaa2-6f5366573878', '家の後ろ', false),
+('d14c2e96-c840-5b84-b244-dbac0bff45f7', '4f2df790-e1df-5dd9-aaa2-6f5366573878', '図書館の右', false),
+('1a0ae7f5-0afb-58db-a8e3-8d3ac78d89cb', '2340a85c-1983-508b-8539-4b7d3546e268', 'おもしろい', true),
+('62a72352-222f-539f-b3a4-37cb11e65403', '2340a85c-1983-508b-8539-4b7d3546e268', '高い', false),
+('f930fb5f-4440-532b-aab5-e45eaabdc14c', '2340a85c-1983-508b-8539-4b7d3546e268', '古い', false),
+('c0302f41-a980-5e6f-9d12-2a4878da7cdd', '2340a85c-1983-508b-8539-4b7d3546e268', '静か', false),
+('11a6ce7a-264e-5c21-afed-30abffd546ea', '8f69ee4e-b869-5f25-92cb-600e1458c176', 'A', true),
+('0161817e-1856-51a0-a838-891d4beba6a9', '8f69ee4e-b869-5f25-92cb-600e1458c176', 'B', false),
+('71294ae0-2e27-5bcb-b10e-494b659102ec', '8f69ee4e-b869-5f25-92cb-600e1458c176', 'C', false),
+('31f65e8c-2240-55d9-84f1-20e9e88160bb', '8f69ee4e-b869-5f25-92cb-600e1458c176', 'D', false),
+('b47097c4-f28e-501c-bfad-ff57662ae2c3', '914e8f71-087e-580f-ab57-040874351cb5', 'A', true),
+('a8777f5b-c502-5fe8-83ca-26f49a185b61', '914e8f71-087e-580f-ab57-040874351cb5', 'B', false),
+('1e508647-8c7a-5dbf-910f-0af3c10fd4d3', '914e8f71-087e-580f-ab57-040874351cb5', 'C', false),
+('707edd7b-db59-5e19-9490-d2b03ca6f0aa', '914e8f71-087e-580f-ab57-040874351cb5', 'D', false),
+('634f83df-11d2-5043-aebc-63b7e6a8f260', '67179377-5910-5cbd-b597-3444f1b312da', 'A', true),
+('843c78c6-a14e-5109-8e38-973ce1f40fee', '67179377-5910-5cbd-b597-3444f1b312da', 'B', false),
+('9e62c448-8274-5a2e-9341-2d207eb4cd82', '67179377-5910-5cbd-b597-3444f1b312da', 'C', false),
+('7de7e34c-27d9-58e8-8582-83b40e212241', '67179377-5910-5cbd-b597-3444f1b312da', 'D', false),
+('79883088-ef7a-532d-b1cd-01e4d632e97f', '4543dc08-996e-535c-88f2-1569f0332d8e', 'A', true),
+('5048cea7-0db8-5a9e-bb3a-17b66126b0ff', '4543dc08-996e-535c-88f2-1569f0332d8e', 'B', false),
+('16520b0b-7678-5dd2-9091-47f36fdb34af', '4543dc08-996e-535c-88f2-1569f0332d8e', 'C', false),
+('398261bd-470e-5a3f-931f-da69e605f951', '4543dc08-996e-535c-88f2-1569f0332d8e', 'D', false),
+('784468fb-e827-5586-b6c3-b5dff908fcd1', '9d8aea1a-2f07-5ab8-8f8a-08bb17f5a156', 'A', true),
+('a231029c-6d81-52f5-9dba-e9b490cc858e', '9d8aea1a-2f07-5ab8-8f8a-08bb17f5a156', 'B', false),
+('5fa430db-55c5-56d4-8f5f-b6efe28fb1b2', '9d8aea1a-2f07-5ab8-8f8a-08bb17f5a156', 'C', false),
+('8a1c06c1-087f-5041-84f7-765486f57829', '9d8aea1a-2f07-5ab8-8f8a-08bb17f5a156', 'D', false),
+('5991cec8-d295-5d82-bfa8-de4314e36381', '26f6bcfe-3e4f-5789-be8f-8068d8db8ffd', 'A', true),
+('86a53f7f-955d-5f92-8086-b1232f281609', '26f6bcfe-3e4f-5789-be8f-8068d8db8ffd', 'B', false),
+('92b25d26-573c-582e-94e8-5b681bddcbe5', '26f6bcfe-3e4f-5789-be8f-8068d8db8ffd', 'C', false),
+('37b1b9f3-55d6-5e0b-a161-6a866b3eee8b', '26f6bcfe-3e4f-5789-be8f-8068d8db8ffd', 'D', false),
+('c9671aa8-0fa2-5229-894b-d63261832167', 'aff70e6d-36ed-5a2a-a2e0-71f2c2256777', 'A', true),
+('5fdefef6-f259-597d-a3db-dbf8bd5e84cb', 'aff70e6d-36ed-5a2a-a2e0-71f2c2256777', 'B', false),
+('2fba6e37-b55e-5a39-9024-3d745d5da53e', 'aff70e6d-36ed-5a2a-a2e0-71f2c2256777', 'C', false),
+('6acad83c-3dfd-5f65-8194-c1ca39597e70', 'aff70e6d-36ed-5a2a-a2e0-71f2c2256777', 'D', false),
+('ac6966ae-2ff2-51a2-b847-99401c813da9', '744952cb-b4ac-5bda-9056-2097bc189deb', 'A', true),
+('b6ea3a8d-998d-5495-aba8-3165d0896da5', '744952cb-b4ac-5bda-9056-2097bc189deb', 'B', false),
+('9febc4e9-2098-56fd-bff9-673d0f560432', '744952cb-b4ac-5bda-9056-2097bc189deb', 'C', false),
+('18214fdb-1c7e-5940-b405-895af3fc1a04', '744952cb-b4ac-5bda-9056-2097bc189deb', 'D', false),
+('f3145190-15f0-5528-80e1-3cbfa8df5b20', '35c1905b-455f-5f4b-8e7a-e5bc9f5552b6', 'A', true),
+('e3a14586-306c-5cd3-992c-f3a5540693f3', '35c1905b-455f-5f4b-8e7a-e5bc9f5552b6', 'B', false),
+('14a9ef01-e5e5-5a79-94b4-9d2c26e13a02', '35c1905b-455f-5f4b-8e7a-e5bc9f5552b6', 'C', false),
+('b02c56c1-0535-5a1a-ae92-d755668508d0', '35c1905b-455f-5f4b-8e7a-e5bc9f5552b6', 'D', false),
+('ededba0d-a9d7-5a9a-96b7-6f27f34c46d2', 'd69167cf-717b-56c5-bdc3-850eda6ae4e3', 'A', true),
+('55929534-80a7-55bc-aefb-1d2c09f7d72a', 'd69167cf-717b-56c5-bdc3-850eda6ae4e3', 'B', false),
+('229f49dd-d59a-5253-bc55-2cdf60c39a8b', 'd69167cf-717b-56c5-bdc3-850eda6ae4e3', 'C', false),
+('2ae00ae1-eb56-5d32-bcc7-0da75eb7053b', 'd69167cf-717b-56c5-bdc3-850eda6ae4e3', 'D', false),
+('63bd1d0c-2044-538c-8bd8-bd3b2dc1186d', 'efd7e4a9-163e-5a63-a96b-84af04e0f265', 'A', true),
+('b9569b8e-97b6-51aa-a86d-c7ff658a8b7a', 'efd7e4a9-163e-5a63-a96b-84af04e0f265', 'B', false),
+('b239d6f9-842f-5479-8b8b-752aee55ad29', 'efd7e4a9-163e-5a63-a96b-84af04e0f265', 'C', false),
+('7fc199e0-e0aa-52b7-9809-02b4b078fa35', 'efd7e4a9-163e-5a63-a96b-84af04e0f265', 'D', false),
+('5f9f89cf-f6dd-5cb0-ba4a-db4e255a061d', '9190b874-3f14-53df-ac43-c73d614e948e', 'A', true),
+('077ef434-824f-57c9-a7ee-95e502c133e8', '9190b874-3f14-53df-ac43-c73d614e948e', 'B', false),
+('d9128393-ac3a-596f-a840-bf8d001d1a54', '9190b874-3f14-53df-ac43-c73d614e948e', 'C', false),
+('5fdbdcb9-14a5-5728-bf67-d57b6f9af9fb', '9190b874-3f14-53df-ac43-c73d614e948e', 'D', false),
+('32078c72-8017-57c6-b087-22f27f7f641b', 'f11a688f-de1c-59f6-b7fd-1c0e7ddf2d75', 'A', true),
+('f7fd6410-3712-59a7-bb5c-697145ebb6a0', 'f11a688f-de1c-59f6-b7fd-1c0e7ddf2d75', 'B', false),
+('ad22a22e-50ed-5ca1-9ce3-da2407ddc26b', 'f11a688f-de1c-59f6-b7fd-1c0e7ddf2d75', 'C', false),
+('63617249-2e3b-5390-9328-f3dcc5dde060', 'f11a688f-de1c-59f6-b7fd-1c0e7ddf2d75', 'D', false),
+('1ca2c88e-db3d-5955-96a5-3ec7653c714c', '84df2fbb-dba5-5389-91e0-78f4dbe55514', 'A', true),
+('acb54fdc-fe14-57c1-9f3f-02ea48a8c56b', '84df2fbb-dba5-5389-91e0-78f4dbe55514', 'B', false),
+('b88df8e8-1cec-597b-8075-7bf79d3b738c', '84df2fbb-dba5-5389-91e0-78f4dbe55514', 'C', false),
+('e21d83dc-2f8b-533e-b087-5803e5f2bac0', '84df2fbb-dba5-5389-91e0-78f4dbe55514', 'D', false),
+('812ff593-8cfc-50df-ba3b-613a2a78b719', 'd5f65a82-e106-50b7-b39b-0d3d31c211bd', 'A', true),
+('3ea232f2-36c1-55d3-8dd5-539ff72573a4', 'd5f65a82-e106-50b7-b39b-0d3d31c211bd', 'B', false),
+('87748aa7-d57e-568b-9938-db8a748f108f', 'd5f65a82-e106-50b7-b39b-0d3d31c211bd', 'C', false),
+('f8f4ad5e-b165-57bd-97d4-373ec469a3a3', 'd5f65a82-e106-50b7-b39b-0d3d31c211bd', 'D', false),
+('d97875e0-cc4a-5b2b-9ea9-e2f09070f85b', '567f4de7-97ae-58c6-ad80-59d9ddd041dd', 'A', true),
+('a565c9cc-0d7f-51fb-838a-819fd94b230c', '567f4de7-97ae-58c6-ad80-59d9ddd041dd', 'B', false),
+('762906c2-384a-5a31-b7f6-d5c85f6a8b62', '567f4de7-97ae-58c6-ad80-59d9ddd041dd', 'C', false),
+('d2db83be-498c-550e-8025-1caf56eadfd2', '567f4de7-97ae-58c6-ad80-59d9ddd041dd', 'D', false),
+('52f0cc7d-d3b8-54e5-96ef-67f67a82ead2', '1e2a75ac-ab92-5cea-bdb6-298cc2b5e219', 'A', true),
+('ac944158-9082-583f-b1b5-862eb83e5db7', '1e2a75ac-ab92-5cea-bdb6-298cc2b5e219', 'B', false),
+('b1ddf91d-adb3-5749-b974-a2e6c06751fe', '1e2a75ac-ab92-5cea-bdb6-298cc2b5e219', 'C', false),
+('da640a40-0305-5b1f-8de2-eb34c1ec6351', '1e2a75ac-ab92-5cea-bdb6-298cc2b5e219', 'D', false),
+('fbf3a81f-3d72-59b8-bc9c-07d7e6d12dc4', '83212584-4c07-56dc-a056-cb42d8faf29c', 'A', true),
+('f205f389-3fdc-5586-b301-5f622ae3718f', '83212584-4c07-56dc-a056-cb42d8faf29c', 'B', false),
+('432f8523-b132-536c-a5f8-ce6592637f3a', '83212584-4c07-56dc-a056-cb42d8faf29c', 'C', false),
+('97dd1443-8c75-57c8-848e-6592cd48da3d', '83212584-4c07-56dc-a056-cb42d8faf29c', 'D', false),
+('70048f77-1c64-57fe-807f-11007ae2dfa7', '02d977b7-6696-5e88-aef0-88fe34f79797', 'A', true),
+('b1a2afe0-f1ab-5003-89dc-d45e90d41352', '02d977b7-6696-5e88-aef0-88fe34f79797', 'B', false),
+('4df4cfb9-2df1-549f-99f2-a9a8fa0f9127', '02d977b7-6696-5e88-aef0-88fe34f79797', 'C', false),
+('467ea31b-911c-5b0f-aef5-10f9d9b1c36a', '02d977b7-6696-5e88-aef0-88fe34f79797', 'D', false),
+('58024fc9-b657-567c-a8c8-3116514d511d', '98abf35d-9c36-57a5-9ce7-59500a59a1f5', 'A', true),
+('cc4b4b8a-1785-5900-b55a-e47730fbd0fc', '98abf35d-9c36-57a5-9ce7-59500a59a1f5', 'B', false),
+('1769cdde-2856-5cd0-8459-a6e94a9a2ba1', '98abf35d-9c36-57a5-9ce7-59500a59a1f5', 'C', false),
+('ffa5f632-e66e-56c6-bd53-785d796fd79b', '98abf35d-9c36-57a5-9ce7-59500a59a1f5', 'D', false);
+
+-- 7. TEMPLATE N5 THEO CẤU TRÚC TEST
+INSERT INTO public."ExamTemplates" ("TemplateID", "Title", "LevelID", "Duration", "PassingScore", "MinLanguageKnowledgeScore", "MinReadingScore", "MinListeningScore", "TotalMaxScore", "Version", "IsActive") VALUES
+('46619a03-3f7f-56e9-878f-a4fc17a91533', 'Cấu trúc JLPT N5 Seed Test', '91e47292-b3eb-5965-9d01-45f9b3681fc6', 105, 80.00, 38, 0, 19, 180.00, 1, true);
+
+INSERT INTO public."ExamTemplateDetails" ("DetailID", "SkillType", "QuestionFormat", "Quantity", "PointPerQuestion", "TemplateID") VALUES
+('3b7c3667-9824-5e97-8661-6c6da9b8aef8', 1, 0, 15, 1.3333, '46619a03-3f7f-56e9-878f-a4fc17a91533'),
+('1ca3b27a-b3c8-5cc4-858c-71716005c420', 2, 0, 15, 1.3333, '46619a03-3f7f-56e9-878f-a4fc17a91533'),
+('e7815742-6979-5ca9-9a69-24d2f5e4363f', 3, 0, 15, 1.3333, '46619a03-3f7f-56e9-878f-a4fc17a91533'),
+-- Quantity = 2 nghĩa là 2 passage group; thực tế mỗi passage có 3 câu, tổng 6 câu x 7 điểm = 42.
+('18bb70d8-acd3-581b-a057-b4278d86a5cb', 4, 2, 2, 7.0000, '46619a03-3f7f-56e9-878f-a4fc17a91533'),
+('476e6401-b37a-5769-82f6-e6572fbe74e6', 4, 0, 4, 4.5000, '46619a03-3f7f-56e9-878f-a4fc17a91533'),
+('5853f0de-a4fb-59a6-889f-4fdd54f203ab', 5, 3, 20, 3.0000, '46619a03-3f7f-56e9-878f-a4fc17a91533');
+
+-- 8. EXAM MOCK TEST ĐÃ GẮN SẴN QUESTION, không cần gọi API generate nếu chỉ muốn test render ngay.
+INSERT INTO public."Exams" (
+    "ExamID", "TemplateID", "CourseID", "LessonID", "LevelID", "TargetSkill", "Priority", "IsCheckpoint",
+    "Type", "Title", "CreatedAt", "UpdatedAt", "TotalMaxScore", "PassingScore",
+    "MinLanguageKnowledgeScore", "MinReadingScore", "MinListeningScore", "ShowResultImmediately",
+    "Duration", "IsPublished", "Version", "TemplateVersion"
+) VALUES (
+    '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '46619a03-3f7f-56e9-878f-a4fc17a91533', '72f02178-3772-5e5e-86f0-f897bbab39cc', 'bdff3452-6099-5556-ba16-1cb8673e726c', '91e47292-b3eb-5965-9d01-45f9b3681fc6', NULL, 1, false,
+    0, 'JLPT N5 Mock Test - Seed Data', NOW(), NOW(), 180.00, 80.00,
+    38, 0, 19, true,
+    105, true, 1, 1
+);
+
+-- 9. EXAM_QUESTIONS: thứ tự đúng để API GetExamQuestions build tree.
+INSERT INTO public."Exam_Questions" ("ExamQuestionID", "ExamID", "QuestionID", "ReadingID", "ListeningID", "OrderIndex", "Score", "Version") VALUES
+('27c3129b-0c19-546e-bc32-ae914b16fe68', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', 'eb5cca3b-0065-5408-ad17-80cbb390811f', NULL, NULL, 1, 1.3333333333, 1),
+('a604bfaf-2cc9-596f-97ff-06f514cb9785', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '7621c0bf-eeaf-50b2-856b-e9a1f80013bf', NULL, NULL, 2, 1.3333333333, 1),
+('bb81eb53-8b94-5b2a-925b-8cf87a163fe4', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '5469a658-25a7-5c72-92c8-ce9e22650995', NULL, NULL, 3, 1.3333333333, 1),
+('5cc08778-b30e-5748-8edc-81543e79cee5', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '28c14c41-21e9-5f7b-9207-d6158ef42a5f', NULL, NULL, 4, 1.3333333333, 1),
+('a3f17224-1e45-5c16-99a2-40f960721cc1', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '8fdb5ce0-a1f8-5ef6-b5c8-71d943e1b3f4', NULL, NULL, 5, 1.3333333333, 1),
+('f3b64b5b-0aa0-56b3-8735-c53a05eb6c13', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', 'adf593d3-abb9-597c-97d9-08b6fe739f74', NULL, NULL, 6, 1.3333333333, 1),
+('62604dcd-5bd0-5ad7-ab17-1862a8314213', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '49e47085-a830-5e65-87d2-68e03d535c6f', NULL, NULL, 7, 1.3333333333, 1),
+('dc7c444a-5074-55b4-9dfc-584bacde4c81', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '4edf3654-7d30-5333-983c-1c19601cf244', NULL, NULL, 8, 1.3333333333, 1),
+('94a0ad3f-d42e-5be5-aa01-37728dfdb9af', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', 'bb254cfb-64dc-51f5-8a24-9d53e3e4656e', NULL, NULL, 9, 1.3333333333, 1),
+('32e16970-3ef5-511d-9a4e-26c4423f5e75', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', 'f5985592-2ba6-5ded-8a0c-ae79406ef161', NULL, NULL, 10, 1.3333333333, 1),
+('a996d201-3016-599b-a513-eba2fd04fb1e', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', 'f840f31e-a39a-5c55-b7c2-ce60c88790d8', NULL, NULL, 11, 1.3333333333, 1),
+('fe7de6a8-94f5-501c-b66a-7bd544c016e1', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '16b861fb-2ca5-59b5-8499-b67a6ebae9a4', NULL, NULL, 12, 1.3333333333, 1),
+('12fdc487-a0ae-584e-9da0-60d8096e573b', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '7c156578-6201-56fe-a62d-3eb128a3052e', NULL, NULL, 13, 1.3333333333, 1),
+('59537e02-b7d7-5558-afea-8b91f44e13bf', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', 'db339b39-4ed8-50a9-a187-226fd9958f98', NULL, NULL, 14, 1.3333333333, 1),
+('677cefef-cc15-5e73-aa74-6b3af15c2673', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '4b113a3b-cf63-5bed-ad0f-090270bc7d1b', NULL, NULL, 15, 1.3333333333, 1),
+('c0772c34-7f3e-584f-84dd-66d251499c1f', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '6ccc07f6-0d10-56e7-8871-8c54e487396a', NULL, NULL, 16, 1.3333333333, 1),
+('5295c984-4df0-519c-8d13-1ded54493741', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', 'a85508e0-2215-5fc0-aa6c-33c4d820d0c7', NULL, NULL, 17, 1.3333333333, 1),
+('49f9280b-76a9-562e-a249-6e34f81c45ae', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', 'a04de25d-4937-584a-a0af-817e879c8178', NULL, NULL, 18, 1.3333333333, 1),
+('2ad2f5e7-d3f6-5320-b178-df79ff7e0e08', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '9ee0c25d-75c5-515e-a90f-90f8b9fbf7b0', NULL, NULL, 19, 1.3333333333, 1),
+('acf839be-d8c6-544a-9f86-48b2937d20c1', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '82578b24-9ca1-50c6-8501-2a840945b3d8', NULL, NULL, 20, 1.3333333333, 1),
+('4671cb44-47ae-5df8-8a12-b3135de54569', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '9a9577ac-e486-5c27-9504-c35c50bfc7ac', NULL, NULL, 21, 1.3333333333, 1),
+('a29ac48c-6a33-568e-acb5-0444f3de006a', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', 'dfaef71e-1a9a-5a97-b175-7277b3d387c5', NULL, NULL, 22, 1.3333333333, 1),
+('a11eca18-f5dd-5b10-9346-a0e4abaf0a24', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '829d57c5-4fa7-59e5-8031-7a9d14bacf1e', NULL, NULL, 23, 1.3333333333, 1),
+('97333a0d-1c6f-5c75-b568-452d54fffa11', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '4218414e-e920-5531-9a19-50b2b45b977b', NULL, NULL, 24, 1.3333333333, 1),
+('53e3e8cb-03c0-511a-a1c2-7b2d0fe1326b', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '3e7a61a8-84a7-59f2-9f08-1675e9b792b3', NULL, NULL, 25, 1.3333333333, 1),
+('bdbdf3da-453a-522d-9944-8067f5ed8e5f', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '750d4d19-eb61-5988-bb36-c2317f5fcc3c', NULL, NULL, 26, 1.3333333333, 1),
+('66226e61-e565-507f-92e3-2fbfe8760de3', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '411e7e70-8875-599c-8fb9-4bbc7e9e3865', NULL, NULL, 27, 1.3333333333, 1),
+('bbe3aca9-6c04-548a-8720-1aa2632ef0af', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '367c24bc-66ce-5de6-8eee-b8a11b44a77f', NULL, NULL, 28, 1.3333333333, 1),
+('d90a95a5-4a95-5d7f-a8bc-19120ddad7a4', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '7aec7f7e-79e6-5843-9b90-f8010439332e', NULL, NULL, 29, 1.3333333333, 1),
+('890f5cfe-5fca-52a4-8b90-253efc6757a2', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', 'ab670466-d23e-5f7e-90d8-e2d63fc49da7', NULL, NULL, 30, 1.3333333333, 1),
+('28f28085-b207-5c80-b4cf-c99a9ad7d72d', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '54f24e33-3ad1-588b-836f-f93e5f0af4bf', NULL, NULL, 31, 1.3333333333, 1),
+('79cc30f7-68b7-5988-b512-6786971959a8', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '4e56550d-ee60-5aab-856e-3ec6d6054051', NULL, NULL, 32, 1.3333333333, 1),
+('56e5f922-fece-5620-a8fb-c2e4cb846815', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', 'f29910fa-f258-5636-bd00-6e8e3a435edd', NULL, NULL, 33, 1.3333333333, 1),
+('cf5254be-8853-5b4e-9cd1-624cc47516fc', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '09d66d9c-4650-58e8-8e87-28ee67f3b09b', NULL, NULL, 34, 1.3333333333, 1),
+('70731db3-4107-5cb4-9384-34c87cb3b8bd', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', 'c393bcf4-5e1c-57ac-b396-a16adbc806b8', NULL, NULL, 35, 1.3333333333, 1),
+('68bbe841-2615-5497-bf88-af5f778c7313', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', 'ee2a8815-9172-5c42-8c62-9c51837b69f4', NULL, NULL, 36, 1.3333333333, 1),
+('74b53e82-be99-5959-8f01-1611d626f8f9', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '34806753-cdb1-5b99-8a6f-56cdd90e3f5e', NULL, NULL, 37, 1.3333333333, 1),
+('8eb53b93-c223-5883-a2fc-76c7af946030', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', 'cc55919d-6aac-5f03-9f90-867aa5d733f7', NULL, NULL, 38, 1.3333333333, 1),
+('1d6c7e43-b001-5bcd-a546-edf2fab137f8', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', 'dde2dd8e-fec0-51c7-add7-8998d642bbf7', NULL, NULL, 39, 1.3333333333, 1),
+('6c106ca0-4231-5f69-841a-7a6a86a2dd65', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '1ca9207b-f20c-5d4a-a76f-493f6a142c87', NULL, NULL, 40, 1.3333333333, 1),
+('58147ddf-88a6-50e0-979f-00606a89de81', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '786b30fb-8f9a-5bfb-8735-663a25136888', NULL, NULL, 41, 1.3333333333, 1),
+('36117d1a-e666-5274-92c1-6e5f5ab80dfa', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '85a9ff76-6d39-5080-9d3e-af070746336d', NULL, NULL, 42, 1.3333333333, 1),
+('5eb14845-f060-558e-a162-319ad5fae5c7', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', 'ac1b2b00-3237-5a5e-b2bd-234f23a11ddd', NULL, NULL, 43, 1.3333333333, 1),
+('f6a13408-b20e-5ff8-a211-99d269ade03b', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '0049db6e-0a9e-5b0e-ad0a-ccefc982fa53', NULL, NULL, 44, 1.3333333333, 1),
+('8bae9896-d4aa-5f1f-bb83-d52f1d45154c', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '53f168bc-a364-5951-821b-0173637b0625', NULL, NULL, 45, 1.3333333333, 1),
+('b0765c19-2c6d-5748-8211-39d0fc578e3a', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', 'bfede2c1-5f1c-577d-a63a-7e89a6760186', '21ea58a5-2311-5ad3-9806-1dd8059bb61e', NULL, 46, 7.0000, 1),
+('32ec6003-2083-541a-9ea1-54b3c5a657a5', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '73fb6582-d96e-5e0a-8c90-f9556a5ec4da', '21ea58a5-2311-5ad3-9806-1dd8059bb61e', NULL, 47, 7.0000, 1),
+('8db515b2-b00d-5f48-97fb-470e06d7acc9', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '6eae996f-c4ad-5b7f-acf2-e983fc869b5b', '21ea58a5-2311-5ad3-9806-1dd8059bb61e', NULL, 48, 7.0000, 1),
+('0dcc2f36-6ed7-5e40-8a83-733f2271ad49', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', 'b3f00191-6b19-5f58-bebf-38edc5fce795', 'f0a2c372-fbaa-5eb3-91f2-422720b24e68', NULL, 49, 7.0000, 1),
+('4c789eba-e55e-5126-89b3-6689b76ac1dc', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '8edf76ed-f55a-5e54-9ba1-556c4e2c4591', 'f0a2c372-fbaa-5eb3-91f2-422720b24e68', NULL, 50, 7.0000, 1),
+('1cdde2f9-c89a-5cab-8f16-8b1724bc2218', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '5c30e54d-c10a-56df-a3f8-0352eae99919', 'f0a2c372-fbaa-5eb3-91f2-422720b24e68', NULL, 51, 7.0000, 1),
+('1bbb7ec9-b6a1-50b5-8a83-761501d2207b', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', 'abe20793-92e1-57cd-b304-6c733cae6c28', NULL, NULL, 52, 4.5000, 1),
+('fce58d63-4507-506c-9e87-d6916bc8432a', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '21bdcfa0-c722-5230-996b-4299a28206ec', NULL, NULL, 53, 4.5000, 1),
+('59b6a9be-1736-5043-9d26-f4aab0a91c11', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '4f2df790-e1df-5dd9-aaa2-6f5366573878', NULL, NULL, 54, 4.5000, 1),
+('e7ce9d0c-d725-5896-966e-6dc6ae7e6437', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '2340a85c-1983-508b-8539-4b7d3546e268', NULL, NULL, 55, 4.5000, 1),
+('9aedd46d-13f2-5619-a3f3-595c79576b65', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '8f69ee4e-b869-5f25-92cb-600e1458c176', NULL, 'cfe60b4d-9b44-5891-adf7-49782be4e119', 56, 3.0000, 1),
+('ad9947fc-6ff7-5d04-bdf3-8d031ee499b9', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '914e8f71-087e-580f-ab57-040874351cb5', NULL, 'e61ed20e-dc54-5071-bad5-8a7f807bee53', 57, 3.0000, 1),
+('cef2bc67-eb59-53d7-9df1-314fa92c5071', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '67179377-5910-5cbd-b597-3444f1b312da', NULL, '79fe3bfa-6a24-5779-bf67-317738181fdc', 58, 3.0000, 1),
+('c3fe4599-5359-5e6e-9f64-077e2af9c4ed', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '4543dc08-996e-535c-88f2-1569f0332d8e', NULL, '58ddee31-2fa8-5ed3-80b1-c67027e81c31', 59, 3.0000, 1),
+('f09bf046-12a0-5592-9553-8d0e0543ac70', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '9d8aea1a-2f07-5ab8-8f8a-08bb17f5a156', NULL, '17cc484f-eb1d-5d87-b7d8-2b537306d451', 60, 3.0000, 1),
+('01725a14-2a3d-5604-ac81-ca1f5fc3cce6', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '26f6bcfe-3e4f-5789-be8f-8068d8db8ffd', NULL, '1dfca429-43e4-5da5-958b-20ba6d95caf0', 61, 3.0000, 1),
+('ebbeaafe-5d93-520e-8ecd-ac85ad5217fa', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', 'aff70e6d-36ed-5a2a-a2e0-71f2c2256777', NULL, 'cb86d6aa-d6cc-5c37-9e13-0654605cf5a6', 62, 3.0000, 1),
+('ea2f0b0b-2464-5b35-af05-eb792df85c90', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '744952cb-b4ac-5bda-9056-2097bc189deb', NULL, '407776cf-3bd7-58eb-be37-eae89a5db175', 63, 3.0000, 1),
+('97a1eaf3-a351-5783-8448-17d1600c3ce2', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '35c1905b-455f-5f4b-8e7a-e5bc9f5552b6', NULL, '4741ebed-bc26-5f96-877d-59072f406aeb', 64, 3.0000, 1),
+('93c4af4b-c707-543c-97dc-c903673e98f3', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', 'd69167cf-717b-56c5-bdc3-850eda6ae4e3', NULL, 'acc5797e-d48b-53ee-a808-9f359f6323b4', 65, 3.0000, 1),
+('e44fdb15-d8ec-5788-b99c-90a86462acf9', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', 'efd7e4a9-163e-5a63-a96b-84af04e0f265', NULL, '14701068-910b-56db-aa67-117928508847', 66, 3.0000, 1),
+('72dd202e-e1fc-5c6a-a3f4-10b1d388e183', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '9190b874-3f14-53df-ac43-c73d614e948e', NULL, 'c5f998fb-f7c7-59c8-ad41-a5ee516119f7', 67, 3.0000, 1),
+('30b144b4-0600-57b5-a4be-c31f2692f97b', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', 'f11a688f-de1c-59f6-b7fd-1c0e7ddf2d75', NULL, 'd30a9bef-2f1b-56a4-ac98-d921d56d48ca', 68, 3.0000, 1),
+('489948b3-0f8e-5424-a5e3-54b1b56412a5', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '84df2fbb-dba5-5389-91e0-78f4dbe55514', NULL, '029dcc09-b051-59d5-b671-32bc874bc154', 69, 3.0000, 1),
+('1bad2109-9a2f-5d0b-8ae0-f619bbdb5345', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', 'd5f65a82-e106-50b7-b39b-0d3d31c211bd', NULL, '2be75180-9b30-56a7-9a3d-9d82e7e3d6f3', 70, 3.0000, 1),
+('0ce9c2a4-81f5-5d3f-828c-cb55891df4cb', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '567f4de7-97ae-58c6-ad80-59d9ddd041dd', NULL, '7c488529-8294-579a-b022-65e6a950e545', 71, 3.0000, 1),
+('f1a32c80-3084-5ddb-bf4f-8d1642d7136e', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '1e2a75ac-ab92-5cea-bdb6-298cc2b5e219', NULL, '652e0b99-b752-58b8-a09f-ecfe0481d043', 72, 3.0000, 1),
+('f70e1b14-fc21-51e7-ae45-edc9501ccbe1', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '83212584-4c07-56dc-a056-cb42d8faf29c', NULL, '2dfbbe0d-0f4f-5dee-8dff-55512bf489c3', 73, 3.0000, 1),
+('dba8c70b-7751-58cc-9f33-100cdbc51d24', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '02d977b7-6696-5e88-aef0-88fe34f79797', NULL, '12e225ba-f3bd-54f9-85e4-1e52bbdad8b7', 74, 3.0000, 1),
+('d5e9af05-4b57-5989-bac5-1d0436489e7f', '8fac6844-f9bf-5cfe-85eb-63d259d512b6', '98abf35d-9c36-57a5-9ce7-59500a59a1f5', NULL, '39c303ce-8e05-5f51-aaf9-308cc4c6f0c9', 75, 3.0000, 1);
+
+COMMIT;
+
+-- Kiểm tra nhanh sau khi chạy:
+-- SELECT "ExamID", "Title" FROM public."Exams";
+-- SELECT "SkillType", "QuestionFormat", COUNT(*) FROM public."Questions" GROUP BY "SkillType", "QuestionFormat" ORDER BY "SkillType", "QuestionFormat";
+-- SELECT COUNT(*) FROM public."Exam_Questions" WHERE "ExamID" = '8fac6844-f9bf-5cfe-85eb-63d259d512b6';
+
+-- -- -- Thay UserID tương ứng của ông vào
+-- DELETE FROM "FlashcardDecks" WHERE "UserID" = '2aed63c2-ce50-4194-a9af-2fafa255df5a';
+
+-- -------------------------------------------------------
+-- -- SELECT VD
+-- -------------------------------------------------------
+-- SELECT * FROM "GrammarGroups"
+-- WHERE "VocabID" = '014415d9-f006-4558-9a09-f4dcdee4a742';
+
+-- SELECT * FROM "Vocabularies"
+-- WHERE "Word" = '置く';

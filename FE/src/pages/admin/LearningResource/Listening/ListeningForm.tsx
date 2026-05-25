@@ -4,20 +4,24 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { listeningService } from '../../../../services/Admin/listeningService';
 import { CreateUpdateListeningDTO, ListeningQuestionDTO } from '../../../../interfaces/Admin/Listening';
 import { QuestionDTO, QuestionType, QuestionStatus } from '../../../../interfaces/Admin/Question';
+import { normalizeMediaForSave, resolveMediaUrl } from '../../../../utils/resolveMediaUrl';
 
 const ListenEditor: React.FC = () => {
   const [jlptLevel, setJlptLevel] = useState('');
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const isEditMode = Boolean(id);
-  const API_URL = "https://localhost:7055";
-  
   // 1. Khai báo thêm State để lưu danh sách từ DB
   const [metadata, setMetadata] = useState({
       levels: [] as any[],
       topics: [] as any[],
+      courses: [] as any[],
       lessons: [] as any[]
   });
+
+  // NEW: State quản lý course selection
+  const [selectedCourseId, setSelectedCourseId] = useState<string>('');
+  const [isCourseMenuOpen, setIsCourseMenuOpen] = useState(false);
 
   // 1. Thêm State để quản lý việc tìm kiếm Topic
   const [topicSearch, setTopicSearch] = useState('');
@@ -32,7 +36,7 @@ const ListenEditor: React.FC = () => {
   const [isVisibilityMenuOpen, setIsVisibilityMenuOpen] = useState(false);
   const [visibility, setVisibility] = useState('Published');
 
-  const [dropUp, setDropUp] = useState({ lesson: false, visibility: false , speed: false});
+  const [dropUp, setDropUp] = useState({ lesson: false, visibility: false , speed: false, course: false });
   const audioRef = React.useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
@@ -128,15 +132,31 @@ const ListenEditor: React.FC = () => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handleOpenDropdown = (type: 'lesson' | 'visibility' | 'speed', e: React.MouseEvent) => {
+  const handleOpenDropdown = (type: 'course' | 'lesson' | 'visibility' | 'speed', e: React.MouseEvent) => {
   const rect = e.currentTarget.getBoundingClientRect();
   const windowHeight = window.innerHeight;
   const isCloseToBottom = windowHeight - rect.bottom < 500;
   
   setDropUp(prev => ({ ...prev, [type]: isCloseToBottom }));
+    if(type === 'course') setIsCourseMenuOpen(!isCourseMenuOpen);
     if(type === 'lesson') setIsLessonMenuOpen(!isLessonMenuOpen);
     if(type === 'visibility') setIsVisibilityMenuOpen(!isVisibilityMenuOpen);
     if(type === 'speed') setIsSpeedMenuOpen(!isSpeedMenuOpen);
+  };
+
+  // NEW: Handler khi user chọn course
+  const handleCourseSelect = async (courseId: string) => {
+    setSelectedCourseId(courseId);
+    setFormData(prev => ({ ...prev, courseID: courseId, lessonID: '' })); // Reset lessonID khi đổi course
+    setIsCourseMenuOpen(false);
+    
+    // Load lessons của course được chọn
+    try {
+      const lessonsOfCourse = await listeningService.getLessons(courseId);
+      setMetadata(prev => ({ ...prev, lessons: lessonsOfCourse }));
+    } catch (error) {
+      console.error("Lỗi khi load lessons của course:", error);
+    }
   };
 
   // 1. Khởi tạo State (Không set cứng ID, để trống để người dùng chọn)
@@ -147,7 +167,8 @@ const ListenEditor: React.FC = () => {
       transcript: '',
       duration: 0,
       speedCategory: '',
-      levelID: '', 
+      levelID: '',
+      courseID: '',    // NEW: Course ID
       topicIDs: [] as string[],
       lessonID: '',
       status: 1,
@@ -192,13 +213,14 @@ const ListenEditor: React.FC = () => {
       // 1. Tạo Payload (Vì dùng Base64 nên không cần upload riêng)
       const payload = {
         title: formData.title,
-        audioURL: formData.audioURL, // Đây là chuỗi Base64
+        audioURL: normalizeMediaForSave(formData.audioURL) ?? '',
         script: formData.script,
         transcript: formData.transcript,
         duration: Number(formData.duration),
         speedCategory: formData.speedCategory, 
         levelID: formData.levelID,
-       topicIDs: formData.topicIDs,
+        courseID: formData.courseID,  // NEW: Include courseID
+        topicIDs: formData.topicIDs,
         lessonID: formData.lessonID,
         status: statusMap[visibility] ?? 1,
         
@@ -207,7 +229,7 @@ const ListenEditor: React.FC = () => {
           lessonID: formData.lessonID, 
           
           content: q.content,
-          imageURL: q.imageURL, // Đã là Base64 từ hàm handleQuestionImageChange
+          imageURL: normalizeMediaForSave(q.imageURL) ?? null,
           mediaTimestamp: q.mediaTimestamp,
           explanation: q.explanation || "",
           difficulty: Number(q.difficulty) || 1,
@@ -223,6 +245,7 @@ const ListenEditor: React.FC = () => {
 
       // 3. KIỂM TRA TỪNG TRƯỜNG ID
       const isLevelValid = isGuid(payload.levelID);
+      const isCourseValid = isGuid(payload.courseID);  // NEW: Check courseID
       
       // Kiểm tra từng ID trong mảng Topic
       const areTopicsValid = payload.topicIDs.length > 0 && 
@@ -231,9 +254,10 @@ const ListenEditor: React.FC = () => {
       // LessonID có thể để trống (tùy nghiệp vụ), nếu có thì phải là GUID
       const isLessonValid = payload.lessonID ? isGuid(payload.lessonID) : true;
 
-      if (!isLevelValid || !areTopicsValid || !isLessonValid) {
-        alert("Lỗi: Level, Topic (ít nhất 1) hoặc Lesson không đúng định dạng GUID hoặc chưa được chọn!");
+      if (!isLevelValid || !isCourseValid || !areTopicsValid || !isLessonValid) {
+        alert("Lỗi: Level, Khóa học, Topic (ít nhất 1) không đúng định dạng GUID hoặc chưa được chọn!");
         console.log("Check Level:", isLevelValid, payload.levelID);
+        console.log("Check Course:", isCourseValid, payload.courseID);
         console.log("Check Topics:", areTopicsValid, payload.topicIDs);
         console.log("Check Lesson:", isLessonValid, payload.lessonID);
         return;
@@ -271,46 +295,44 @@ const ListenEditor: React.FC = () => {
   useEffect(() => {
     const initPage = async () => {
       try {
-        // 1. Tải toàn bộ Metadata trước
-        const [levels, topics, lessons] = await Promise.all([
+        // 1. Tải toàn bộ Metadata trước (bao gồm courses)
+        const [levels, topics, courses] = await Promise.all([
           listeningService.getLevels(),
           listeningService.getTopics(),
-          listeningService.getLessons()
+          listeningService.getCourses()
         ]);
         
-        setMetadata({ levels, topics, lessons });
+        setMetadata({ levels, topics, courses, lessons: [] });
 
         // 2. Nếu ở chế độ Edit, mới tiến hành lấy chi tiết bài nghe
         if (isEditMode && id) {
           const data = await listeningService.getById(id);
-          
-          // --- SỬA TẠI ĐÂY: Xử lý audioURL ---
-          let formattedAudioURL = data.audioURL || '';
-          if (formattedAudioURL && !formattedAudioURL.startsWith('http') && !formattedAudioURL.startsWith('data:')) {
-            // Nối API_URL vào nếu là đường dẫn tương đối từ server
-            formattedAudioURL = `${API_URL}${formattedAudioURL.startsWith('/') ? '' : '/'}${formattedAudioURL}`;
-          }
 
-          // Cập nhật FormData
           setFormData({
             title: data.title || '',
-            audioURL: formattedAudioURL, // Dùng URL đã format
+            audioURL: data.audioURL || '',
             script: data.script || '',
             transcript: data.transcript || '',
             duration: data.duration || 0,
             speedCategory: data.speedCategory?.toString() || '1',
             levelID: data.levelID || '',
+            courseID: data.courseID || '',  // NEW: Set courseID
             topicIDs: data.topicIDs || [],
             lessonID: data.lessonID || '',
             status: data.status ?? 0, 
             questions: (data.questions || []).map((q: any) => ({
               ...q,
-              // Xử lý imageURL (Bạn đã làm đúng, giữ nguyên hoặc tối ưu nhẹ)
-              imageURL: q.imageURL && !q.imageURL.startsWith("data:") && !q.imageURL.startsWith("http")
-                ? `${API_URL}${q.imageURL.startsWith('/') ? '' : '/'}${q.imageURL}` 
-                : q.imageURL
+              imageURL: q.imageURL || null,
             }))
           });
+
+          // Set selectedCourseId để course dropdown show đúng course
+          if (data.courseID) {
+            setSelectedCourseId(data.courseID);
+            // Load lessons của course này
+            const lessonsOfCourse = await listeningService.getLessons(data.courseID);
+            setMetadata(prev => ({ ...prev, lessons: lessonsOfCourse }));
+          }
 
           // SỬA LỖI LOGIC: Dùng biến 'levels' vừa lấy được thay vì dùng 'metadata.levels' 
           // (Vì setMetadata là async, lúc này metadata.levels có thể vẫn đang rỗng)
@@ -329,6 +351,8 @@ const ListenEditor: React.FC = () => {
 
     initPage();
   }, [id, isEditMode]);
+
+  const resolvedAudioUrl = resolveMediaUrl(formData.audioURL);
 
   return (
     /* Đổi flex-row thành flex-col để Header nằm trên cùng */
@@ -503,11 +527,11 @@ const ListenEditor: React.FC = () => {
                 accept="audio/*" 
               />
               
-              {formData.audioURL && formData.audioURL !== "" ? (
+              {resolvedAudioUrl ? (
                 <audio 
-                  key={formData.audioURL.substring(0, 100)} // Dùng 1 đoạn base64 làm key để reset audio
+                  key={resolvedAudioUrl.substring(0, 100)}
                   ref={audioRef} 
-                  src={formData.audioURL} 
+                  src={resolvedAudioUrl} 
                   onTimeUpdate={handleTimeUpdate}
                   onLoadedMetadata={handleLoadedMetadata}
                   onEnded={() => setIsPlaying(false)}
@@ -749,9 +773,60 @@ const ListenEditor: React.FC = () => {
                 </div>
               </div>
 
+              {/* NEW: 1.5. SECTION COURSE (REQUIRED BEFORE LESSON) */}
+              <div className="pt-5 border-t border-[#f4f0f2]">
+                  <label className="block text-xs font-bold text-[#886373] uppercase tracking-wider mb-2">Khóa học *</label>
+                  <div className="relative">
+                      <button 
+                          onClick={(e) => handleOpenDropdown('course', e)}
+                          className="w-full bg-[#fbf9fa] border border-[#f4f0f2] rounded-xl px-4 py-2.5 text-sm flex items-center justify-between hover:border-primary/30 transition-all outline-none"
+                      >
+                          <span className={selectedCourseId ? "text-[#181114]" : "text-[#886373]/60"}>
+                              {metadata.courses.find(c => c.courseID === selectedCourseId)?.courseName || "-- Chọn khóa học --"}
+                          </span>
+                          <span className={`material-symbols-outlined text-[#886373] transition-transform duration-300 ${isCourseMenuOpen ? 'rotate-180' : ''}`}>
+                              expand_more
+                          </span>
+                      </button>
+
+                      {isCourseMenuOpen && (
+                          <>
+                              <div className="fixed inset-0 z-10" onClick={() => setIsCourseMenuOpen(false)} />
+                              <div className={`absolute left-0 right-0 z-20 bg-white border border-[#f4f0f2] rounded-xl shadow-2xl p-1 animate-in fade-in duration-200 
+                                  ${dropUp.course 
+                                      ? "bottom-full mb-2 slide-in-from-bottom-2"
+                                      : "top-full mt-2 slide-in-from-top-2"
+                                  }`}
+                              >
+                                  <div className="max-h-84 overflow-y-auto custom-scrollbar">
+                                      <button 
+                                          onClick={() => { setSelectedCourseId(''); setFormData(prev => ({ ...prev, courseID: '', lessonID: '' })); setMetadata(prev => ({ ...prev, lessons: [] })); setIsCourseMenuOpen(false); }}
+                                          className="w-full text-left px-3 py-2 text-xs rounded-lg text-red-500 hover:bg-red-50 transition-colors"
+                                      >
+                                          Bỏ chọn khóa học
+                                      </button>
+                                      <div className="h-px bg-[#f4f0f2] my-1" />
+                                      {metadata.courses.map(c => (
+                                          <button 
+                                              key={c.courseID} 
+                                              onClick={() => handleCourseSelect(c.courseID)}
+                                              className={`w-full text-left px-3 py-2 text-sm rounded-lg transition-colors flex items-center justify-between ${selectedCourseId === c.courseID ? 'bg-primary/10 text-primary font-bold' : 'hover:bg-primary/5 hover:text-primary'}`}
+                                          >
+                                              {c.courseName}
+                                              {selectedCourseId === c.courseID && <span className="material-symbols-outlined text-sm">check</span>}
+                                          </button>
+                                      ))}
+                                  </div>
+                              </div>
+                          </>
+                      )}
+                  </div>
+              </div>
+
               {/* 2. SECTION LESSON */}
               <div className="pt-5 border-t border-[#f4f0f2]">
-                  <label className="block text-xs font-bold text-[#886373] uppercase tracking-wider mb-2">Gán bài học</label>
+                <label className="block text-xs font-bold text-[#886373] uppercase tracking-wider mb-2">Bài học Assign</label>
+
                   <div className="relative">
                       <button 
                           onClick={(e) => handleOpenDropdown('lesson', e)}
@@ -986,7 +1061,10 @@ const ListenEditor: React.FC = () => {
 
       {/* BODY: Danh sách các câu hỏi */}
       <div className="p-6 space-y-8">
-        {formData.questions.map((q, qIndex) => (
+        {formData.questions.map((q, qIndex) => {
+          const resolvedQuestionImage = resolveMediaUrl(q.imageURL);
+
+          return (
           <div
             key={qIndex}
             className={`relative space-y-5 ${
@@ -1029,10 +1107,10 @@ const ListenEditor: React.FC = () => {
                     onChange={(e) => handleQuestionImageChange(qIndex, e)}
                   />
                   
-                  {q.imageURL && q.imageURL !== "" ? (
+                  {resolvedQuestionImage ? (
                     <div className="relative w-150 h-120 rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 group shadow-sm">
                       <img 
-                        src={q.imageURL} 
+                        src={resolvedQuestionImage} 
                         alt="Question illustration" 
                         className="w-full h-full object-contain bg-white"
                       />
@@ -1134,7 +1212,8 @@ const ListenEditor: React.FC = () => {
               ))}
             </div>
           </div>
-        ))}
+        );
+        })}
 
         {/* EMPTY STATE */}
         {formData.questions.length === 0 && (

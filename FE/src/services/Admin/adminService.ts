@@ -1,5 +1,6 @@
 import axiosInstance from "../../utils/axiosInstance";
 import { User, UpdateRoleRequest } from "../../interfaces/User";
+import { DashboardProgressResponse, ProgressDetailResponse } from '../../interfaces/Admin/ProgressDetail';
 
 const adminService = {
   // Lấy danh sách toàn bộ người dùng
@@ -12,6 +13,15 @@ const adminService = {
   // Khóa/Mở khóa tài khoản
   toggleLock: (userId: string, isLocked: boolean) => 
     axiosInstance.post("admin/lock-user", { userId, isLocked }),
+
+
+  getLearnerProgress: async (learnerId: string) => {
+    const response = await axiosInstance.get<DashboardProgressResponse>(
+      `/admin/management/learner-progress/${learnerId}`
+    );
+    return response.data;
+  }
+
 };
 
 export default adminService;

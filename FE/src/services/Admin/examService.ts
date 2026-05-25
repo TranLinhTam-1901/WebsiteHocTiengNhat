@@ -4,7 +4,7 @@ import {
     ExamSummaryResponse, 
     ExamPartConfig,
     ExamDetailResponse,
-    ExamListResponse,
+    ExamListResponse,UpdateExamRequest,CourseLookupResponse, LessonFilterResponse
 } from '../../interfaces/Admin/Exam';
 
 const ExamService = {
@@ -28,8 +28,8 @@ const ExamService = {
     },
 
     // 4. Tính toán tóm tắt (Tổng câu, Tổng điểm) dựa trên cấu hình hiện tại
-    getExamSummary: async (parts: ExamPartConfig[]): Promise<ExamSummaryResponse> => {
-        const response = await axiosInstance.post(`/admin/exams/summary`, parts);
+    getExamSummary: async (parts: ExamPartConfig[], levelId: string, examType: number): Promise<ExamSummaryResponse> => {
+        const response = await axiosInstance.post(`/admin/exams/summary?levelId=${levelId}&examType=${examType}`, parts);
         return response.data;
     },
 
@@ -44,11 +44,26 @@ const ExamService = {
         return response.data;
     },
 
-    async getLessonsByLevel(levelId: string): Promise<any[]> {
-    const response = await axiosInstance.get(`/admin/exams/lessons-by-level/${levelId}`);
-    return response.data;
+    // async getLessonsByLevel(levelId: string): Promise<any[]> {
+    // const response = await axiosInstance.get(`/admin/exams/lessons-by-level/${levelId}`);
+    // return response.data;
+    // },
+    getCoursesByLevel: async (levelId: string): Promise<CourseLookupResponse[]> => {
+        const response = await axiosInstance.get(`/admin/exams/courses-by-level/${levelId}`);
+        return response.data;
     },
 
+    // 2. Lấy danh sách bài học có kèm lọc theo Course (CẬP NHẬT)
+    // Sử dụng Query Params để khớp với [FromQuery] ở Backend
+    getLessonsByFilter: async (levelId: string, courseId?: string | null): Promise<LessonFilterResponse[]> => {
+        const response = await axiosInstance.get(`/admin/exams/lessons-filter`, {
+            params: {
+                levelId: levelId,
+                courseId: courseId || undefined // Nếu null/undefined thì không gửi param này
+            }
+        });
+        return response.data;
+    },
     async getStatsBySkill(levelId: string): Promise<any[]> {
         const response = await axiosInstance.get(`/admin/exams/stats-by-skill/${levelId}`);
         return response.data;
@@ -76,7 +91,12 @@ const ExamService = {
     async togglePublish(id: string): Promise<{ success: boolean; isPublished: boolean; message: string }> {
         const response = await axiosInstance.patch(`/admin/exams/${id}/publish`);
         return response.data;
-    }
+    },
+
+    updateExam: async (id: string, data: UpdateExamRequest): Promise<{ success: boolean; message: string }> => {
+        const response = await axiosInstance.put(`/admin/exams/${id}`, data);
+        return response.data;
+    },
     
 };
 

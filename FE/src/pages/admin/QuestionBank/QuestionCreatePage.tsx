@@ -6,6 +6,7 @@ import QuestionService from '../../../services/Admin/questionService';
 import {
     CreateQuestionDTO,
     QuestionType,
+    QuestionFormat,
     SourceMaterial,
     AnswerDTO,
     QuestionStatus,
@@ -33,6 +34,7 @@ const QuestionCreatePage: React.FC = () => {
         lessonID: lessonId || '',
         content: '',
         questionType: QuestionType.MultipleChoice,
+        questionFormat: QuestionFormat.StandardChoice,
         difficulty: 1,
         explanation: '',
         status: QuestionStatus.Active,
@@ -47,6 +49,7 @@ const QuestionCreatePage: React.FC = () => {
 
     const [visibility, setVisibility] = useState<QuestionVisibility>('Published');
     const [lessons, setLessons] = useState<LessonLookupDTO[]>([]);
+    const [selectedCourseId, setSelectedCourseId] = useState('');
     const [saving, setSaving] = useState(false);
 
     const [topicSearch, setTopicSearch] = useState('');
@@ -81,6 +84,39 @@ const QuestionCreatePage: React.FC = () => {
         }));
     };
 
+    const availableCourses = lessons
+        .filter((l) => !sourceFilterLevel || l.levelName === sourceFilterLevel)
+        .reduce((acc: { courseID: string; courseName: string }[], lesson) => {
+            if (!lesson.courseID) return acc;
+            if (!acc.some((c) => c.courseID === lesson.courseID)) {
+                acc.push({ courseID: lesson.courseID, courseName: lesson.courseName || '' });
+            }
+            return acc;
+        }, []);
+
+    const filteredLessons = lessons.filter(
+        (l) => (!sourceFilterLevel || l.levelName === sourceFilterLevel) && (!selectedCourseId || l.courseID === selectedCourseId)
+    );
+
+    useEffect(() => {
+        if (formData.lessonID && !filteredLessons.some((l) => l.lessonID === formData.lessonID)) {
+            setFormData((prev) => ({ ...prev, lessonID: '' }));
+        }
+    }, [filteredLessons, formData.lessonID]);
+
+    useEffect(() => {
+        if (
+            formData.lessonID &&
+            !lessons.some((l) => l.lessonID === formData.lessonID && (!sourceFilterLevel || l.levelName === sourceFilterLevel))
+        ) {
+            setFormData((prev) => ({ ...prev, lessonID: '' }));
+        }
+    }, [sourceFilterLevel, lessons, formData.lessonID]);
+
+    useEffect(() => {
+        setSelectedCourseId('');
+    }, [sourceFilterLevel]);
+
     useEffect(() => {
         const loadLessons = async () => {
             try {
@@ -103,11 +139,13 @@ const QuestionCreatePage: React.FC = () => {
                         lessonID: data.lessonID || '',
                         content: data.content || '',
                         questionType: data.questionType,
+                        questionFormat: data.questionFormat,
                         difficulty: data.difficulty,
                         explanation: data.explanation || '',
                         equivalentID: data.equivalentID || null,
                         sourceID: data.sourceID || null,
                         status: data.status,
+                        skillType: data.skillType ?? SkillType.Vocabulary,
                         topicIds: (data as any).questionTopics
                             ? (data as any).questionTopics.map((qt: any) => qt.topicID)
                             : (data.topicIds || []),
@@ -148,6 +186,34 @@ const QuestionCreatePage: React.FC = () => {
         fetchTopics();
     }, []);
 
+    const JLPT_SYMBOLS = [
+        { label: '★', value: '★', desc: 'Vị trí cần sắp xếp' },
+        { label: '☆', value: '☆', desc: 'Dấu phụ' },
+
+        { label: '（ ）', value: '（　）', desc: 'Ngoặc Nhật' },
+        { label: '[ ]', value: '[　]', desc: 'Placeholder' },
+        { label: '＿＿', value: '＿＿＿', desc: 'Chỗ trống' },
+
+        { label: '「 」', value: '「」', desc: 'Trích dẫn Nhật' },
+        { label: '『 』', value: '『』', desc: 'Trích dẫn đặc biệt' },
+
+        { label: '・', value: '・', desc: 'Dấu chấm Nhật' },
+        { label: '〜', value: '〜', desc: 'Khoảng / kéo dài' },
+        { label: '→', value: '→', desc: 'Mũi tên' },
+
+        { label: '①', value: '①', desc: 'Đánh số JLPT' },
+        { label: '②', value: '②', desc: 'Đánh số JLPT' },
+        { label: '③', value: '③', desc: 'Đánh số JLPT' },
+        { label: '④', value: '④', desc: 'Đánh số JLPT' }
+    ];
+
+    const insertSymbol = (symbol: string) => {
+        setFormData((prev) => ({
+            ...prev,
+            content: prev.content + symbol
+        }));
+    };
+    
     const handlePickSource = (item: SourceMaterial, type: string) => {
         const getVal = (v: any) => {
             if (!v) return '';
@@ -166,10 +232,12 @@ const QuestionCreatePage: React.FC = () => {
         let autoExplanation = getVal(item.meaning) + displayExample();
         let autoAnswers: AnswerDTO[] = [];
         let autoSkillType = SkillType.Vocabulary;
+        let autoQuestionFormat = QuestionFormat.StandardChoice;
 
         switch (type) {
             case 'Vocabulary':
                 autoSkillType = SkillType.Vocabulary;
+                autoQuestionFormat = QuestionFormat.StandardChoice;
                 autoContent = `Chọn nghĩa đúng của từ: ${getVal(item.word)}`;
                 autoAnswers = [
                     { answerText: getVal(item.meaning) || '', isCorrect: true },
@@ -179,6 +247,7 @@ const QuestionCreatePage: React.FC = () => {
                 break;
             case 'Kanji':
                 autoSkillType = SkillType.Kanji;
+                autoQuestionFormat = QuestionFormat.StandardChoice;
                 autoContent = `Cách đọc Onyomi của chữ Hán "${getVal(item.character)}" là gì?`;
                 autoAnswers = [
                     { answerText: getVal(item.onyomi) || '', isCorrect: true },
@@ -189,6 +258,7 @@ const QuestionCreatePage: React.FC = () => {
 
             case 'Grammar':
                 autoSkillType = SkillType.Grammar;
+                autoQuestionFormat = QuestionFormat.StandardChoice;
                 autoContent = `Hoàn thành cấu trúc ngữ pháp: ${getVal(item.structure) || getVal(item.title) || 'N/A'}`;
                 autoAnswers = [
                     { answerText: getVal(item.meaning) || '', isCorrect: true },
@@ -205,6 +275,7 @@ const QuestionCreatePage: React.FC = () => {
             explanation: autoExplanation,
             sourceID: item.id,
             skillType: autoSkillType,
+            questionFormat: autoQuestionFormat,
             answers: autoAnswers.length > 0 ? autoAnswers : prev.answers,
             topicIds: item.topicID ? [item.topicID] : prev.topicIds
         }));
@@ -484,10 +555,10 @@ const QuestionCreatePage: React.FC = () => {
                                 <div className="flex flex-wrap gap-2.5">
                                     {[
                                         { value: QuestionType.MultipleChoice, label: 'Chọn từ', icon: 'quiz' },
-                                        { value: QuestionType.FillInBlank, label: 'Điền từ', icon: 'text_fields' },
                                         { value: QuestionType.Ordering, label: 'Sắp xếp', icon: 'swap_vert' },
-                                        { value: QuestionType.Synonym, label: 'Đồng nghĩa', icon: 'compare_arrows' },
-                                        { value: QuestionType.Usage, label: 'Cách dùng', icon: 'menu_book' }
+                                        // { value: QuestionType.FillInBlank, label: 'Điền từ', icon: 'text_fields' },
+                                        // { value: QuestionType.Synonym, label: 'Đồng nghĩa', icon: 'compare_arrows' },
+                                        // { value: QuestionType.Usage, label: 'Cách dùng', icon: 'menu_book' }
                                     ].map((type) => (
                                         <button
                                             key={type.value}
@@ -522,6 +593,39 @@ const QuestionCreatePage: React.FC = () => {
                                 </div>
                             </div>
 
+                            <div className="mb-8">
+                                <label className={sectionLabelClass}>Định dạng câu hỏi</label>
+                                <div className="flex flex-wrap gap-2.5">
+                                    {[
+                                       {
+                                            value: QuestionFormat.StandardChoice,
+                                            label: 'Trắc nghiệm thường',
+                                            icon: 'radio_button_checked',
+                                            desc: 'Câu hỏi bình thường'
+                                        },
+                                        {
+                                            value: QuestionFormat.StarSentence,
+                                            label: 'Câu dấu ★',
+                                            icon: 'stars',
+                                            desc: 'JLPT 文の組み立て'
+                                        }
+                                    ].map((format) => (
+                                        <button
+                                            key={format.value}
+                                            type="button"
+                                            onClick={() => setFormData({ ...formData, questionFormat: format.value })}
+                                            title={format.desc}
+                                            className={`${typeChipBase} min-w-[120px] ${
+                                                formData.questionFormat === format.value ? typeChipOn : typeChipOff
+                                            }`}
+                                        >
+                                            <span className="material-symbols-outlined text-[20px]">{format.icon}</span>
+                                            <span className="text-[12px]">{format.label}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
                             <form
                                 onSubmit={(e) => {
                                     e.preventDefault();
@@ -530,6 +634,33 @@ const QuestionCreatePage: React.FC = () => {
                             >
                                 <div className="mb-6">
                                     <label className={fieldLabelClass}>Nội dung câu hỏi</label>
+                                    {/* Toolbar ký tự JLPT */}
+                                    <div className="mb-3">
+                                        <div className="mb-2 flex items-center gap-2">
+                                            <span className="material-symbols-outlined text-[18px] text-primary">
+                                                keyboard
+                                            </span>
+
+                                            <span className="text-xs font-bold uppercase tracking-wider text-[#886373]">
+                                                Ký tự JLPT hỗ trợ
+                                            </span>
+                                        </div>
+
+                                        <div className="flex flex-wrap gap-2">
+                                            {JLPT_SYMBOLS.map((item) => (
+                                                <button
+                                                    key={item.label}
+                                                    type="button"
+                                                    title={item.desc}
+                                                    onClick={() => insertSymbol(item.value)}
+                                                    className="rounded-lg border border-[#f4f0f2] bg-[#fbf9fa] px-3 py-1.5 text-sm font-bold text-[#181114] transition-all hover:border-primary hover:bg-primary/5 hover:text-primary"
+                                                >
+                                                    {item.label}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    
                                     <div className={inputShellClass}>
                                         <textarea
                                             className="min-h-[120px] w-full resize-y border-none bg-transparent p-4 text-base text-[#181114] outline-none placeholder:text-[#886373]/60"
@@ -814,72 +945,99 @@ const QuestionCreatePage: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div className="mt-6 border-t border-[#f4f0f2] pt-6">
-                                <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-[#886373]">
-                                    Bài học
-                                </label>
-                                <div className="relative">
-                                    <button
-                                        type="button"
-                                        onClick={(e) => handleOpenDropdown('lesson', e)}
-                                        className="flex w-full items-center justify-between rounded-xl border border-[#f4f0f2] bg-[#fbf9fa] px-4 py-2.5 text-sm outline-none transition-all hover:border-primary/30"
+                            <div className="mt-6 border-t border-[#f4f0f2] pt-6 space-y-4">
+                                <div>
+                                    <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-[#886373]">
+                                        Khóa học
+                                    </label>
+                                    <select
+                                        value={selectedCourseId}
+                                        onChange={(e) => {
+                                            setSelectedCourseId(e.target.value);
+                                            setFormData((prev) => ({ ...prev, lessonID: '' }));
+                                        }}
+                                        className="w-full rounded-xl border border-[#f4f0f2] bg-[#fbf9fa] px-4 py-2.5 text-sm text-[#181114] outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
                                     >
-                                        <span className={formData.lessonID ? 'font-medium text-[#181114]' : 'text-[#886373]/60'}>
-                                            {selectedLessonLabel}
-                                        </span>
-                                        <span
-                                            className={`material-symbols-outlined text-[#886373] transition-transform duration-300 ${isLessonMenuOpen ? 'rotate-180' : ''}`}
-                                        >
-                                            expand_more
-                                        </span>
-                                    </button>
+                                        <option value="">Chọn khóa học</option>
+                                        {availableCourses.map((course) => (
+                                            <option key={course.courseID} value={course.courseID}>
+                                                {course.courseName}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
 
-                                    {isLessonMenuOpen && (
-                                        <>
-                                            <div className="fixed inset-0 z-10" onClick={() => setIsLessonMenuOpen(false)} />
-                                            <div
-                                                className={`absolute left-0 right-0 z-20 rounded-xl border border-[#f4f0f2] bg-white p-1 shadow-2xl animate-in fade-in duration-200 ${
-                                                    dropUp.lesson
-                                                        ? 'bottom-full mb-2 slide-in-from-bottom-2'
-                                                        : 'top-full mt-2 slide-in-from-top-2'
-                                                }`}
+                                <div>
+                                    <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-[#886373]">
+                                        Bài học
+                                    </label>
+                                    <div className="relative">
+                                        <button
+                                            type="button"
+                                            onClick={(e) => handleOpenDropdown('lesson', e)}
+                                            className="flex w-full items-center justify-between rounded-xl border border-[#f4f0f2] bg-[#fbf9fa] px-4 py-2.5 text-sm outline-none transition-all hover:border-primary/30"
+                                        >
+                                            <span className={formData.lessonID ? 'font-medium text-[#181114]' : 'text-[#886373]/60'}>
+                                                {selectedLessonLabel}
+                                            </span>
+                                            <span
+                                                className={`material-symbols-outlined text-[#886373] transition-transform duration-300 ${isLessonMenuOpen ? 'rotate-180' : ''}`}
                                             >
-                                                <div className="custom-scrollbar max-h-72 overflow-y-auto">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                            applyLessonSelection('', '');
-                                                            setIsLessonMenuOpen(false);
-                                                        }}
-                                                        className="w-full rounded-lg px-3 py-2 text-left text-xs text-red-500 transition-colors hover:bg-red-50"
-                                                    >
-                                                        Không chọn bài học
-                                                    </button>
-                                                    <div className="my-1 h-px bg-[#f4f0f2]" />
-                                                    {lessons.map((l) => (
+                                                expand_more
+                                            </span>
+                                        </button>
+
+                                        {isLessonMenuOpen && (
+                                            <>
+                                                <div className="fixed inset-0 z-10" onClick={() => setIsLessonMenuOpen(false)} />
+                                                <div
+                                                    className={`absolute left-0 right-0 z-20 rounded-xl border border-[#f4f0f2] bg-white p-1 shadow-2xl animate-in fade-in duration-200 ${
+                                                        dropUp.lesson
+                                                            ? 'bottom-full mb-2 slide-in-from-bottom-2'
+                                                            : 'top-full mt-2 slide-in-from-top-2'
+                                                    }`}
+                                                >
+                                                    <div className="custom-scrollbar max-h-72 overflow-y-auto">
                                                         <button
-                                                            key={l.lessonID}
                                                             type="button"
                                                             onClick={() => {
-                                                                applyLessonSelection(l.lessonID, l.levelName || '');
+                                                                applyLessonSelection('', '');
                                                                 setIsLessonMenuOpen(false);
                                                             }}
-                                                            className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition-colors ${
-                                                                formData.lessonID === l.lessonID
-                                                                    ? 'bg-primary/10 font-bold text-primary'
-                                                                    : 'hover:bg-primary/5 hover:text-primary'
-                                                            }`}
+                                                            className="w-full rounded-lg px-3 py-2 text-left text-xs text-red-500 transition-colors hover:bg-red-50"
                                                         >
-                                                            {l.title}
-                                                            {formData.lessonID === l.lessonID && (
-                                                                <span className="material-symbols-outlined text-sm">check</span>
-                                                            )}
+                                                            Không chọn bài học
                                                         </button>
-                                                    ))}
+                                                        <div className="my-1 h-px bg-[#f4f0f2]" />
+                                                        {filteredLessons.map((l) => (
+                                                            <button
+                                                                key={l.lessonID}
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    applyLessonSelection(l.lessonID, l.levelName || '');
+                                                                    setSelectedCourseId(l.courseID || '');
+                                                                    setIsLessonMenuOpen(false);
+                                                                }}
+                                                                className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition-colors ${
+                                                                    formData.lessonID === l.lessonID
+                                                                        ? 'bg-primary/10 font-bold text-primary'
+                                                                        : 'hover:bg-primary/5 hover:text-primary'
+                                                                }`}
+                                                            >
+                                                                <div className="min-w-0">
+                                                                    <div className="truncate">{l.title}</div>
+                                                                    <div className="text-[10px] text-[#886373]">{l.courseName}</div>
+                                                                </div>
+                                                                {formData.lessonID === l.lessonID && (
+                                                                    <span className="material-symbols-outlined text-sm">check</span>
+                                                                )}
+                                                            </button>
+                                                        ))}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </>
-                                    )}
+                                            </>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         </div>

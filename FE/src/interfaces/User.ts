@@ -8,6 +8,9 @@ export interface User {
   levelId?: string;
   levelName?: string; 
   progressPercent?: number;
+  completedLessons?: number;
+  totalLessons?: number;
+  avatarUrl?: string;
 }
 
 export interface UpdateRoleRequest {

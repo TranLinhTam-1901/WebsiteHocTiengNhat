@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import ExamService from '../../../services/Admin/examService';
-import { GenerateExamRequest, ExamSummaryResponse } from '../../../interfaces/Admin/Exam'; 
+import { GenerateExamRequest, ExamSummaryResponse, ExamDetailResponse } from '../../../interfaces/Admin/Exam'; 
 import { ExamType, SkillType } from '../../../interfaces/Admin/QuestionBank';
 import { toast } from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom';
 import AdminHeader from '../../../components/layout/admin/AdminHeader';
 
 import StandardJLPT from '../../../components/Admin/Exam/StandardJLPT';
@@ -12,7 +12,13 @@ import SkillPractice from '../../../components/Admin/Exam/SkillPractice';
 
 const ExamForgePage: React.FC = () => {
     const navigate = useNavigate();
-    // State lưu trữ dữ liệu form - Khớp 100% với GenerateExamRequest
+    const location = useLocation();
+    const params = useParams<{ id: string }>();
+    const editExamId = params.id;
+    const locationState = (location.state as { editData?: ExamDetailResponse; isEdit?: boolean }) || {};
+    const editData = locationState.editData;
+    const isEditMode = Boolean(locationState.isEdit || editExamId);
+
     const [formData, setFormData] = useState<GenerateExamRequest>({
         title: "",
         duration: 0,
@@ -31,6 +37,9 @@ const ExamForgePage: React.FC = () => {
     const [lessons, setLessons] = useState<{ lessonID: string, title: string }[]>([]);
     const [lessonDataFull, setLessonDataFull] = useState<any[]>([]);
 
+    // Thêm vào cùng cụm các useState ở đầu component
+    const [courses, setCourses] = useState<{ courseID: string, courseName: string }[]>([]);
+    const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
     useEffect(() => {
         const fetchLevels = async () => {
             try {
@@ -44,65 +53,170 @@ const ExamForgePage: React.FC = () => {
     }, []);
 
     // Xử lý khi đổi Level -> Gọi API lấy cấu trúc chuẩn (View 1)
-    const handleLevelChange = async (levelId: string) => {
-        try {
-            // TRƯỜNG HỢP 1: LEVEL ID RỖNG (Người dùng chọn "Chọn cấp độ")
-            if (!levelId) {
-                setFormData(prev => ({ 
-                    ...prev, 
-                    levelID: "", 
-                    lessonID: null, 
-                    title: "",
-                    duration: 0,
-                    parts: [],             
-                }));
-                return; 
-            }
-            // Cập nhật LevelID trước cho toàn bộ Form
-            setFormData(prev => ({ ...prev, levelID: levelId, lessonID : null, title: "" }));
-
-            // Nếu là chế độ JLPT Tiêu chuẩn -> Mới gọi Template cấu trúc đề
-            if (formData.type === ExamType.StandardJLPT) {
-                const template = await ExamService.getStandardTemplate(levelId);
-                setFormData(prev => ({
-                    ...prev,
-                    title: template.title,
-                    duration: template.duration,
-                    parts: template.details,
-                    passingScore: template.passingScore, 
-                    minLanguageKnowledgeScore: template.minLanguageKnowledgeScore,
-                    minReadingScore: template.minReadingScore,
-                    minListeningScore: template.minListeningScore
-                }));
-            }
-        } catch (error) {
-            console.error("Lỗi chi tiết:", error);
-            toast.error("Lỗi khi cập nhật trình độ");
+    const handleLevelChange = (levelId: string) => {
+        if (isEditMode) {
+            return;
         }
+
+        (async () => {
+            try {
+                // TRƯỜNG HỢP 1: LEVEL ID RỖNG (Người dùng chọn "Chọn cấp độ")
+                if (!levelId) {
+                    setFormData(prev => ({ 
+                        ...prev, 
+                        levelID: "", 
+                        lessonID: null, 
+                        title: "",
+                        duration: 0,
+                        parts: [],             
+                    }));
+                    setCourses([]);
+                    return; 
+                }
+                // Cập nhật LevelID trước cho toàn bộ Form
+                setFormData(prev => ({ ...prev, levelID: levelId, lessonID : null, title: "" }));
+                setSelectedCourseId(null); // Reset khóa học đang chọn khi đổi level
+
+                // 1. Lấy danh sách Khóa học thuộc Level này
+                const courseData = await ExamService.getCoursesByLevel(levelId);
+                setCourses(courseData);
+
+                // Nếu là chế độ JLPT Tiêu chuẩn -> Mới gọi Template cấu trúc đề
+                if (formData.type === ExamType.StandardJLPT) {
+                    const template = await ExamService.getStandardTemplate(levelId);
+                    setFormData(prev => ({
+                        ...prev,
+                        title: template.title,
+                        duration: template.duration,
+                        parts: template.details,
+                        passingScore: template.passingScore, 
+                        minLanguageKnowledgeScore: template.minLanguageKnowledgeScore,
+                        minReadingScore: template.minReadingScore,
+                        minListeningScore: template.minListeningScore
+                    }));
+                }
+                // 3. Tự động load tất cả bài học của Level này (chưa lọc theo Course)
+                const lessonsWithStats = await ExamService.getLessonsByFilter(levelId);
+                setLessonDataFull(lessonsWithStats);
+                setLessons(lessonsWithStats.map((l: any) => ({ lessonID: l.lessonID, title: l.title })));
+
+            } catch (error) {
+                console.error("Lỗi chi tiết:", error);
+                toast.error("Lỗi khi cập nhật trình độ");
+            }
+        })();
+    };
+
+    const handleCourseChange = async (courseId: string) => {
+    setSelectedCourseId(courseId);
+    
+    // Reset lessonID trong form vì bài học cũ có thể không thuộc khóa học mới
+    setFormData(prev => ({ ...prev, lessonID: null }));
+
+    try {
+        // Gọi API lọc bài học theo Level + Course
+        const filteredLessons = await ExamService.getLessonsByFilter(formData.levelID, courseId);
+        setLessonDataFull(filteredLessons);
+        setLessons(filteredLessons.map((l: any) => ({ lessonID: l.lessonID, title: l.title })));
+    } catch (error) {
+        toast.error("Lỗi khi lọc bài học theo khóa học");
+    }
     };
 
     const [levelStats, setLevelStats] = useState<any[]>([]);
 
-    const handleSkillLevelChange = async (levelId: string) => {
+    useEffect(() => {
+        const initializeEditMode = async () => {
+            if (!isEditMode) {
+                return;
+            }
+
+            try {
+                const examDetails: ExamDetailResponse = editData
+                    ? editData
+                    : await ExamService.getExamDetails(editExamId!);
+
+                const mappedFormData: GenerateExamRequest = {
+                    title: examDetails.title,
+                    duration: examDetails.duration || 0,
+                    levelID: examDetails.levelID || '',
+                    lessonID: examDetails.lessonID || null,
+                    type: examDetails.examType,
+                    showResultImmediately: examDetails.showResultImmediately,
+                    passingScore: examDetails.passingScore,
+                    minLanguageKnowledgeScore: examDetails.minScores.language,
+                    minReadingScore: examDetails.minScores.reading,
+                    minListeningScore: examDetails.minScores.listening,
+                    parts: examDetails.parts || []
+                };
+
+                setFormData(mappedFormData);
+
+                if (examDetails.levelID) {
+                    const courseData = await ExamService.getCoursesByLevel(examDetails.levelID);
+                    setCourses(courseData);
+
+                    const lessonsWithStats = await ExamService.getLessonsByFilter(examDetails.levelID);
+                    setLessonDataFull(lessonsWithStats);
+                    setLessons(lessonsWithStats.map((l: any) => ({ lessonID: l.lessonID, title: l.title })));
+
+                    setSelectedCourseId(examDetails.courseID || lessonsWithStats.find((l: any) => l.lessonID === examDetails.lessonID)?.courseID || null);
+
+                    if (examDetails.examType === ExamType.SkillPractice) {
+                        const stats = await ExamService.getStatsBySkill(examDetails.levelID);
+                        setLevelStats(stats);
+                    }
+                }
+            } catch (error) {
+                console.error('Lỗi khi khởi tạo chế độ chỉnh sửa:', error);
+                toast.error('Không thể tải dữ liệu đề thi để chỉnh sửa');
+            }
+        };
+
+        initializeEditMode();
+    }, [editData, editExamId, isEditMode]);
+
+    const handleSkillLevelChange = (levelId: string) => {
+        if (isEditMode) {
+            return;
+        }
+
         setFormData(prev => ({ ...prev, levelID: levelId, parts: [] })); // Reset parts khi đổi level
 
         if (!levelId) {
             setLevelStats([]); // Xóa stats cũ
             return;
         }
-        try {
-            // Gọi API stats-by-skill của bạn
-            const stats = await ExamService.getStatsBySkill(levelId); 
-            setLevelStats(stats);
-        } catch (error) {
-            toast.error("Không thể tải thống kê kỹ năng");
-        }
+
+        (async () => {
+            try {
+                // Gọi API stats-by-skill của bạn
+                const stats = await ExamService.getStatsBySkill(levelId); 
+                setLevelStats(stats);
+            } catch (error) {
+                toast.error("Không thể tải thống kê kỹ năng");
+            }
+        })();
     };
 
     // Theo dõi thay đổi của 'parts' để cập nhật bảng Tóm tắt (Summary)
     useEffect(() => {
+
+         // CHẶN levelID rỗng
+        if (!formData.levelID) {
+            setSummary({
+                totalQuestions: 0,
+                totalScore: 0
+            });
+            return;
+        }
+
+        // console.log("PARTS SEND", formData.parts);
+        // console.log("LEVEL SEND", formData.levelID);
+
         if (formData.parts.length > 0) {
-            ExamService.getExamSummary(formData.parts).then((res) => {
+            ExamService.getExamSummary(formData.parts, formData.levelID, formData.type).then((res) => {
+                // console.log("SUMMARY RESPONSE", res);
                 const newTotalScore = Math.round(res.totalScore);
                 
                 // 1. Cập nhật summary để hiển thị bảng hồng
@@ -137,15 +251,19 @@ const ExamForgePage: React.FC = () => {
             });
         } else {
             setSummary({ totalQuestions: 0, totalScore: 0 });
+            setFormData(prev => ({
+                ...prev,
+                passingScore: 0
+            }));
         }
-    }, [formData.parts]);
+    }, [formData.parts, formData.levelID, formData.type]);
 
     // Theo dõi 'type' để load dữ liệu bổ sung (Ví dụ View 2 cần list bài học)
     useEffect(() => {
        const loadExtraData = async () => {
             if (formData.type === ExamType.LessonPractice && formData.levelID) {
                 try {
-                    const lessonsWithStats = await ExamService.getLessonsByLevel(formData.levelID);
+                    const lessonsWithStats = await ExamService.getLessonsByFilter(formData.levelID);
                     setLessonDataFull(lessonsWithStats); // Lưu data đầy đủ (có SkillStats)
                     setLessons(lessonsWithStats.map((l: any) => ({ lessonID: l.lessonID, title: l.title })));
                 } catch (error) {
@@ -158,22 +276,29 @@ const ExamForgePage: React.FC = () => {
 
     // Hàm render view động
     const renderActiveView = () => {
-        const commonProps = { data: formData, onChange: setFormData, levels: levels,
-        levelStats: levelStats };
+        const baseProps = { data: formData, onChange: setFormData, levels };
+        const skillProps = { ...baseProps, levelStats };
         
         switch (formData.type) {
             case ExamType.StandardJLPT:
-                return <StandardJLPT {...commonProps} levels={levels} onLevelChange={handleLevelChange} />;
+                return <StandardJLPT {...baseProps} levels={levels} onLevelChange={isEditMode ? () => {} : handleLevelChange} />;
             case ExamType.LessonPractice:
-                return <LessonPractice {...commonProps} levels={levels} lessons={lessons} lessonDataFull={lessonDataFull} onLevelChange={handleLevelChange}/>;
+                return <LessonPractice {...baseProps} levels={levels} lessons={lessons} lessonDataFull={lessonDataFull} onLevelChange={isEditMode ? () => {} : handleLevelChange}
+                    courses={courses}
+                    selectedCourseId={selectedCourseId}
+                    onCourseChange={handleCourseChange}
+                    isEditMode={isEditMode} />;
              case ExamType.SkillPractice:
-                return <SkillPractice {...commonProps} onLevelChange={handleSkillLevelChange} />;
+                return <SkillPractice {...skillProps} onLevelChange={isEditMode ? () => {} : handleSkillLevelChange} />;
             default:
                 return null;
         }
     };
 
     const handleTypeChange = async (newType: ExamType) => {
+        if (isEditMode) {
+            return;
+        }
         // 1. Reset các thông số cơ bản để tránh "dính" dữ liệu giữa các Tab
         const baseChanges: Partial<GenerateExamRequest> = {
             type: newType,
@@ -270,12 +395,44 @@ const ExamForgePage: React.FC = () => {
             return;
         }
 
+        if (!isEditMode && formData.duration <= 0) {
+            toast.error("Thời gian làm bài phải lớn hơn 0 phút!");
+            return;
+        }
+
         try {
-            await ExamService.generateExam(formData);
-            toast.success("🚀 Đã tạo đề thi thành công!");
+            if (isEditMode && (editData?.examID || editExamId)) {
+                const itemId = editData?.examID || editExamId!;
+                const updatePayload = {
+                    title: formData.title,
+                    duration: formData.duration,
+                    passingScore: formData.passingScore,
+                    minLanguageKnowledgeScore: formData.minLanguageKnowledgeScore,
+                    minReadingScore: formData.minReadingScore,
+                    minListeningScore: formData.minListeningScore,
+                    showResultImmediately: formData.showResultImmediately,
+                    parts: formData.parts
+                };
+                await ExamService.updateExam(itemId, updatePayload);
+                toast.success('🚀 Đã cập nhật đề thi thành công!');
+            } else {
+                await ExamService.generateExam(formData);
+                toast.success('🚀 Đã tạo đề thi thành công!');
+            }
+
             setTimeout(() => navigate('/admin/exams'), 1000);
         } catch (error: any) {
-            toast.error("Lỗi: " + (error.response?.data?.detail || "Không thể tạo đề"));
+            const serverMessage =
+                error?.response?.data?.message ||
+                error?.response?.data?.detail ||
+                (typeof error?.response?.data === 'string' ? error.response.data : null) ||
+                (isEditMode ? 'Không thể cập nhật đề thi' : 'Không thể tạo đề');
+
+            if (!isEditMode && error?.response?.status === 400 && error?.response?.data?.success === false) {
+                toast.success(serverMessage);
+            } else {
+                toast.error('Lỗi: ' + serverMessage);
+            }
         }
     };
 
@@ -284,21 +441,23 @@ const ExamForgePage: React.FC = () => {
             <main className="flex-1 flex flex-col overflow-hidden">
                 {/* --- Header --- */}
                 <AdminHeader>
-                    <div className="flex items-center w-full gap-257.5">
+                    <div className="flex items-center w-full gap-251">
                         <div className="flex items-center gap-4 flex-1">
                             <button onClick={() => navigate(-1)} className="size-10 rounded-full border border-[#f4f0f2] flex items-center justify-center text-[#886373] hover:bg-[#f4f0f2] transition-colors active:scale-90">
                                 <span className="material-symbols-outlined">arrow_back</span>
                             </button>
                             <div className="flex flex-col">
-                                <h2 className="text-xl font-bold text-[#181114] uppercase">Thiết lập Đề thi</h2>
+                                <h2 className="text-xl font-bold text-[#181114] uppercase">
+                                    {isEditMode ? 'Cập nhật Đề thi' : 'Thiết lập Đề thi'}
+                                </h2>
                                 <nav className="flex text-[10px] text-[#886373] font-medium gap-1 uppercase tracking-wider">
-                                    <span>Quản lý</span> / <span className="text-primary font-bold">Tạo mới đề thi</span>
+                                    <span>Quản lý</span> / <span className="text-primary font-bold">{isEditMode ? 'Cập nhật đề thi' : 'Tạo mới đề thi'}</span>
                                 </nav>
                             </div>
                         </div>
                         <div className="flex items-center gap-3">
                             <button onClick={handleSave} className="bg-primary hover:bg-primary-dark text-white px-5 py-2 rounded-full text-sm font-bold flex items-center gap-2 transition-all shadow-lg active:scale-95">
-                                <span className="material-symbols-outlined text-sm">save</span> Lưu Đề Thi
+                                <span className="material-symbols-outlined text-sm">save</span> {isEditMode ? 'Cập nhật đề thi' : 'Lưu Đề Thi'}
                             </button>
                         </div>
                     </div>
@@ -325,11 +484,12 @@ const ExamForgePage: React.FC = () => {
                                             key={mode.id}
                                             type="button"
                                             onClick={() => handleTypeChange(mode.id)}
+                                            disabled={isEditMode}
                                             className={`flex flex-col items-center p-5 rounded-2xl border transition-all ${
                                                 formData.type === mode.id 
                                                 ? "border-primary bg-primary/5 text-primary ring-1 ring-primary shadow-sm" 
                                                 : "border-[#f4f0f2] bg-[#fbf9fa] text-[#886373] hover:border-primary/30"
-                                            }`}
+                                            } ${isEditMode ? 'cursor-not-allowed opacity-60' : ''}`}
                                         >
                                             <span className="text-2xl mb-2">{mode.icon}</span>
                                             <span className="text-xs font-bold uppercase tracking-wider">{mode.label}</span>

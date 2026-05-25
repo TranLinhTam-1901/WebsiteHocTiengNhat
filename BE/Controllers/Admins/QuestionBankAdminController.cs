@@ -165,12 +165,26 @@ namespace QuizzTiengNhat.Controllers.Admins
         }
 
         [HttpGet("lessons-lookup")]
-        public async Task<IActionResult> GetLessonsLookup()
+        public async Task<IActionResult> GetLessonsLookup([FromQuery] Guid? levelId = null, [FromQuery] Guid? courseId = null)
         {
-            var lessons = await _context.Lessons
+            var query = _context.Lessons.AsNoTracking().AsQueryable();
+
+            if (levelId.HasValue && levelId != Guid.Empty)
+            {
+                query = query.Where(l => l.Course.LevelID == levelId.Value);
+            }
+
+            if (courseId.HasValue && courseId != Guid.Empty)
+            {
+                query = query.Where(l => l.CourseID == courseId.Value);
+            }
+
+            var lessons = await query
                 .Select(l => new {
                     l.LessonID,
                     l.Title,
+                    CourseID = l.CourseID,
+                    CourseName = l.Course.CourseName,
                     LevelValue = l.Course.Level.LevelID,
                     LevelName = l.Course.Level.LevelName
                 })
@@ -207,12 +221,14 @@ namespace QuizzTiengNhat.Controllers.Admins
                     QuestionID = Guid.NewGuid(),
                     Content = dto.Content,
                     QuestionType = dto.QuestionType, // Sử dụng Enum
+                    QuestionFormat = dto.QuestionFormat, // Set QuestionFormat từ DTO
                     Difficulty = dto.Difficulty,
                     Explanation = dto.Explanation,
                     EquivalentID = dto.EquivalentID,
                     Status = dto.Status,
                     SourceID = dto.SourceID,
                     LessonID = dto.LessonID,
+                    SkillType = dto.SkillType,
                     CreatedAt = DateTime.UtcNow
                 };
 
@@ -268,6 +284,7 @@ namespace QuizzTiengNhat.Controllers.Admins
                 // 1. Cập nhật thông tin cơ bản
                 question.Content = dto.Content;
                 question.QuestionType = dto.QuestionType;
+                question.QuestionFormat = dto.QuestionFormat;
                 question.Difficulty = dto.Difficulty;
                 question.Explanation = dto.Explanation;
                 question.Status = dto.Status;
@@ -366,6 +383,8 @@ namespace QuizzTiengNhat.Controllers.Admins
                 QuestionID = q.QuestionID,
                 Content = q.Content,
                 QuestionType = q.QuestionType,
+                QuestionFormat = q.QuestionFormat,
+                SkillType = q.SkillType,
                 Difficulty = q.Difficulty,
                 Status = q.Status,
                 HasAudio = !string.IsNullOrEmpty(q.AudioURL),
@@ -395,6 +414,8 @@ namespace QuizzTiengNhat.Controllers.Admins
                 question.LessonID,
                 question.Content,
                 question.QuestionType,
+                question.QuestionFormat,
+                question.SkillType,
                 question.Difficulty,
                 question.Explanation,
                 question.Status,

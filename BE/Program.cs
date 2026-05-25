@@ -15,8 +15,14 @@ using QuizzTiengNhat.Services;
 using QuizzTiengNhat.Services.Learners;
 using System.Security.Claims;
 using System.Text;
-
+using System.Text.Json;
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+    });
 
 // Add services to the container.
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -112,6 +118,16 @@ builder.Services.AddScoped<IGrammarService, GrammarService>();
 builder.Services.AddScoped<IFlashcardService, FlashcardService>();
 builder.Services.AddScoped<IQuestionService, QuestionService>();
 builder.Services.AddScoped<IUserProgressService, UserProgressService>();
+builder.Services.AddScoped<IProgressService, ProgressService>();
+
+builder.Services.Configure<OllamaOptions>(builder.Configuration.GetSection(OllamaOptions.SectionName));
+builder.Services.AddHttpClient<IOllamaTutorService, OllamaTutorService>((sp, client) =>
+{
+    var opt = sp.GetRequiredService<IOptions<OllamaOptions>>().Value;
+    client.BaseAddress = new Uri(opt.BaseUrl.TrimEnd('/') + "/");
+    client.Timeout = TimeSpan.FromSeconds(Math.Max(10, opt.TimeoutSeconds));
+});
+
 
 builder.Services.Configure<OllamaOptions>(builder.Configuration.GetSection(OllamaOptions.SectionName));
 builder.Services.Configure<VoicevoxOptions>(builder.Configuration.GetSection(VoicevoxOptions.SectionName));
@@ -192,6 +208,13 @@ app.UseStaticFiles(new StaticFileOptions
     OnPrepareResponse = ctx => {
         ctx.Context.Response.Headers.Append("Access-Control-Allow-Origin", "*");
         ctx.Context.Response.Headers.Append("Accept-Ranges", "bytes");
+
+        var physicalPath = ctx.File.PhysicalPath ?? string.Empty;
+        if (physicalPath.Contains("listening-audios", StringComparison.OrdinalIgnoreCase)
+            || physicalPath.Contains("vocab-audios", StringComparison.OrdinalIgnoreCase))
+        {
+            ctx.Context.Response.ContentType = "audio/mpeg";
+        }
     }
 });
 

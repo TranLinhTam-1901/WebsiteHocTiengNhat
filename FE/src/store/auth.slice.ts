@@ -37,13 +37,13 @@ export const loginUser = createAsyncThunk(
       const data = await authService.login(payload);
       return data;
     } catch (error: any) {
+      const data = error.response?.data;
+      const serverMessage =
+        typeof data === 'string'
+          ? data
+          : data?.message || data?.title || 'Email hoặc mật khẩu không đúng.';
 
-    // Thử lấy message theo nhiều cách
-    const serverMessage = 
-        error.response?.data ||
-        'Đăng nhập thất bại';
-
-    return rejectWithValue(serverMessage);
+      return rejectWithValue(serverMessage);
     }
   }
 );

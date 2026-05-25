@@ -16,3 +16,25 @@ export interface TopicProgress {
     progress: number; // Ví dụ: 65.5
     vocabularies: any[]; // Có thể thay bằng Vocab interface nếu đã có
 }
+
+
+export interface ProgressDetail {
+  total: number;
+  completed: number;
+  percentage: number;
+}
+
+export interface ExamProgress {
+  totalExams: number;
+  passedExams: number;
+  passRate: number;
+  averageScore: number;
+}
+
+export interface DashboardProgressResponse {
+  totalPercent: number;
+  courseProgress: ProgressDetail;
+  examProgress: ExamProgress; // ← NEW (Phương án A: 35% vượt qua + 20% điểm)
+  skillProgress: ProgressDetail;
+  currentLevelName: string;
+}
