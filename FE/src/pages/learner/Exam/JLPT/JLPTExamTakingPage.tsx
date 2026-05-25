@@ -15,7 +15,7 @@ type RealQuestionItem = {
   sectionName: string;
 };
 import { useRef } from 'react';
-
+import { toast } from 'react-hot-toast';
 const JLPTExamTakingPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -56,14 +56,32 @@ const JLPTExamTakingPage: React.FC = () => {
 
       const sessionData = await Exam_Session_Service.getOrCreateSession(id);
       
-    //   if (sessionData.status !== 0) {
+     // Session đã hết giờ
+     if (sessionData.remainingTime <= 0) {
 
-    //   alert('Bài thi đã kết thúc.');
+        toast.error(
+          '⏰ Bài thi đã hết thời gian.',
+          { icon: '⌛',
+            duration: 3500,
+          }
+        );
 
-    //   navigate('/learner/exams');
+        sessionStorage.removeItem(
+          'isExamInProgress'
+        );
 
-    //   return;
-    // }
+        setIsExamInProgress(false);
+
+        setTimeout(() => {
+
+          navigate(
+            '/learner/exams/jlpt-exams'
+          );
+
+        }, 1200);
+
+        return;
+      }
 
       setSessionId(sessionData.sessionID);
 

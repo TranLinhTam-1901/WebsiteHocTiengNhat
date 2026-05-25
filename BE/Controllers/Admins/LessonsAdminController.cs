@@ -33,8 +33,6 @@ namespace QuizzTiengNhat.Controllers.Admins
                         courseID = l.CourseID,
                         courseName = l.Course != null ? l.Course.CourseName : "N/A",
                         title = l.Title,
-                        skillType = l.SkillType,
-                        difficulty = l.Difficulty,
                         priority = l.SortOrder,
                         questionCount = l.Questions.Count
                     })
@@ -66,8 +64,7 @@ namespace QuizzTiengNhat.Controllers.Admins
                     {
                         lessonID = l.LessonID,
                         title = l.Title,
-                        skillType = l.SkillType,
-                        difficulty = l.Difficulty,
+                    
                         priority = l.SortOrder,
                         questionCount = l.Questions.Count
                     })
@@ -106,8 +103,7 @@ namespace QuizzTiengNhat.Controllers.Admins
                         courseID = lesson.CourseID,
                         courseName = lesson.Course != null ? lesson.Course.CourseName : "N/A",
                         title = lesson.Title,
-                        skillType = lesson.SkillType,
-                        difficulty = lesson.Difficulty,
+                       
                         priority = lesson.SortOrder,
                         topics = lesson.LessonTopics.Select(lt => new
                         {
@@ -142,14 +138,16 @@ namespace QuizzTiengNhat.Controllers.Admins
                 if (course == null)
                     return BadRequest(new { success = false, message = "Khóa học không tồn tại." });
 
+                var nextSortOrder = await _context.Lessons
+                .Where(l => l.CourseID == dto.CourseID)
+                .MaxAsync(l => (int?)l.SortOrder) ?? 0;
+
                 var lesson = new Lessons
                 {
                     LessonID = Guid.NewGuid(),
                     CourseID = dto.CourseID,
                     Title = dto.Title,
-                    SkillType = dto.SkillType,
-                    Difficulty = dto.Difficulty,
-                    SortOrder = dto.SortOrder
+                    SortOrder = nextSortOrder + 1
                 };
 
                 _context.Lessons.Add(lesson);
@@ -160,7 +158,13 @@ namespace QuizzTiengNhat.Controllers.Admins
             }
             catch (Exception ex)
             {
-                return BadRequest(new { success = false, message = $"Lỗi: {ex.Message}" });
+                var innerMessage = ex.InnerException?.Message ?? ex.Message;
+
+                return BadRequest(new
+                {
+                    success = false,
+                    message = $"Lỗi: {innerMessage}"
+                });
             }
         }
 
@@ -187,9 +191,7 @@ namespace QuizzTiengNhat.Controllers.Admins
 
                 lesson.CourseID = dto.CourseID;
                 lesson.Title = dto.Title;
-                lesson.SkillType = dto.SkillType;
-                lesson.Difficulty = dto.Difficulty;
-                lesson.SortOrder = dto.SortOrder;
+                lesson.SortOrder = dto.Priority;
 
                 await _context.SaveChangesAsync();
                 return Ok(new { success = true, message = "Cập nhật bài học thành công" });
@@ -264,6 +266,28 @@ namespace QuizzTiengNhat.Controllers.Admins
                     .ToList();
 
                 return Ok(new { success = true, data = skillTypes });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = $"Lỗi: {ex.Message}" });
+            }
+        }
+
+        [HttpGet("metadata/courses")]
+        public async Task<IActionResult> GetCoursesMetadata()
+        {
+            try
+            {
+                var courses = await _context.Courses
+                    .Select(c => new
+                    {
+                        id = c.CourseID,
+                        name = c.CourseName
+                    })
+                    .OrderBy(c => c.name)
+                    .ToListAsync();
+
+                return Ok(new { success = true, data = courses });
             }
             catch (Exception ex)
             {

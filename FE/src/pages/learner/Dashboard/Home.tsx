@@ -207,7 +207,7 @@ const LearnerDashboard: React.FC = () => {
               </div>
 
               {/* Chỉ số Streak & XP (Hard-code mẫu) */}
-              <div className="grid grid-cols-2 gap-6">
+              {/* <div className="grid grid-cols-2 gap-6">
                 <div className="bg-white p-8 rounded-[2.5rem] border-2 border-[#f4f0f2] shadow-sm flex flex-col items-center text-center space-y-3">
                     <span className="material-symbols-outlined text-orange-500 text-4xl fill-1">local_fire_department</span>
                     <div className="flex flex-col">
@@ -222,7 +222,7 @@ const LearnerDashboard: React.FC = () => {
                         <span className="text-[8px] font-black text-[#886373] uppercase tracking-widest">Kinh nghiệm</span>
                     </div>
                 </div>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>

@@ -172,9 +172,9 @@ const handleFinish = () => {
               <p className="text-2xl font-black mt-1">
                 {result.correctAnswers}/{result.totalQuestions}
               </p>
-              <p className="text-[11px] font-bold text-[#7a6a71] mt-1">
+              {/* <p className="text-[11px] font-bold text-[#7a6a71] mt-1">
                 Điểm: {result.score.toFixed(2)}
-              </p>
+              </p> */}
             </div>
             <div className="rounded-2xl border border-[#f4f0f2] p-4 bg-[#fbf9fa]">
               <p className="text-[10px] font-black uppercase tracking-wider text-[#886373]">Đúng</p>

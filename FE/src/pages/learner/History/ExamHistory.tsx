@@ -19,11 +19,11 @@ const StatCard = ({ icon, label, value, iconColorClass, bgColorClass }: any) => 
 const getExamTypeName = (examType: number) => {
   switch (examType) {
     case 0:
-      return 'JLPT Mock Test';
+      return 'Đề thi thử JLPT';
     case 1:
-      return 'Skill Practice';
+      return 'Luyện kỹ năng';
     case 2:
-      return 'Lesson Practice';
+      return 'Luyện bài học';
     default:
       return 'Exam';
   }
@@ -99,13 +99,16 @@ const ExamHistory = () => {
 
   const totalDone = results.length;
 
-  const averageScore =
-    results.length > 0
-      ? Math.round(
-          results.reduce((sum, item) => sum + item.score, 0) /
-            results.length
-        )
-      : 0;
+  const jlptResults = results.filter(r => r.examType === 0);
+ const averageScore =
+  jlptResults.length > 0
+    ? Math.round(
+        jlptResults.reduce(
+          (sum, item) => sum + item.score,
+          0
+        ) / jlptResults.length
+      )
+    : '-';
 
   const totalSeconds = results.reduce(
     (sum, item) => sum + item.timeSpent,
@@ -185,9 +188,9 @@ const ExamHistory = () => {
                     className="bg-transparent border-none text-xs font-bold text-[#181114] cursor-pointer p-0 pr-6 outline-none uppercase"
                   >
                     <option value="all">Tất cả</option>
-                    <option value="0">JLPT Mock Test</option>
-                    <option value="1">Skill Practice</option>
-                    <option value="2">Lesson Practice</option>
+                    <option value="0">Đề thi thử JLPT</option>
+                    <option value="1">Luyện kỹ năng</option>
+                    <option value="2">Luyện bài học</option>
                   </select>
                 </div>
               </div>
@@ -204,7 +207,7 @@ const ExamHistory = () => {
             />
             <StatCard
               icon="trending_up"
-              label="Điểm trung bình"
+              label="Điểm trung bình (JLPT)"
               value={averageScore}
               iconColorClass="text-emerald-600"
               bgColorClass="bg-emerald-50"
@@ -290,25 +293,36 @@ const ExamHistory = () => {
                             </div>
                           </td>
 
-                          <td className="px-8 py-5">
+                         <td className="px-8 py-5">
                             <div className="flex flex-col gap-1">
-                              <p className="text-sm font-black text-[#181114]">
-                                {item.score.toFixed(2)} điểm
-                              </p>
+
+                              {/* Chỉ hiện điểm với JLPT */}
+                              {item.examType === 0 && (
+                                <>
+                                  <p className="text-sm font-black text-[#181114]">
+                                    {item.score.toFixed(2)} điểm
+                                  </p>
+
+                                  {item.isPassed !== null &&
+                                    item.isPassed !== undefined && (
+                                      <span
+                                        className={`w-fit px-2 py-0.5 rounded-full text-[10px] font-black ${
+                                          item.isPassed
+                                            ? 'bg-emerald-50 text-emerald-700'
+                                            : 'bg-rose-50 text-rose-700'
+                                        }`}
+                                      >
+                                        {item.isPassed ? 'Đạt' : 'Chưa đạt'}
+                                      </span>
+                                    )}
+                                </>
+                              )}
+
+                              {/* Luôn hiện số câu đúng */}
                               <p className="text-xs font-bold text-[#886373]">
                                 Đúng {item.correctAnswers}/{item.totalQuestions} câu · {accuracy}%
                               </p>
-                              {item.isPassed !== null && item.isPassed !== undefined && (
-                                <span
-                                  className={`w-fit px-2 py-0.5 rounded-full text-[10px] font-black ${
-                                    item.isPassed
-                                      ? 'bg-emerald-50 text-emerald-700'
-                                      : 'bg-rose-50 text-rose-700'
-                                  }`}
-                                >
-                                  {item.isPassed ? 'Đạt' : 'Chưa đạt'}
-                                </span>
-                              )}
+
                             </div>
                           </td>
 

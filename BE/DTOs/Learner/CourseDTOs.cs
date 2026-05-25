@@ -23,7 +23,7 @@ namespace QuizzTiengNhat.DTOs.Learner
     {
         public Guid LessonID { get; set; }
         public string Title { get; set; }
-        public int Difficulty { get; set; }
+        
         public int SortOrder { get; set; }
 
         public Guid? TopicID { get; set; }
