@@ -21,7 +21,6 @@ namespace QuizzTiengNhat.Data
 
             var adminUser = await userManager.FindByEmailAsync(adminEmail);
 
-            // Nếu admin chưa tồn tại
             if (adminUser == null)
             {
                 var user = new ApplicationUser
@@ -37,6 +36,10 @@ namespace QuizzTiengNhat.Data
                 {
                     await userManager.AddToRoleAsync(user, SD.Role_Admin);
                 }
+            }
+            else if (!await userManager.IsInRoleAsync(adminUser, SD.Role_Admin))
+            {
+                await userManager.AddToRoleAsync(adminUser, SD.Role_Admin);
             }
         }
     }

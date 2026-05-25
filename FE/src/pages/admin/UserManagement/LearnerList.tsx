@@ -3,7 +3,29 @@ import AdminHeader from '../../../components/layout/admin/AdminHeader';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../../../store'; 
 import { fetchUsers, toggleUserLock, updateUserRole } from '../../../store/admin.slice';
+import adminService from '../../../services/Admin/adminService';
+import { DashboardProgressResponse } from '../../../interfaces/Admin/ProgressDetail';
 import { User } from '../../../interfaces/User';
+
+const ROLE_OPTIONS = [
+  { value: 'Admin', label: 'Quản trị viên' },
+  { value: 'Learner', label: 'Học viên' },
+] as const;
+
+const normalizeRole = (role: string): string =>
+  role === 'Admin' ? 'Admin' : 'Learner';
+
+const isAdminUser = (user: User): boolean =>
+  normalizeRole(user.role) === 'Admin';
+
+const matchesUserSearch = (user: User, query: string): boolean => {
+  const q = query.trim().toLowerCase();
+  if (!q) return true;
+  return (
+    user.fullName?.toLowerCase().includes(q) ||
+    user.email?.toLowerCase().includes(q)
+  );
+};
 
 const LearnerList: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
