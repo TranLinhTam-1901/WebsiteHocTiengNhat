@@ -34,6 +34,12 @@ import TopicForm from '../pages/admin/LearningResource/Topic/TopicForm';
 import GrammarGroupListPage from '../pages/admin/LearningResource/GrammarGroup/GrammarGroupListPage';
 import GrammarGroupForm from '../pages/admin/LearningResource/GrammarGroup/GrammarGroupForm';
 
+import CourseListPage from '../pages/admin/LearningResource/Course/CourseListPage';
+import CourseForm from '../pages/admin/LearningResource/Course/CourseForm';
+
+import LessonListPage from '../pages/admin/LearningResource/Lesson/LessonListPage';
+import LessonForm from '../pages/admin/LearningResource/Lesson/LessonForm';
+
 export const adminRoutes: RouteObject[] = [
   {
     element: <PrivateRoute role="admin"></PrivateRoute>,
@@ -50,6 +56,16 @@ export const adminRoutes: RouteObject[] = [
           {
             path: 'resource',
             children: [
+              // Course
+              { path: 'course', element: <CourseListPage /> },
+              { path: 'course/create', element: <CourseForm /> },
+              { path: 'course/edit/:id', element: <CourseForm /> },
+
+              // Lesson
+              { path: 'lesson', element: <LessonListPage /> },
+              { path: 'lesson/create', element: <LessonForm /> },
+              { path: 'lesson/edit/:id', element: <LessonForm /> },
+
               // Grammar
               { path: 'grammar', element: <GrammarListPage /> },
               { path: 'grammar/create', element: <GrammarForm /> },

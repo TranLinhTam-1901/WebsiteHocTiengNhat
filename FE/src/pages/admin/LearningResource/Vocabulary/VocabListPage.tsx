@@ -509,8 +509,15 @@ const VocabularyListPage: React.FC = () => {
                     <div className="flex justify-end max-w-[70%] items-center">
                       <div className="flex items-center gap-2">
                         <span className="px-2.5 py-1 bg-primary/5 border border-primary/20 text-primary text-[15px] font-bold rounded-lg truncate max-w-32 whitespace-nowrap italic">
-                          {typeof item.topics[0] === 'string' ? item.topics[0] : (item.topics[0].topicName || item.topics[0].topicID)}
-                        </span>
+{
+  item.topics?.[0]
+    ? (
+        typeof item.topics[0] === 'string'
+          ? item.topics[0]
+          : item.topics[0]?.topicName
+      )
+    : 'Chưa có chủ đề'
+}                        </span>
 
                         {item.topics.length > 1 && (
                           <div className="group relative flex items-center justify-center size-8 rounded-full bg-primary/10 border border-primary/20 text-primary transition-all duration-300">

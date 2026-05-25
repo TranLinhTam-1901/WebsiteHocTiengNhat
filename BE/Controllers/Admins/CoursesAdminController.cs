@@ -75,8 +75,6 @@ namespace QuizzTiengNhat.Controllers.Admins
                         {
                             lessonID = l.LessonID,
                             title = l.Title,
-                            skillType = l.SkillType,
-                            difficulty = l.Difficulty,
                             priority = l.SortOrder
                         }).ToList()
                     }
@@ -197,5 +195,21 @@ namespace QuizzTiengNhat.Controllers.Admins
                 return BadRequest(new { success = false, message = $"Lỗi: {ex.Message}" });
             }
         }
+
+        [HttpGet("metadata/levels")]
+        public async Task<IActionResult> GetLevelsMetadata()
+        {
+            var levels = await _context.JLPT_Levels
+                .Select(l => new
+                {
+                    id = l.LevelID,
+                    name = l.LevelName
+                })
+                .OrderBy(l => l.name)
+                .ToListAsync();
+
+            return Ok(new { success = true, data = levels });
+        }
+
     }
 }

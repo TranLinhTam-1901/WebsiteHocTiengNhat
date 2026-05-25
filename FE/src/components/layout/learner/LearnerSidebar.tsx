@@ -255,6 +255,7 @@ useEffect(() => {
             icon="history" 
             label="Lịch sử & Tiến độ" 
             active={location.pathname.startsWith('/learner/history')} 
+            onProtectedNavigate={handleProtectedNavigation}
           />
 
           {/* <NavItem 
