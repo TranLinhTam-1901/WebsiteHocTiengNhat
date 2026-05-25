@@ -395,6 +395,11 @@ const ExamForgePage: React.FC = () => {
             return;
         }
 
+        if (!isEditMode && formData.duration <= 0) {
+            toast.error("Thời gian làm bài phải lớn hơn 0 phút!");
+            return;
+        }
+
         try {
             if (isEditMode && (editData?.examID || editExamId)) {
                 const itemId = editData?.examID || editExamId!;
@@ -436,7 +441,7 @@ const ExamForgePage: React.FC = () => {
             <main className="flex-1 flex flex-col overflow-hidden">
                 {/* --- Header --- */}
                 <AdminHeader>
-                    <div className="flex items-center w-full gap-257.5">
+                    <div className="flex items-center w-full gap-251">
                         <div className="flex items-center gap-4 flex-1">
                             <button onClick={() => navigate(-1)} className="size-10 rounded-full border border-[#f4f0f2] flex items-center justify-center text-[#886373] hover:bg-[#f4f0f2] transition-colors active:scale-90">
                                 <span className="material-symbols-outlined">arrow_back</span>

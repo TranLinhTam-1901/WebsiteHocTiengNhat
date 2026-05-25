@@ -41,21 +41,6 @@ export type TutorLive2dModelDefinition = {
 
 export const TUTOR_LIVE2D_MODELS: TutorLive2dModelDefinition[] = [
   {
-    id: 'huohuo',
-    label: 'Huohuo',
-    model3JsonPath: 'models/huohuo/huohuo.model3.json',
-    scale: 1.5,
-    voicevoxSpeakerIdNormal: 58,
-    voicevoxSpeakerIdThanks: 58,
-    voicevoxSpeakerIdWrong: 58,
-    expressionIds: {
-      thinking: 'Thinking',
-      thanks: 'Thanks',
-      wrong: 'Wrong',
-      error: 'Error',
-    },
-  },
-  {
     id: 'aniya',
     label: 'ANIYA',
     model3JsonPath: 'models/ANIYA/ANIYA.model3.json',
@@ -63,36 +48,6 @@ export const TUTOR_LIVE2D_MODELS: TutorLive2dModelDefinition[] = [
     voicevoxSpeakerIdNormal: 3,
     voicevoxSpeakerIdThanks: 3,
     voicevoxSpeakerIdWrong: 3,
-    expressionIds: {
-      thinking: 'Thinking',
-      thanks: 'Thanks',
-      wrong: 'Wrong',
-      error: 'Error',
-    },
-  },
-  {
-    id: 'takodachi',
-    label: 'Takodachi',
-    model3JsonPath: 'models/Takodachi/takodachi.model3.json',
-    scale: 1.5,
-    voicevoxSpeakerIdNormal: 2,
-    voicevoxSpeakerIdThanks: 2,
-    voicevoxSpeakerIdWrong: 2,
-    expressionIds: {
-      thinking: 'Thinking',
-      thanks: 'Thanks',
-      wrong: 'Wrong',
-      error: 'Error',
-    },
-  },
-  {
-    id: 'fuxuan',
-    label: 'Fuxuan',
-    model3JsonPath: 'models/fuxuan/fuxuan.model3.json',
-    scale: 1.55,
-    voicevoxSpeakerIdNormal: 1,
-    voicevoxSpeakerIdThanks: 1,
-    voicevoxSpeakerIdWrong: 1,
     expressionIds: {
       thinking: 'Thinking',
       thanks: 'Thanks',
