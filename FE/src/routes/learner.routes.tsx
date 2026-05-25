@@ -3,10 +3,6 @@ import LearnerLayout from '../components/layout/learner/LearnerLayout';
 import PrivateRoute from './PrivateRoute';
 import React from 'react';
 
-// Analytics
-import Leaderboard from '../pages/learner/Analytics/Leaderboard';
-import LearningStatistics from '../pages/learner/Analytics/LearningStatistics';
-import WeaknessAnalysis from '../pages/learner/Analytics/WeaknessAnalysis';
 // Dashboard
 import LearnerDashboard from '../pages/learner/Dashboard/Home';
 // Skill Learning
@@ -54,9 +50,6 @@ export const learnerRoutes: RouteObject = {
     { path: 'courses/:courseId', element: <CourseDetailPage /> },
     { path: 'lessons/:lessonId/learn', element: <LessonLearnPage /> },
     { path: 'profile', element: <LearnerProfile /> },
-    { path: 'leaderboard', element: <Leaderboard /> },
-    { path: 'analytics/statistics', element: <LearningStatistics /> },
-    { path: 'analytics/weakness', element: <WeaknessAnalysis /> },
     { path: 'history', element: <ExamHistory /> },
      // Exam(Lesson)
     { path: 'quiz/exam/:id', element: <ExamDetailPage /> },
