@@ -6,6 +6,7 @@ import { fetchUsers, toggleUserLock, updateUserRole } from '../../../store/admin
 import { User } from '../../../interfaces/User';
 import  adminService  from '../../../services/Admin/adminService';
 import { DashboardProgressResponse } from '../../../interfaces/Admin/ProgressDetail';
+import { LearnersProgressSummary } from '../../../interfaces/Admin/LearnersProgressSummary';
 
 const ROLE_OPTIONS = [
   { value: 'Learner', label: 'Học viên' },
@@ -36,6 +37,8 @@ const LearnerList: React.FC = () => {
   const [updatingRoleFor, setUpdatingRoleFor] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showAdmins, setShowAdmins] = useState(false);
+  const [progressSummary, setProgressSummary] = useState<LearnersProgressSummary | null>(null);
+  const [progressSummaryLoading, setProgressSummaryLoading] = useState(false);
 
   // State quản lý Modal
   const [selectedProgress, setSelectedProgress] = React.useState<DashboardProgressResponse | null>(null);
@@ -59,10 +62,28 @@ const LearnerList: React.FC = () => {
   // Lấy onlineCount trực tiếp từ Redux Store
   const { users, loading, onlineCount } = useSelector((state: RootState) => state.admin);
 
+  const loadProgressSummary = async () => {
+    try {
+      setProgressSummaryLoading(true);
+      const summary = await adminService.getLearnersProgressSummary();
+      setProgressSummary(summary);
+    } catch (error) {
+      console.error('Lỗi khi tải tiến độ trung bình:', error);
+      setProgressSummary(null);
+    } finally {
+      setProgressSummaryLoading(false);
+    }
+  };
+
   useEffect(() => {
-    // Chỉ giữ lại việc load danh sách học viên
     dispatch(fetchUsers());
+    loadProgressSummary();
   }, [dispatch]);
+
+  const handleRefresh = () => {
+    dispatch(fetchUsers());
+    loadProgressSummary();
+  };
 
   const allUsers = users as User[];
 
@@ -84,13 +105,6 @@ const LearnerList: React.FC = () => {
     }
     return learnersFiltered;
   }, [adminUsers, learnerOnlyUsers, searchQuery, showAdmins]);
-
-  const totalProgress = learnerOnlyUsers.length > 0
-    ? Math.round(
-        learnerOnlyUsers.reduce((acc: number, user: User) => acc + (user.progressPercent || 0), 0) /
-          learnerOnlyUsers.length
-      )
-    : 0;
 
   const searchTrim = searchQuery.trim();
   const tableFooterText =
@@ -137,10 +151,10 @@ const LearnerList: React.FC = () => {
             </div>
 
             <button 
-              onClick={() => dispatch(fetchUsers())}
+              onClick={handleRefresh}
               className="bg-primary hover:bg-primary-dark text-white px-5 py-2 rounded-full text-sm font-bold flex items-center gap-2 transition-all no-underline shadow-lg shadow-primary/20 shrink-0"
             >
-              <span className={`material-symbols-outlined text-sm ${loading ? 'animate-spin' : ''}`}>refresh</span>
+              <span className={`material-symbols-outlined text-sm ${loading || progressSummaryLoading ? 'animate-spin' : ''}`}>refresh</span>
               Làm mới
             </button>
 
@@ -198,9 +212,23 @@ const LearnerList: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm text-slate-500 font-medium">Tiến độ trung bình</p>
-                {/* <h3 className="text-2xl font-bold">{totalProgress}%</h3> */}
+                <h3 className="text-2xl font-bold">
+                  {progressSummaryLoading
+                    ? '…'
+                    : progressSummary != null
+                      ? `${progressSummary.averageProgressPercent}%`
+                      : '—'}
+                </h3>
+                {progressSummary != null && progressSummary.learnersWithoutLevel > 0 && (
+                  <p className="text-[10px] text-slate-400 mt-0.5">
+                    {progressSummary.learnersWithoutLevel} HV chưa chọn level
+                  </p>
+                )}
               </div>
             </div>
+            {/* <div className="mr-4 text-blue-500/80 text-[10px] font-bold uppercase max-w-[88px] text-right leading-tight hidden sm:block">
+              TB TotalPercent
+            </div> */}
           </div>
         </div>
 
@@ -351,9 +379,17 @@ const LearnerList: React.FC = () => {
                 ✕
               </button>
 
-              <h2 className="text-xl font-bold mb-6">
+              <h2 className="text-xl font-bold mb-2">
                 Chi tiết tiến độ học viên
               </h2>
+              {selectedProgress && !isFetchingDetail && (
+                <p className="text-sm text-primary font-bold mb-6">
+                  Tiến độ tổng: {selectedProgress.totalPercent}% · {selectedProgress.currentLevelName}
+                </p>
+              )}
+              {isFetchingDetail && (
+                <p className="text-sm text-slate-400 mb-6 animate-pulse">Đang tính toán...</p>
+              )}
              <div className="space-y-4"> 
                 {/* Lesson */}
                 <div className="p-4 bg-zinc-50 rounded-xl border border-zinc-100">

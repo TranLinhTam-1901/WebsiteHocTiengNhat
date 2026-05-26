@@ -10,6 +10,18 @@ import StandardJLPT from '../../../components/Admin/Exam/StandardJLPT';
 import LessonPractice from '../../../components/Admin/Exam/LessonPractice';
 import SkillPractice from '../../../components/Admin/Exam/SkillPractice';
 
+/** Hiển thị ô number: 0 → rỗng để tránh gõ "01", "010" khi value controlled = 0 */
+function numberInputDisplay(value: number): string {
+    return value === 0 ? '' : String(value);
+}
+
+function parseNonNegativeInt(raw: string, max = Number.MAX_SAFE_INTEGER): number {
+    if (raw === '' || raw === '-') return 0;
+    const parsed = parseInt(raw, 10);
+    if (Number.isNaN(parsed)) return 0;
+    return Math.min(max, Math.max(0, parsed));
+}
+
 const ExamForgePage: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
@@ -138,12 +150,12 @@ const ExamForgePage: React.FC = () => {
 
                 const mappedFormData: GenerateExamRequest = {
                     title: examDetails.title,
-                    duration: examDetails.duration || 0,
+                    duration: Number(examDetails.duration) || 0,
                     levelID: examDetails.levelID || '',
                     lessonID: examDetails.lessonID || null,
                     type: examDetails.examType,
                     showResultImmediately: examDetails.showResultImmediately,
-                    passingScore: examDetails.passingScore,
+                    passingScore: Number(examDetails.passingScore) || 0,
                     minLanguageKnowledgeScore: examDetails.minScores.language,
                     minReadingScore: examDetails.minScores.reading,
                     minListeningScore: examDetails.minScores.listening,
@@ -228,17 +240,15 @@ const ExamForgePage: React.FC = () => {
                 // 2. Cập nhật passingScore cho các chế độ Luyện tập
                 if (formData.type !== ExamType.StandardJLPT) {
                     setFormData(prev => {
-                        let updatedPassingScore = prev.passingScore;
+                        const prevPassing = Number(prev.passingScore) || 0;
+                        const prevTotal = summary.totalScore;
+                        let updatedPassingScore = prevPassing;
 
-                        // KIỂM TRA QUAN TRỌNG: 
                         // Nếu là câu đầu tiên (tổng điểm cũ đang là 0) hoặc chưa có điểm đạt
-                        if (summary.totalScore === 0 || prev.passingScore === 0) {
-                            // Cho nhảy thẳng lên 100% mục tiêu cho câu đầu
+                        if (prevTotal === 0 || prevPassing === 0) {
                             updatedPassingScore = newTotalScore;
-                        } 
-                        else {
-                            // Nếu đã có dữ liệu trước đó, dùng newTotalScore để tính theo tỉ lệ cũ
-                            const ratio = prev.passingScore / summary.totalScore;
+                        } else {
+                            const ratio = prevPassing / prevTotal;
                             updatedPassingScore = Math.round(newTotalScore * ratio);
                         }
 
@@ -583,14 +593,19 @@ const ExamForgePage: React.FC = () => {
                                             <div className="flex justify-between items-center">
                                                 <label className="text-xs font-bold text-[#181114]">Tiêu chuẩn đạt</label>
                                                 <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-[#f4f0f2] shadow-sm">
-                                                    <input 
+                                                    <input
                                                         type="number"
-                                                        value={formData.passingScore}
-                                                        onChange={e => {
-                                                            const val = Math.min(summary.totalScore, Math.max(0, parseInt(e.target.value) || 0));
-                                                            setFormData(prev => ({ ...prev, passingScore: val }));
+                                                        min={0}
+                                                        max={summary.totalScore || undefined}
+                                                        value={numberInputDisplay(Number(formData.passingScore) || 0)}
+                                                        onChange={(e) => {
+                                                            const val = parseNonNegativeInt(
+                                                                e.target.value,
+                                                                summary.totalScore || 0,
+                                                            );
+                                                            setFormData((prev) => ({ ...prev, passingScore: val }));
                                                         }}
-                                                        className="w-10 text-sm font-bold text-primary outline-none"
+                                                        className="w-12 text-sm font-bold text-primary outline-none"
                                                     />
                                                     <span className="text-[10px] font-bold text-[#886373]/60 border-l pl-2">/ {summary.totalScore}</span>
                                                 </div>
@@ -616,10 +631,16 @@ const ExamForgePage: React.FC = () => {
                                             <label className="block text-[10px] font-bold text-[#886373] uppercase tracking-wider">Thời gian làm bài (Phút)</label>
                                             <input
                                                 type="number"
-                                                value={formData.duration}
-                                                onChange={(e) => setFormData({...formData, duration: parseInt(e.target.value) || 0})}
+                                                min={0}
+                                                value={numberInputDisplay(Number(formData.duration) || 0)}
+                                                onChange={(e) =>
+                                                    setFormData((prev) => ({
+                                                        ...prev,
+                                                        duration: parseNonNegativeInt(e.target.value, 999),
+                                                    }))
+                                                }
                                                 className="w-full px-4 py-3 bg-[#fbf9fa] border border-[#f4f0f2] rounded-xl text-sm font-bold outline-none focus:border-primary transition-all"
-                                                placeholder="0: Không giới hạn"
+                                                placeholder="Để trống = không giới hạn"
                                             />
                                         </div>
                                     </div>

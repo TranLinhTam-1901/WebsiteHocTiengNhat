@@ -12,6 +12,7 @@ using QuizzTiengNhat.Middlewares;
 using QuizzTiengNhat.Models;
 using QuizzTiengNhat.Providers;
 using QuizzTiengNhat.Services;
+using QuizzTiengNhat.Services.Admins;
 using QuizzTiengNhat.Services.Learners;
 using System.Security.Claims;
 using System.Text;
@@ -119,6 +120,7 @@ builder.Services.AddScoped<IFlashcardService, FlashcardService>();
 builder.Services.AddScoped<IQuestionService, QuestionService>();
 builder.Services.AddScoped<IUserProgressService, UserProgressService>();
 builder.Services.AddScoped<IProgressService, ProgressService>();
+builder.Services.AddScoped<IAdminDashboardService, AdminDashboardService>();
 
 builder.Services.Configure<OllamaOptions>(builder.Configuration.GetSection(OllamaOptions.SectionName));
 builder.Services.AddHttpClient<IOllamaTutorService, OllamaTutorService>((sp, client) =>
