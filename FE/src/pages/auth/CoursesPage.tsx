@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import courseService, { CoursePublic } from '../../services/courseService';
-import CourseCard from '../../components/common/CourseCard';
+import CourseCard, { isAllowedCourseLevel } from '../../components/common/CourseCard';
 
 const CoursesPage: React.FC = () => {
   const navigate = useNavigate();
@@ -22,8 +22,8 @@ const CoursesPage: React.FC = () => {
       N2: 4,
       N1: 5,
     };
-    return (orderMap[a.name] || 99) - (orderMap[b.name] || 99);
-  });
+    return (orderMap[a.name] ?? 99) - (orderMap[b.name] ?? 99);
+  }).filter((level) => isAllowedCourseLevel(level.name));
 
   // Filter courses by selected level
   const filteredCourses = selectedLevel
@@ -39,7 +39,7 @@ const CoursesPage: React.FC = () => {
       setLoading(true);
       setError(null);
       const data = await courseService.getAllCoursesPublic();
-      setCourses(data);
+      setCourses(data.filter((c) => isAllowedCourseLevel(c.levelName)));
     } catch (err) {
       setError('Không thể tải danh sách khóa học. Vui lòng thử lại.');
       console.error(err);

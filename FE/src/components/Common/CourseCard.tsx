@@ -1,6 +1,14 @@
 import React from 'react';
 import { CoursePublic } from '@/services/courseService';
 
+/** Các cấp JLPT hiển thị trên trang khóa học công khai */
+export const ALLOWED_COURSE_LEVELS = ['N5', 'N4', 'N3'] as const;
+
+export function isAllowedCourseLevel(levelName: string): boolean {
+  const normalized = levelName.trim().toUpperCase();
+  return ALLOWED_COURSE_LEVELS.some((level) => normalized.includes(level));
+}
+
 interface CourseCardProps {
   course: CoursePublic;
   onClickLearnMore?: (courseId: string) => void;
