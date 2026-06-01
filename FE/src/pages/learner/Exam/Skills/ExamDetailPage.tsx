@@ -216,8 +216,12 @@ const ExamDetailPage = () => {
       });
     }
   }, [id]);
-
+  
+  // const hasTimeLimit = exam && exam.duration > 0;
   useEffect(() => {
+
+    if (!exam || exam.duration <= 0) return;
+
     if (timeLeft <= 0) {
       if (!timeUpHandledRef.current && exam) {
         timeUpHandledRef.current = true;
@@ -226,6 +230,7 @@ const ExamDetailPage = () => {
       }
       return;
     }
+
     const timer = setInterval(() => setTimeLeft((prev) => prev - 1), 1000);
     return () => clearInterval(timer);
   }, [timeLeft, exam]);

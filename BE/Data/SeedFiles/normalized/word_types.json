@@ -1,0 +1,9 @@
+[
+  { "name": "Noun", "description": "Danh từ" },
+  { "name": "Verb", "description": "Động từ" },
+  { "name": "I-Adjective", "description": "Tính từ đuôi i" },
+  { "name": "Na-Adjective", "description": "Tính từ đuôi na" },
+  { "name": "Adverb", "description": "Trạng từ" },
+  { "name": "Particle", "description": "Trợ từ" },
+  { "name": "Expression", "description": "Cụm biểu đạt" }
+]

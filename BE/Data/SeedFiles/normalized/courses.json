@@ -1,0 +1,17 @@
+[
+  {
+    "courseName": "Khóa học JLPT N5",
+    "description": "Khóa học nền tảng dành cho người mới bắt đầu",
+    "level": "N5"
+  },
+  {
+    "courseName": "Khóa học JLPT N4",
+    "description": "Khóa học sơ cấp nâng cao",
+    "level": "N4"
+  },
+  {
+    "courseName": "Khóa học JLPT N3",
+    "description": "Khóa học trung cấp",
+    "level": "N3"
+  }
+]

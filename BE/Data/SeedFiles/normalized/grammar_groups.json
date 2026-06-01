@@ -1,0 +1,18 @@
+[
+  {
+    "groupName": "Câu cơ bản",
+    "description": "Các mẫu câu nền tảng N5"
+  },
+  {
+    "groupName": "Tồn tại",
+    "description": "あります、います..."
+  },
+  {
+    "groupName": "Yêu cầu",
+    "description": "てください..."
+  },
+  {
+    "groupName": "Điều kiện",
+    "description": "たら、なら..."
+  }
+]

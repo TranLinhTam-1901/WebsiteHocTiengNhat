@@ -1,0 +1,20 @@
+[
+  {
+    "title": "N5 - 自己紹介",
+    "content": "私は学生です。ベトナムから来ました。日本語を勉強しています。",
+    "translation": "Tôi là học sinh. Tôi đến từ Việt Nam. Tôi đang học tiếng Nhật.",
+    "level": "N5",
+    "lessonTitle": "N5 - Bài 1: Từ vựng cơ bản",
+    "topics": ["Tự giới thiệu"],
+    "estimatedTime": 3
+  },
+  {
+    "title": "N5 - 学校",
+    "content": "私の学校は大きいです。教室には学生がたくさんいます。",
+    "translation": "Trường của tôi lớn. Trong lớp học có nhiều học sinh.",
+    "level": "N5",
+    "lessonTitle": "N5 - Bài 1: Từ vựng cơ bản",
+    "topics": ["Trường học"],
+    "estimatedTime": 3
+  }
+]
