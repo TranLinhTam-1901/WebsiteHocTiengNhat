@@ -67,7 +67,8 @@ namespace QuizzTiengNhat.Controllers.Auth
 
             if (await _userManager.IsLockedOutAsync(user))
             {
-                return BadRequest("Tài khoản của bạn đã bị khóa.");
+                return BadRequest("Tài khoản của bạn hiện đang bị khóa. " +
+                                  "Vui lòng liên hệ quản trị viên qua email support@jquiz.vn để được hỗ trợ mở khóa.");
             }
 
             await _userManager.UpdateSecurityStampAsync(user);

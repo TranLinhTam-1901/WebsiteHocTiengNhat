@@ -212,6 +212,7 @@ public class ExamsController : ControllerBase
                 throw new Exception("Luyện tập kỹ năng chỉ được phép chọn đúng 1 kỹ năng.");
         }
     }
+    
     private async Task<Lessons?> GetLessonIfNeeded(
     GenerateExamRequestDTO request)
     {

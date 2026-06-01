@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using QuizzTiengNhat.Configurations;
+using QuizzTiengNhat.Data.Seed;
 using QuizzTiengNhat.Data;
 using QuizzTiengNhat.Hubs;
 using QuizzTiengNhat.Middlewares;
@@ -184,9 +185,15 @@ using (var scope = app.Services.CreateScope())
     var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
     var context = services.GetRequiredService<ApplicationDbContext>();
 
+     // Apply migration
+    await context.Database.MigrateAsync();
+
+    // Seed Identity
     await DbInitializer.SeedRoles(roleManager);
     await DbInitializer.SeedAdminUser(userManager);
-    await Data.Initialize(context);
+
+    // Seed hệ thống học tiếng Nhật
+    await SeedData.InitializeAsync(context);
 }
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

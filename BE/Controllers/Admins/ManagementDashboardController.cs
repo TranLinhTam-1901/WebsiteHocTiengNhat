@@ -54,21 +54,21 @@ public class ManagementDashboardController : ControllerBase
 
         var withoutLevel = learners.Count(l => l.LevelID == null);
 
-        var percentTasks = learners.Select(async learner =>
-        {
-            var dto = await _progressService.CalculateGlobalProgressAsync(learner.Id);
-            return dto.TotalPercent;
-        });
+          var percents = new List<double>();
 
-        var percents = await Task.WhenAll(percentTasks);
+            foreach (var learner in learners)
+            {
+                var dto = await _progressService.CalculateGlobalProgressAsync(learner.Id);
+                percents.Add(dto.TotalPercent);
+            }
 
-        var average = Math.Round(percents.Average(), 1);
+            var average = Math.Round(percents.Average(), 1);
 
         return Ok(new LearnersProgressSummaryDTO
         {
             AverageProgressPercent = average,
             TotalLearners = total,
-            IncludedInAverage = percents.Length,
+            IncludedInAverage = percents.Count,
             LearnersWithoutLevel = withoutLevel,
         });
     }

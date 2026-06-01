@@ -372,14 +372,7 @@ const QuizResult: React.FC = () => {
           </div>
 
           {/* Stats grid */}
-          <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <div className={`rounded-xl border p-4 ${theme.colorLight} ${theme.borderColor}`}>
-              <p className="text-[10px] font-black uppercase tracking-wider text-[#886373]">Điểm số</p>
-              <p className={`mt-1 text-2xl font-black tabular-nums ${theme.colorText}`}>
-                {result.score.toFixed(1)}
-              </p>
-              <p className="mt-0.5 text-[11px] font-bold text-[#8d7b83]">điểm</p>
-            </div>
+          <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
               <p className="text-[10px] font-black uppercase tracking-wider text-emerald-700">Câu đúng</p>
               <p className="mt-1 text-2xl font-black tabular-nums text-emerald-600">

@@ -405,10 +405,10 @@ const ExamForgePage: React.FC = () => {
             return;
         }
 
-        if (!isEditMode && formData.duration <= 0) {
-            toast.error("Thời gian làm bài phải lớn hơn 0 phút!");
-            return;
-        }
+        // if (!isEditMode && formData.duration <= 0) {
+        //     toast.error("Thời gian làm bài phải lớn hơn 0 phút!");
+        //     return;
+        // }
 
         try {
             if (isEditMode && (editData?.examID || editExamId)) {
