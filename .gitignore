@@ -10,7 +10,7 @@ BE/bin
 BE/obj
 BE/.vs
 BE/appsettings.Development.json
-BE/Data/SeedFiles/raw/
+BE/Data/SeedFiles/
 
 # ===== General =====
 .DS_Store
