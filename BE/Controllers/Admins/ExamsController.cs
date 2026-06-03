@@ -30,6 +30,7 @@ public class ExamsController : ControllerBase
 
         var response = new ExamTemplateResponseDTO
         {
+            TemplateID = template.TemplateID,
             Title = template.Title,
             Duration = template.Duration,
             PassingScore = template.PassingScore,
@@ -536,25 +537,29 @@ public class ExamsController : ControllerBase
                             q.Lesson.Course.LevelID == levelId);
 
             // Chỉ Group khi định dạng yêu cầu đọc bài dài (Passage)
-            if (part.QuestionFormat == QuestionFormat.Passage)
+            if (part.SkillType == SkillType.Reading || part.SkillType == SkillType.Listening)
             {
-                if (part.SkillType == SkillType.Reading) query = query.Where(q => q.ReadingID != null);
-                if (part.SkillType == SkillType.Listening) query = query.Where(q => q.ListeningID != null);
+                if (part.SkillType == SkillType.Reading)
+                    query = query.Where(q => q.ReadingID != null);
+
+                if (part.SkillType == SkillType.Listening)
+                    query = query.Where(q => q.ListeningID != null);
 
                 var groups = await query.ToListAsync();
+
                 var grouped = part.SkillType == SkillType.Reading
                     ? groups.GroupBy(q => q.ReadingID)
                     : groups.GroupBy(q => q.ListeningID);
 
                 var selectedGroups = grouped.Take(part.Quantity).ToList();
+
                 int realQuestionCount = selectedGroups.Sum(g => g.Count());
 
-                totalQuestions += part.Quantity;
-                totalScore += part.Quantity * part.PointPerQuestion;
+                totalQuestions += realQuestionCount;
+                totalScore += realQuestionCount * part.PointPerQuestion;
             }
             else
             {
-                // Các câu hỏi đơn lẻ (StandardChoice, StarSentence) tính tuyến tính
                 totalQuestions += part.Quantity;
                 totalScore += part.Quantity * part.PointPerQuestion;
             }

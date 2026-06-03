@@ -32,7 +32,16 @@ const StandardJLPT: React.FC<Props> = ({ data, onChange, levels, onLevelChange }
                     pointPerQuestion: part.pointPerQuestion
                 };
             }
-            acc[part.skillType].quantity += part.quantity;
+            
+            let displayQuantity = part.quantity;
+
+            if (part.skillType === SkillType.Reading) {
+                if (part.questionFormat === 2) { // Passage
+                    displayQuantity = part.quantity * 3;
+                }
+            }
+
+            acc[part.skillType].quantity += displayQuantity;
 
             acc[part.skillType].totalScore +=
                 part.quantity * part.pointPerQuestion;

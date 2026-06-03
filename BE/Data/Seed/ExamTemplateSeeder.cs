@@ -154,7 +154,7 @@ public static class ExamTemplateSeeder
             new ExamTemplateDetail { DetailID = Guid.NewGuid(), TemplateID = n5Template.TemplateID, SkillType = SkillType.Kanji, QuestionFormat = QuestionFormat.StandardChoice, Quantity = 15, PointPerQuestion = 1.3333333333333333m }, // 15 * 1.333... = đúng 20 điểm
             
             // Đọc hiểu (Tổng: 10 câu = tròn 60.00 điểm)
-            new ExamTemplateDetail { DetailID = Guid.NewGuid(), TemplateID = n5Template.TemplateID, SkillType = SkillType.Reading, QuestionFormat = QuestionFormat.Passage, Quantity = 6, PointPerQuestion = 7.00m }, // 42 điểm
+            new ExamTemplateDetail { DetailID = Guid.NewGuid(), TemplateID = n5Template.TemplateID, SkillType = SkillType.Reading, QuestionFormat = QuestionFormat.Passage, Quantity = 2, PointPerQuestion = 7.00m }, // 42 điểm
             new ExamTemplateDetail { DetailID = Guid.NewGuid(), TemplateID = n5Template.TemplateID, SkillType = SkillType.Reading, QuestionFormat = QuestionFormat.StandardChoice, Quantity = 4, PointPerQuestion = 4.50m }, // 18 điểm
             
             // Nghe hiểu (Tổng: 20 câu = tròn 60.00 điểm)

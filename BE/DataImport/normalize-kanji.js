@@ -5,8 +5,19 @@ const rawDir = path.join(__dirname, "../Data/SeedFiles/raw");
 const normalizedDir = path.join(__dirname, "../Data/SeedFiles/normalized");
 
 const kanjidicPath = path.join(rawDir, "kanjidic2.json");
+const radicalsPath = path.join(rawDir, "radicals_214.json");
+
+const translatedKanjiPath = path.join(
+  normalizedDir,
+  "translated_kanji_meanings.json"
+);
 
 const kanjidic = JSON.parse(fs.readFileSync(kanjidicPath, "utf8"));
+const radicalList = JSON.parse(fs.readFileSync(radicalsPath, "utf8"));
+
+const translatedKanji = fs.existsSync(translatedKanjiPath)
+  ? JSON.parse(fs.readFileSync(translatedKanjiPath, "utf8"))
+  : [];
 
 const allowedLevels = new Set(["N5", "N4", "N3"]);
 
@@ -17,21 +28,44 @@ function getEntries(db) {
   return [];
 }
 
-function normalizeJlptLevel(value) {
-  const v = String(value || "").toUpperCase().replace("JLPT", "").trim();
+/**
+ * KANJIDIC2 dùng JLPT cũ:
+ * 1 -> N1
+ * 2 -> N2
+ * 3 -> N4 gần đúng
+ * 4 -> N5 gần đúng
+ *
+ * Không có N3 chính xác trong KANJIDIC2.
+ */
+function normalizeJlptLevelFromKanjidic(value) {
+  const v = String(value || "").trim();
 
-  if (v === "5" || v === "N5") return "N5";
-  if (v === "4" || v === "N4") return "N4";
-  if (v === "3" || v === "N3") return "N3";
+  if (v === "4") return "N5";
+  if (v === "3") return "N4";
+
+  // bỏ N1/N2
+  if (v === "2") return "N3";
+  if (v === "1") return "N1";
 
   return null;
 }
 
-function assignLessonTitle(level) {
-  if (level === "N5") return "N5 - Bài 1: Từ vựng cơ bản";
-  if (level === "N4") return "N4 - Bài 1: Từ vựng cơ bản";
-  if (level === "N3") return "N3 - Bài 1: Từ vựng cơ bản";
-  return "";
+function assignCourseLesson(level, indexInLevel) {
+  const courseCount = 5;
+  const lessonPerCourse = 5;
+
+  const position = indexInLevel % (courseCount * lessonPerCourse);
+
+  const courseNumber =
+    Math.floor(position / lessonPerCourse) + 1;
+
+  const lessonNumber =
+    (position % lessonPerCourse) + 1;
+
+  return {
+    courseTitle: `${level} - Khóa ${courseNumber}`,
+    lessonTitle: `${level} - Khóa ${courseNumber} - Bài ${lessonNumber}`
+  };
 }
 
 function assignTopic(meaning) {
@@ -43,6 +77,14 @@ function assignTopic(meaning) {
 
   if (m.includes("father") || m.includes("mother") || m.includes("child")) {
     return "Gia đình";
+  }
+
+  if (m.includes("money") || m.includes("buy") || m.includes("sell")) {
+    return "Mua bán";
+  }
+
+  if (m.includes("day") || m.includes("month") || m.includes("year") || m.includes("time")) {
+    return "Thời gian";
   }
 
   return "Tổng hợp";
@@ -62,14 +104,14 @@ function getStrokeCount(entry) {
 }
 
 function getJlpt(entry) {
-  return normalizeJlptLevel(
+  return normalizeJlptLevelFromKanjidic(
     entry.misc?.jlptLevel ||
     entry.jlpt ||
     entry.jlptLevel
   );
 }
 
-function getMeanings(entry) {
+function getMeaningsEn(entry) {
   const meanings =
     entry.readingMeaning?.groups?.[0]?.meanings ||
     entry.meanings ||
@@ -78,12 +120,31 @@ function getMeanings(entry) {
 
   if (Array.isArray(meanings)) {
     return meanings
+      .filter(x => {
+        if (typeof x === "string") return true;
+        return !x.lang || x.lang === "en";
+      })
       .map(x => typeof x === "string" ? x : x.value || x.text || "")
       .filter(Boolean)
       .join(", ");
   }
 
   return String(meanings || "");
+}
+
+function getHanViet(entry) {
+  const readings =
+    entry.readingMeaning?.groups?.[0]?.readings ||
+    entry.readings ||
+    [];
+
+  if (!Array.isArray(readings)) return "";
+
+  return readings
+    .filter(x => x.type === "vietnam")
+    .map(x => x.value || x.text || "")
+    .filter(Boolean)
+    .join(", ");
 }
 
 function getReadings(entry, type) {
@@ -97,8 +158,8 @@ function getReadings(entry, type) {
   return readings
     .filter(x => {
       const rType = x.type || x.readingType || "";
-      if (type === "onyomi") return rType.includes("ja_on") || rType.includes("on");
-      if (type === "kunyomi") return rType.includes("ja_kun") || rType.includes("kun");
+      if (type === "onyomi") return rType === "ja_on" || rType.includes("on");
+      if (type === "kunyomi") return rType === "ja_kun" || rType.includes("kun");
       return false;
     })
     .map(x => x.value || x.text || "")
@@ -106,51 +167,107 @@ function getReadings(entry, type) {
     .join(", ");
 }
 
-function getRadical(entry) {
-  return (
-    entry.radicals?.classical ||
-    entry.radical?.classical ||
-    entry.radical ||
-    "?"
-  );
+/**
+ * Trong KANJIDIC2:
+ * radicals classical value là số bộ thủ, ví dụ 7.
+ * Ta map số 7 sang radicals_214.json[id = 7].
+ */
+function buildRadicalMap(radicals) {
+  const map = new Map();
+
+  for (const r of radicals) {
+    map.set(String(r.id), {
+      id: r.id,
+      character: r.character,
+      name: r.name,
+      meaning: r.meaning,
+      strokeCount: r.strokeCount
+    });
+  }
+
+  return map;
+}
+
+function getRadicalNumber(entry) {
+  if (Array.isArray(entry.radicals)) {
+    const classical = entry.radicals.find(x => x.type === "classical");
+    if (classical) return String(classical.value);
+  }
+
+  return null;
 }
 
 const entries = getEntries(kanjidic);
+const radical214Map = buildRadicalMap(radicalList);
 
+const translatedMeaningMap = new Map(
+  translatedKanji
+    .filter(x => x.character)
+    .map(x => [x.character, x])
+);
+
+const levelCounters = {
+  N5: 0,
+  N4: 0,
+  N3: 0
+};
 const kanjis = [];
-const radicalMap = new Map();
+const usedRadicals = new Map();
 
 for (const entry of entries) {
   const level = getJlpt(entry);
-
+const indexInLevel = levelCounters[level]++;
+  // chỉ lấy N5, N4, N3
+  // với KANJIDIC2 hiện tại thực tế chỉ lấy được N5/N4
   if (!level || !allowedLevels.has(level)) continue;
 
   const character = getCharacter(entry);
   if (!character) continue;
 
-  const meaning = getMeanings(entry);
-  const radical = String(getRadical(entry));
+  const meaningEn = getMeaningsEn(entry);
 
-  if (!radicalMap.has(radical)) {
-    radicalMap.set(radical, {
-      character: radical,
-      name: `Bộ ${radical}`,
-      meaning: null,
-      strokeCount: 0,
-      variants: []
-    });
+  const translated = translatedMeaningMap.get(character);
+
+  const meaning = translated?.meaningVi || meaningEn;
+
+  const hanViet = getHanViet(entry);
+
+  const radicalNumber = getRadicalNumber(entry);
+  const radicalInfo = radical214Map.get(radicalNumber);
+
+  if (!radicalInfo) {
+    console.log(`Không tìm thấy bộ thủ ${radicalNumber} cho chữ ${character}`);
+    continue;
   }
 
+  if (!usedRadicals.has(radicalInfo.id)) {
+    usedRadicals.set(radicalInfo.id, radicalInfo);
+  }
+  const {
+    courseTitle,
+    lessonTitle
+  } = assignCourseLesson(
+    level,
+    indexInLevel
+  );
   kanjis.push({
     character,
     onyomi: getReadings(entry, "onyomi"),
     kunyomi: getReadings(entry, "kunyomi"),
+    hanViet,
     meaning,
+    meaningEn,
     strokeCount: getStrokeCount(entry),
-    radical,
+
+    radicalId: radicalInfo.id,
+    radical: radicalInfo.character,
+    radicalName: radicalInfo.name,
+    radicalMeaning: radicalInfo.meaning,
+
     level,
-    topic: assignTopic(meaning),
-    lessonTitle: assignLessonTitle(level),
+    courseTitle,
+    lessonTitle,
+    topic: assignTopic(meaningEn),
     popularity: Number(entry.misc?.frequency || entry.frequency || 9999),
     status: 1
   });
@@ -160,7 +277,7 @@ fs.mkdirSync(normalizedDir, { recursive: true });
 
 fs.writeFileSync(
   path.join(normalizedDir, "radicals.json"),
-  JSON.stringify([...radicalMap.values()], null, 2),
+  JSON.stringify([...usedRadicals.values()], null, 2),
   "utf8"
 );
 
@@ -170,5 +287,5 @@ fs.writeFileSync(
   "utf8"
 );
 
-console.log(`Generated ${radicalMap.size} radicals.`);
+console.log(`Generated ${usedRadicals.size} radicals.`);
 console.log(`Generated ${kanjis.length} kanjis.`);

@@ -10,14 +10,38 @@ const jlptPath = path.join(rawDir, "jlpt_words.json");
 const jmdict = JSON.parse(fs.readFileSync(jmdictPath, "utf8"));
 const jlptWordsRaw = JSON.parse(fs.readFileSync(jlptPath, "utf8"));
 
+const translatedVocabPath = path.join(
+  normalizedDir,
+  "translated_vocab.json"
+);
+
+const translatedVocab = fs.existsSync(translatedVocabPath)
+  ? JSON.parse(fs.readFileSync(translatedVocabPath, "utf8"))
+  : [];
+
+function makeTranslateKey(expression, reading) {
+  return `${expression || ""}|${reading || ""}`;
+}
+
+const translatedByReading = new Map(
+  translatedVocab
+    .filter(x => x.reading)
+    .map(x => [x.reading, x])
+);
 const allowedLevels = new Set(["N5", "N4", "N3"]);
+
 
 function extractLevelFromTags(tags) {
   const value = String(tags || "").toUpperCase();
 
-  if (value.includes("JLPT_5")) return "N5";
-  if (value.includes("JLPT_4")) return "N4";
-  if (value.includes("JLPT_3")) return "N3";
+  const hasN5 = value.includes("JLPT_5") || value.includes("JLPT_N5");
+  const hasN4 = value.includes("JLPT_4") || value.includes("JLPT_N4");
+  const hasN3 = value.includes("JLPT_3") || value.includes("JLPT_N3");
+
+  // Ưu tiên level "cao hơn" để tránh N4/N3 bị nuốt hết vào N5
+  if (hasN3) return "N3";
+  if (hasN4) return "N4";
+  if (hasN5) return "N5";
 
   return null;
 }
@@ -39,6 +63,25 @@ function normalizeJlptList(raw) {
 }
 
 const jlptWords = normalizeJlptList(jlptWordsRaw);
+
+const wordTypesPath = path.join(rawDir, "word_types.json");
+
+const wordTypesRaw = JSON.parse(
+  fs.readFileSync(wordTypesPath, "utf8")
+);
+
+const wordTypeMap = new Map(
+  wordTypesRaw.map(x => [x.name, x.description])
+);
+
+const translatedMap = new Map(
+  translatedVocab
+    .filter(x => x.expression && x.reading)
+    .map(x => [
+      makeTranslateKey(x.expression, x.reading),
+      x
+    ])
+);
 
 function getEntries(db) {
   if (Array.isArray(db)) return db;
@@ -65,14 +108,22 @@ function getCommon(entry) {
 function mapPos(posList = []) {
   const text = posList.join(" ").toLowerCase();
 
-  if (text.includes("noun")) return ["Noun"];
-  if (text.includes("godan") || text.includes("ichidan") || text.includes("verb")) return ["Verb"];
-  if (text.includes("i-adjective")) return ["I-Adjective"];
-  if (text.includes("na-adjective")) return ["Na-Adjective"];
-  if (text.includes("adverb")) return ["Adverb"];
-  if (text.includes("particle")) return ["Particle"];
+  if (text.includes("noun")) return ["Danh từ"];
 
-  return ["Expression"];
+  if (
+    text.includes("godan") ||
+    text.includes("ichidan") ||
+    text.includes("verb")
+  ) {
+    return ["Động từ"];
+  }
+
+  if (text.includes("i-adjective")) return ["Tính từ đuôi i"];
+  if (text.includes("na-adjective")) return ["Tính từ đuôi na"];
+  if (text.includes("adverb")) return ["Trạng từ"];
+  if (text.includes("particle")) return ["Trợ từ"];
+
+  return ["Cụm biểu đạt"];
 }
 
 function normalizeLevel(level) {
@@ -103,11 +154,23 @@ function findJlptLevel(word, reading) {
   return found.level;
 }
 
-function assignLessonTitle(level) {
-  if (level === "N5") return "N5 - Bài 1: Từ vựng cơ bản";
-  if (level === "N4") return "N4 - Bài 1: Từ vựng cơ bản";
-  if (level === "N3") return "N3 - Bài 1: Từ vựng cơ bản";
-  return "";
+function assignCourseLesson(level, indexInLevel) {
+  const courseCount = 5;
+  const lessonPerCourse = 5;
+
+  const position =
+    indexInLevel % (courseCount * lessonPerCourse);
+
+  const courseNumber =
+    Math.floor(position / lessonPerCourse) + 1;
+
+  const lessonNumber =
+    (position % lessonPerCourse) + 1;
+
+  return {
+    courseTitle: `${level} - Khóa ${courseNumber}`,
+    lessonTitle: `${level} - Khóa ${courseNumber} - Bài ${lessonNumber}`
+  };
 }
 
 function assignTopics(meaning) {
@@ -134,6 +197,12 @@ function priorityByLevel(level, isCommon) {
   return isCommon ? base : base + 1;
 }
 
+const levelCounters = {
+  N5: 0,
+  N4: 0,
+  N3: 0
+};
+
 const entries = getEntries(jmdict);
 const results = [];
 const seen = new Set();
@@ -143,9 +212,19 @@ for (const entry of entries) {
   const reading = getReading(entry);
   const meaning = getMeaning(entry);
 
+  const translated =
+  translatedMap.get(
+    makeTranslateKey(word, reading)
+  ) ||
+  translatedByReading.get(reading);
+
+  const meaningEn = translated?.meaningEn || meaning;
+  const meaningVi = translated?.meaningVi || meaningEn;
+
   if (!word || !reading || !meaning) continue;
 
   const level = findJlptLevel(word, reading);
+  const indexInLevel = levelCounters[level]++;
   if (!level || !allowedLevels.has(level)) continue;
 
   const key = `${word}|${reading}`;
@@ -154,14 +233,22 @@ for (const entry of entries) {
 
   const isCommon = getCommon(entry);
   const posList = entry.sense?.[0]?.partOfSpeech || [];
-
+  const {
+    courseTitle,
+    lessonTitle
+  } = assignCourseLesson(
+    level,
+    indexInLevel
+  );
   results.push({
     word,
     reading,
-    meaning,
+    meaning: meaningVi,
+    meaningEn,
     level,
-    lessonTitle: assignLessonTitle(level),
-    topics: assignTopics(meaning),
+    courseTitle,
+    lessonTitle,
+    topics: assignTopics(meaningEn),
     wordTypes: mapPos(posList),
     isCommon,
     priority: priorityByLevel(level, isCommon)

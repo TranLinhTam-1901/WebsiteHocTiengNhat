@@ -98,6 +98,7 @@ const ExamForgePage: React.FC = () => {
                     const template = await ExamService.getStandardTemplate(levelId);
                     setFormData(prev => ({
                         ...prev,
+                        templateID: template.templateID,
                         title: template.title,
                         duration: template.duration,
                         parts: template.details,
