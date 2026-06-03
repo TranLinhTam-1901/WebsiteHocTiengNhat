@@ -161,6 +161,7 @@ builder.Services.AddHttpClient<IVoicevoxTtsService, VoicevoxTtsService>((sp, cli
 });
 
 builder.Services.AddScoped<ITutorArchiveService, TutorArchiveService>();
+builder.Services.AddScoped<ITutorKnowledgeRetriever, TutorKnowledgeRetriever>();
 builder.Services.AddSingleton<IBrowserSessionHubCoordinator, BrowserSessionHubCoordinator>();
 
 // Đảm bảo tạo folder wwwroot nếu nó chưa tồn tại để WebRootPath không bị null

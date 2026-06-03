@@ -3,6 +3,7 @@ import { kanjiService } from '../../../../services/Admin/kanjiService';
 import AdminHeader from '../../../../components/layout/admin/AdminHeader';
 import { Link } from 'react-router-dom';
 import { KanjiItem, RadicalItem } from '../../../../interfaces/Admin/Kanji';
+import { truncateChars, truncateListDisplay } from '../../../../utils/truncateDisplay';
 
 const KanjiListPage: React.FC = () => {
   // --- 1. KHAI BÁO TẤT CẢ STATE Ở ĐẦU ---
@@ -575,14 +576,29 @@ const KanjiListPage: React.FC = () => {
                       {kanji?.character}
                     </span>
                   </div>
-                  <div className="flex flex-col gap-2 w-full text-center">
-                    <p className="text-[15px] font-japanese text-[#181114]">On: {kanji?.onyomi || '---'}</p>
-                    <p className="text-[15px] font-japanese text-[#181114]">Kun: {kanji?.kunyomi || '---'}</p>
+                  <div className="flex flex-col gap-2 w-full text-center px-1">
+                    <p
+                      className="text-[15px] font-japanese text-[#181114] truncate"
+                      title={kanji?.onyomi || undefined}
+                    >
+                      On: {truncateListDisplay(kanji?.onyomi, 2, '---')}
+                    </p>
+                    <p
+                      className="text-[15px] font-japanese text-[#181114] truncate"
+                      title={kanji?.kunyomi || undefined}
+                    >
+                      Kun: {truncateListDisplay(kanji?.kunyomi, 2, '---')}
+                    </p>
                   </div>
                 </div>
 
-                <div className="mt-auto pt-4 border-t border-[#f4f0f2] text-center">
-                  <p className="text-[18px] font-bold text-[#181114]">{kanji?.meaning || "Chưa có nghĩa"}</p>
+                <div className="mt-auto pt-4 border-t border-[#f4f0f2] text-center px-2">
+                  <p
+                    className="text-[18px] font-bold text-[#181114] truncate"
+                    title={kanji?.meaning || undefined}
+                  >
+                    {truncateChars(kanji?.meaning, 48, 'Chưa có nghĩa')}
+                  </p>
                 </div>
               </div>
             </div>

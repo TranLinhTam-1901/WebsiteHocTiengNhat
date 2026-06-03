@@ -878,10 +878,16 @@ const AiTutorPage: React.FC = () => {
         learnerJlptLevel: jlptCode,
       });
 
+      // DB không có kiến thức được hỏi (hoặc model không trả lời được dựa trên dữ liệu)
+      // → nhân vật 2D dùng biểu cảm "Error".
+      const knowledgeNotFound = reply.found === false;
+
       const ttsSpeakerId = pickVoicevoxSpeakerForTurn(tutorModelDef, lastSendIntentRef.current);
 
       const assistantId = crypto.randomUUID();
-      const assistantExpr = assistantExpressionIdForIntent(tutorModelDef, lastSendIntentRef.current);
+      const assistantExpr = knowledgeNotFound
+        ? tutorModelDef.expressionIds.error
+        : assistantExpressionIdForIntent(tutorModelDef, lastSendIntentRef.current);
       const assistantMsg: UiMessage = {
         id: assistantId,
         role: 'assistant',
@@ -893,7 +899,9 @@ const AiTutorPage: React.FC = () => {
       const withAssistant = [...next, assistantMsg];
       setMessages(withAssistant);
       setSending(false);
-      setIdleFaceMood(lastSendIntentRef.current === 'wrong' ? 'wrong' : 'thanks');
+      setIdleFaceMood(
+        knowledgeNotFound ? 'error' : lastSendIntentRef.current === 'wrong' ? 'wrong' : 'thanks'
+      );
       setPhase('idle');
 
       let wav: Blob | undefined;
@@ -956,8 +964,11 @@ const AiTutorPage: React.FC = () => {
 
       await refreshServerConvos();
     } catch (e: unknown) {
+      const data = (e as { response?: { data?: { message?: string; detail?: string; title?: string } } })?.response?.data;
       const msg =
-        (e as { response?: { data?: { message?: string } } })?.response?.data?.message ??
+        data?.message?.trim() ||
+        data?.detail?.trim() ||
+        data?.title?.trim() ||
         'Không nhận được phản hồi. Kiểm tra Ollama đang chạy và model trong appsettings.';
       setError(msg);
       setIdleFaceMood('error');

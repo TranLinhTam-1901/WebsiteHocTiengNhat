@@ -3,6 +3,7 @@ import AdminHeader from '../../../../components/layout/admin/AdminHeader';
 import { Link } from 'react-router-dom';
 import { lessonService } from '../../../../services/Admin/lessonService';
 import { LessonDTO } from '../../../../interfaces/Admin/Lesson';
+import { getVisiblePages } from '../../../../utils/pagination';
 
 const SimpleFilterDropdown = ({ label, options, currentValues, onChange, isOpen, onToggle }: any) => {
   const isFiltering = currentValues.length > 0;
@@ -268,15 +269,47 @@ const LessonListPage: React.FC = () => {
               Hiển thị <span className="text-[#181114]">{filteredLessons.length === 0 ? 0 : indexOfFirstItem + 1} - {Math.min(indexOfLastItem, filteredLessons.length)}</span> của {filteredLessons.length} kết quả
             </p>
             <div className="flex items-center gap-2">
-              {[...Array(totalPages)].map((_, index) => (
-                <button
-                  key={index + 1}
-                  onClick={() => setCurrentPage(index + 1)}
-                  className={`size-10 rounded-lg flex items-center justify-center border-2 border-[#f4f0f2] font-bold text-sm transition-all ${currentPage === index + 1 ? 'bg-primary text-white shadow-md shadow-primary/20 border-none' : 'text-[#886373] hover:bg-[#f4f0f2]'}`}
-                >
-                  {index + 1}
-                </button>
-              ))}
+              <button
+                type="button"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage <= 1 || totalPages === 0}
+                className="size-10 rounded-lg flex items-center justify-center border-2 border-[#f4f0f2] text-[#886373] hover:bg-[#f4f0f2] transition-all disabled:opacity-40 disabled:pointer-events-none"
+                aria-label="Trang trước"
+              >
+                <span className="material-symbols-outlined text-sm font-bold">chevron_left</span>
+              </button>
+              {getVisiblePages(currentPage, totalPages).map((item, index) =>
+                item === 'ellipsis' ? (
+                  <span
+                    key={`ellipsis-${index}`}
+                    className="size-10 flex items-center justify-center text-[#886373] font-bold text-sm select-none"
+                  >
+                    …
+                  </span>
+                ) : (
+                  <button
+                    key={item}
+                    type="button"
+                    onClick={() => setCurrentPage(item)}
+                    className={`size-10 rounded-lg flex items-center justify-center border-2 border-[#f4f0f2] font-bold text-sm transition-all ${
+                      currentPage === item
+                        ? 'bg-primary text-white shadow-md shadow-primary/20 border-none'
+                        : 'text-[#886373] hover:bg-[#f4f0f2]'
+                    }`}
+                  >
+                    {item}
+                  </button>
+                )
+              )}
+              <button
+                type="button"
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage >= totalPages || totalPages === 0}
+                className="size-10 rounded-lg flex items-center justify-center border-2 border-[#f4f0f2] text-[#886373] hover:bg-[#f4f0f2] transition-all disabled:opacity-40 disabled:pointer-events-none"
+                aria-label="Trang sau"
+              >
+                <span className="material-symbols-outlined text-sm font-bold">chevron_right</span>
+              </button>
             </div>
           </div>
         </div>
