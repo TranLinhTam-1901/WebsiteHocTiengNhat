@@ -185,8 +185,10 @@ const StudyKanjiListPage: React.FC = () => {
               {showFilter && (
                 <>
                   <div className="fixed inset-0 z-10" onClick={() => setShowFilter(false)} />
-                  <div className="absolute top-full left-0 mt-3 w-[min(100vw-2rem,28rem)] max-h-[70vh] overflow-y-auto bg-white rounded-[2.5rem] shadow-[0_25px_70px_rgba(0,0,0,0.15)] border border-[#f4f0f2] p-8 z-20 animate-in fade-in zoom-in-95 duration-200">
-                    <div className="flex gap-2 mb-6 border-b border-[#f4f0f2] pb-2 flex-wrap">
+                  <div className="absolute top-full left-0 mt-3 w-396.25 h-auto bg-white rounded-[2.5rem] shadow-[0_25px_70px_rgba(0,0,0,0.15)] border border-[#f4f0f2] p-8 z-20 animate-in fade-in zoom-in-95 duration-200">
+                    
+                    {/* Thanh điều hướng trang Menu */}
+                    <div className="flex gap-4 mb-6 border-b border-[#f4f0f2] pb-2">
                       {[
                         { id: 1, label: 'Cơ bản & Chủ đề' },
                         { id: 2, label: 'Bộ 1–4' },

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { logout } from '../../../store/auth.slice';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector} from 'react-redux';
@@ -7,6 +7,7 @@ import { User } from '../../../interfaces/User';
 import { LearnerProfileService } from '../../../services/Learner/learnerProfileService';
 import { SkillType } from '../../../interfaces/Admin/QuestionBank';
 import dashboardService from '../../../services/Learner/progressService';
+import { DashboardProgressResponse } from '../../../interfaces/Learner/Dashboard';
 
 const Sidebar: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -103,23 +104,38 @@ const Sidebar: React.FC = () => {
     navigate('/login', { replace: true });
   };
 
-  //sidebar
-  const [progressData, setProgressData] = useState<any>(null);
-  const fetchProgress = useCallback(async () => {
-  try {
-    const res = await dashboardService.getOverallProgress();
-    setProgressData(res.data);
-  } catch (error) {
-    console.error("Sidebar progress fetch failed", error);
-  }
-}, []);
+  const [progressData, setProgressData] = useState<DashboardProgressResponse | null>(null);
 
-useEffect(() => {
-  fetchProgress();
-  // Lắng nghe sự kiện để cập nhật lại khi người dùng vừa học xong ở trang khác
-  window.addEventListener('learner-profile-refresh', fetchProgress);
-  return () => window.removeEventListener('learner-profile-refresh', fetchProgress);
-}, [fetchProgress]);
+  const fetchProgress = useCallback(async () => {
+    try {
+      const res = await dashboardService.getOverallProgress();
+      setProgressData(res.data);
+    } catch (error) {
+      console.error('Sidebar progress fetch failed', error);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchProgress();
+    window.addEventListener('learner-profile-refresh', fetchProgress);
+    return () => window.removeEventListener('learner-profile-refresh', fetchProgress);
+  }, [fetchProgress]);
+
+  const progressSummary = useMemo(() => {
+    const totalPercent = progressData?.totalPercent ?? 0;
+    const currentLevel = progressData?.currentLevelName ?? currentUser?.levelName ?? 'N5';
+
+    return {
+      totalPercent,
+      currentLevel,
+      breakdown: [
+        { label: 'Bài học', value: `${progressData?.courseProgress?.percentage ?? 0}%`, color: 'text-primary' },
+        { label: 'Luyện tập', value: `${progressData?.examProgress?.passRate ?? 0}%`, color: 'text-emerald-600' },
+        { label: 'Điểm TB', value: `${progressData?.examProgress?.averageScore ?? 0}/10`, color: 'text-blue-600' },
+        { label: 'Flashcard', value: `${progressData?.skillProgress?.percentage ?? 0}%`, color: 'text-amber-600' },
+      ],
+    };
+  }, [progressData, currentUser?.levelName]);
 
   return (
     <aside className="w-64 flex flex-col bg-white border-r border-[#f4f0f2] shrink-0 h-screen">
@@ -145,12 +161,6 @@ useEffect(() => {
             active={location.pathname === '/learner/dashboard'} 
              onProtectedNavigate={handleProtectedNavigation}
           />
-          {/* <NavItem 
-            to="/learner/profile" 
-            icon="person" 
-            label="Hồ sơ" 
-            active={location.pathname === '/learner/profile'} 
-          /> */}
 
           <NavItem
             to="/learner/courses"
@@ -164,12 +174,6 @@ useEffect(() => {
           />
 
           {/* --- PHẦN 2: LỘ TRÌNH HỌC CHÍNH --- */}
-          {/* <NavItem 
-            to="/learner/roadmap" 
-            icon="map" 
-            label="Lộ trình Minna" 
-            active={location.pathname.startsWith('/learner/roadmap') || location.pathname.startsWith('/learner/study/')} 
-          /> */}
 
           <NavItem 
             to="/learner/studyresource/vocabulary" 
@@ -258,13 +262,6 @@ useEffect(() => {
             onProtectedNavigate={handleProtectedNavigation}
           />
 
-          {/* <NavItem 
-            to="/learner/leaderboard" 
-            icon="emoji_events" 
-            label="Bảng xếp hạng" 
-            active={location.pathname === '/learner/leaderboard'} 
-          /> */}
-
           <NavItem 
             to="/learner/ai-tutor" 
             icon="smart_toy" 
@@ -284,89 +281,88 @@ useEffect(() => {
           <div className="my-4 border-t border-[#f4f0f2]"></div>
         </nav>
 
-       {/* Widget Tiến độ cải tiến - Phương án A: Lesson 35% + Exam 35% + Score 20% + Flashcard 10% */}
-        <div className="bg-primary/5 p-4 rounded-xl border border-primary/10 mb-2">
-          <p className="text-[10px] font-bold text-primary mb-1 uppercase tracking-widest">
-            Tiến độ tổng thể
-          </p>
-          
-          <div className="flex items-end justify-between mb-3">
-            <h4 className="text-lg font-black text-[#181114] leading-none">
-              {progressData?.totalPercent ?? 0}%
-            </h4>
-            <span className="text-[10px] text-[#886373] font-bold">
-              Cấp độ: {progressData?.currentLevelName || currentUser?.levelName || 'N5'}
+        <div className="bg-primary/5 px-3 py-2.5 rounded-xl border border-primary/10 mb-2">
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="text-[9px] font-black text-primary uppercase tracking-wider">Tiến độ</span>
+              <span className="text-[9px] font-bold text-[#886373] px-1.5 py-0.5 rounded-md bg-white/70 border border-primary/10">
+                {progressSummary.currentLevel}
+              </span>
+            </div>
+            <span className="text-base font-black text-[#181114] leading-none shrink-0">
+              {progressSummary.totalPercent}%
             </span>
           </div>
 
-          <div className="w-full bg-zinc-200 h-1.5 rounded-full overflow-hidden">
-            <div 
-              className="bg-primary h-full transition-all duration-1000 ease-out shadow-[0_0_8px_rgba(242,133,173,0.4)]" 
-              style={{ width: `${progressData?.totalPercent ?? 0}%` }}
-            ></div>
+          <div className="w-full bg-zinc-200/80 h-1 rounded-full overflow-hidden mb-2">
+            <div
+              className="bg-primary h-full transition-all duration-700 ease-out"
+              style={{ width: `${progressSummary.totalPercent}%` }}
+            />
           </div>
 
-          {/* Breakdown 35/35/20/10 */}
-          <div className="mt-2 space-y-1.5 text-[9px] text-[#886373] font-medium">
-            <div className="flex justify-between items-center">
-              <span>📚 Bài học (35%)</span>
-              <span className="text-primary font-bold">{progressData?.courseProgress?.percentage ?? 0}%</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span>✅ Luyện tập (35%)</span>
-              <span className="text-emerald-600 font-bold">{progressData?.examProgress?.passRate ?? 0}%</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span>📊 Điểm trung bình (20%)</span>
-              <span className="text-blue-600 font-bold">{progressData?.examProgress?.averageScore ?? 0}/10</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span>💎 Flashcard (10%)</span>
-              <span className="text-amber-600 font-bold">{progressData?.skillProgress?.percentage ?? 0}%</span>
-            </div>
+          <div className="grid grid-cols-2 gap-x-2 gap-y-1">
+            {progressSummary.breakdown.map((item) => (
+              <div key={item.label} className="flex items-center justify-between gap-1 text-[9px]">
+                <span className="text-[#886373] font-medium truncate">{item.label}</span>
+                <span className={`font-bold shrink-0 ${item.color}`}>{item.value}</span>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Thông tin User */}
+        {/* Thông tin User & Đăng xuất */}
         <div className="mt-auto">
-          <button
-            type="button"
-            onClick={() => navigate('/learner/profile')}
-            className={`w-full bg-[#fbf9fa] p-4 rounded-xl flex items-center gap-3 group border transition-all duration-200 text-left
+          <div 
+            className={`bg-[#fbf9fa] p-3 rounded-xl flex items-center justify-between gap-2 border transition-all duration-200
               ${
                 location.pathname === '/learner/profile'
                   ? 'border-primary bg-primary/5'
-                  : 'border-[#f4f0f2] hover:bg-white hover:shadow-sm'
+                  : 'border-[#f4f0f2]'
               }
             `}
           >
-            <div className="size-9 shrink-0 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary text-sm border-2 border-primary/20 overflow-hidden">
-              {currentUser?.avatarUrl ? (
-                <img
-                  src={currentUser.avatarUrl}
-                  alt="Avatar"
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                currentUser?.fullName?.charAt(0).toUpperCase() || 'J'
-              )}
-            </div>
+            {/* Phần thông tin User - Click vào để chuyển hướng sang Profile */}
+            <button
+              type="button"
+              onClick={() => navigate('/learner/profile')}
+              className="flex flex-1 items-center gap-3 overflow-hidden text-left group/user"
+            >
+              {/* Avatar */}
+              <div className="size-9 shrink-0 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary text-sm border-2 border-primary/20 overflow-hidden">
+                {currentUser?.avatarUrl ? (
+                  <img
+                    src={currentUser.avatarUrl}
+                    alt="Avatar"
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  currentUser?.fullName?.charAt(0).toUpperCase() || 'J'
+                )}
+              </div>
 
-            <div className="flex-1 overflow-hidden">
-              <p className="text-xs font-bold truncate text-[#181114]">
-                {currentUser?.fullName || 'Học viên'}
-              </p>
-              <p className="text-[10px] text-[#886373] truncate">
-                {currentUser?.email || email || 'learner@jquiz.vn'}
-              </p>
-            </div>
+              {/* Tên & Email */}
+              <div className="flex-1 overflow-hidden">
+                <p className="text-xs font-bold truncate text-[#181114] group-hover/user:text-primary transition-colors">
+                  {currentUser?.fullName || 'Học viên'}
+                </p>
+                <p className="text-[10px] text-[#886373] truncate">
+                  {currentUser?.email || email || 'learner@jquiz.vn'}
+                </p>
+              </div>
+            </button>
 
-            <span className="material-symbols-outlined text-[#886373] text-lg group-hover:text-primary transition-colors">
-              chevron_right
-            </span>
-          </button>
+            {/* Nút Đăng xuất */}
+            <button
+              type="button"
+              onClick={handleLogout}
+              title="Đăng xuất"
+              className="p-2 rounded-lg text-red-500 hover:bg-white hover:shadow-sm hover:text-red-600 transition-all duration-200 flex items-center justify-center shrink-0"
+            >
+              <span className="material-symbols-outlined text-xl">logout</span>
+            </button>
+          </div>
         </div>
-
       </div>
     </aside>
   );

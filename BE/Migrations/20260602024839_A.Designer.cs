@@ -12,8 +12,8 @@ using QuizzTiengNhat.Models;
 namespace QuizzTiengNhat.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260525181209_Initial")]
-    partial class Initial
+    [Migration("20260602024839_A")]
+    partial class A
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
