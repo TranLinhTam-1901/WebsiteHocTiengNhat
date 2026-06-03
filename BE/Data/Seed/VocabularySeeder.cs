@@ -21,10 +21,21 @@ namespace QuizzTiengNhat.Data.Seed
                 var level = await context.JLPT_Levels
                     .FirstOrDefaultAsync(x => x.LevelName == item.Level);
 
-                var lesson = await context.Lessons
-                    .FirstOrDefaultAsync(x => x.Title == item.LessonTitle);
+               if (level == null) continue;
 
-                if (level == null || lesson == null) continue;
+                var course = await context.Courses
+                    .FirstOrDefaultAsync(x =>
+                        x.CourseName == item.CourseTitle &&
+                        x.LevelID == level.LevelID);
+
+                if (course == null) continue;
+
+                var lesson = await context.Lessons
+                    .FirstOrDefaultAsync(x =>
+                        x.Title == item.LessonTitle &&
+                        x.CourseID == course.CourseID);
+
+                if (lesson == null) continue;
 
                 var vocab = new Vocabularies
                 {
@@ -92,6 +103,7 @@ namespace QuizzTiengNhat.Data.Seed
             public string Reading { get; set; }
             public string Meaning { get; set; }
             public string Level { get; set; }
+            public string CourseTitle { get; set; }
             public string LessonTitle { get; set; }
             public List<string> Topics { get; set; } = new();
             public List<string> WordTypes { get; set; } = new();

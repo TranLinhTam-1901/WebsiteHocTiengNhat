@@ -1,5 +1,6 @@
 public class ExamTemplateResponseDTO
 {
+    public Guid TemplateID { get; set; }
     public string Title { get; set; }
     public int Duration { get; set; }
     public decimal PassingScore { get; set; }

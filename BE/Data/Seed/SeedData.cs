@@ -13,9 +13,12 @@ public static class SeedData
         // await KanjiSeeder.SeedAsync(context);
         // await ExampleSeeder.SeedAsync(context);
         // await GrammarSeeder.SeedAsync(context);
-        // await ReadingSeeder.SeedAsync(context);
 
-        // await QuestionSeeder.SeedAsync(context);
+        // await VocabularyQuestionSeeder.SeedAsync(context);
+        // await KanjiQuestionSeeder.SeedAsync(context);
+
+        // await ReadingSeeder.SeedAsync(context);
+        // await ListeningSeeder.SeedAsync(context);
     }
 }
 }

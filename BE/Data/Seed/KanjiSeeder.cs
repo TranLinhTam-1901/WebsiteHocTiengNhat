@@ -62,8 +62,18 @@ namespace QuizzTiengNhat.Data.Seed
                 var level = await context.JLPT_Levels
                     .FirstOrDefaultAsync(x => x.LevelName == item.Level);
 
+               var course = await context.Courses
+                .FirstOrDefaultAsync(x =>
+                    x.CourseName == item.CourseTitle &&
+                    x.LevelID == level.LevelID);
+
+                if (course == null)
+                    continue;
+
                 var lesson = await context.Lessons
-                    .FirstOrDefaultAsync(x => x.Title == item.LessonTitle);
+                    .FirstOrDefaultAsync(x =>
+                        x.Title == item.LessonTitle &&
+                        x.CourseID == course.CourseID);
 
                 var topic = await context.Topics
                     .FirstOrDefaultAsync(x => x.TopicName == item.Topic);
@@ -71,7 +81,7 @@ namespace QuizzTiengNhat.Data.Seed
                 var radical = await context.Radicals
                     .FirstOrDefaultAsync(x => x.Character == item.Radical);
 
-                if (level == null || lesson == null || topic == null || radical == null)
+                if (level == null || course == null || lesson == null || topic == null || radical == null)
                     continue;
 
                 context.Kanjis.Add(new Kanjis
@@ -159,6 +169,7 @@ namespace QuizzTiengNhat.Data.Seed
             public string Radical { get; set; }
             public string Level { get; set; }
             public string Topic { get; set; }
+            public string CourseTitle { get; set; }
             public string LessonTitle { get; set; }
             public int Popularity { get; set; }
             public int Status { get; set; }

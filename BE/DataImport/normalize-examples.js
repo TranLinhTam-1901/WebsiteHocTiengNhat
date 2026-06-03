@@ -5,7 +5,7 @@ const rawDir = path.join(__dirname, "../Data/SeedFiles/raw");
 const normalizedDir = path.join(__dirname, "../Data/SeedFiles/normalized");
 
 const vocabPath = path.join(normalizedDir, "vocabularies_n5_n3.json");
-const tatoebaPath = path.join(rawDir, "tatoeba_jpn_eng.tsv");
+const tatoebaPath = path.join(rawDir, "tatoeba_jpn_vie.tsv");
 
 const vocabularies = JSON.parse(fs.readFileSync(vocabPath, "utf8"));
 
@@ -68,7 +68,7 @@ for (const line of lines) {
   if (!pair) continue;
 
   const japanese = pair.japanese;
-  const english = pair.english;
+  const vietnamese = pair.english;
 
   if (!isGoodSentence(japanese)) continue;
 
@@ -87,7 +87,7 @@ for (const line of lines) {
 
     examples.push({
       content: japanese,
-      translation: english,
+      translation: vietnamese,
       targetWord: vocab.word,
       targetReading: vocab.reading,
       level: vocab.level,
@@ -99,7 +99,8 @@ for (const line of lines) {
 }
 
 fs.mkdirSync(normalizedDir, { recursive: true });
-
+console.log("__dirname =", __dirname);
+console.log("normalizedDir =", normalizedDir);
 fs.writeFileSync(
   path.join(normalizedDir, "examples_n5_n3.json"),
   JSON.stringify(examples, null, 2),
