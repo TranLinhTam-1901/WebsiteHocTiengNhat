@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import LearnerHeader from '../../../../components/layout/learner/LearnerHeader';
+import { truncateChars } from '../../../../utils/truncateDisplay';
 import { learnerVocabService } from '../../../../services/Learner/learnerVocabService';
 import { LearnerVocabListItem } from '../../../../interfaces/Learner/StudyResource';
 
@@ -141,7 +142,9 @@ const StudyVocabularyListPage: React.FC = () => {
               {showFilter && (
                 <>
                   <div className="fixed inset-0 z-10" onClick={() => setShowFilter(false)} />
-                  <div className="absolute top-full left-0 mt-3 w-[min(100vw-2rem,28rem)] max-h-[70vh] overflow-y-auto bg-white rounded-[2.5rem] shadow-[0_25px_70px_rgba(0,0,0,0.15)] border border-[#f4f0f2] p-8 z-20 animate-in fade-in zoom-in-95 duration-200">
+                  <div className="absolute top-full left-0 mt-3 w-396.25 h-auto bg-white rounded-[2.5rem] shadow-[0_25px_70px_rgba(0,0,0,0.15)] border border-[#f4f0f2] p-8 z-20 animate-in fade-in zoom-in-95 duration-200">
+                    
+                    {/* Thanh điều hướng trang Menu */}
                     <div className="flex gap-4 mb-6 border-b border-[#f4f0f2] pb-2">
                       <button
                         type="button"
@@ -389,19 +392,17 @@ const StudyVocabularyListPage: React.FC = () => {
                 key={item.vocabID}
                 className="group relative bg-white rounded-[2.5rem] border border-[#f4f0f2] shadow-sm hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-1.5 transition-all duration-300 flex flex-col aspect-[3/4.2] overflow-hidden"
               >
-                <div className="absolute inset-x-0 bottom-6 flex justify-center z-50">
+                <div className="absolute inset-x-0 bottom-6 flex justify-center z-50 pointer-events-none group-hover:pointer-events-auto">
                   <Link
                     to={`/learner/studyresource/vocabulary/${item.vocabID}`}
-                    className="size-12 rounded-full bg-white shadow-2xl border border-[#f4f0f2] flex items-center justify-center text-primary hover:border-primary transition-all active:scale-90 no-underline translate-y-20 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 duration-500"
+                    className="size-12 rounded-full bg-white shadow-2xl border border-[#f4f0f2] flex items-center justify-center text-primary hover:border-primary transition-all active:scale-90 no-underline translate-y-20 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 duration-500 pointer-events-auto"
+                    title="Xem chi tiết"
                   >
                     <span className="material-symbols-outlined text-2xl">visibility</span>
                   </Link>
                 </div>
 
-                <Link
-                  to={`/learner/studyresource/vocabulary/${item.vocabID}`}
-                  className="p-7 flex-1 flex flex-col items-center text-center no-underline text-inherit"
-                >
+                <div className="p-7 flex-1 flex flex-col items-center text-center">
                   <div className="w-full flex justify-between items-start mb-6">
                     <span
                       className={`px-2 py-0.5 text-[15px] font-bold rounded border ${getLevelStyle(item.levelName)}`}
@@ -424,24 +425,33 @@ const StudyVocabularyListPage: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="flex flex-col items-center mb-5">
-                    <span className="text-primary text-[18px] font-japanese mb-1 font-bold italic tracking-wide">
-                      {item.reading}
+                  <div className="flex flex-col items-center mb-5 w-full max-w-full px-2">
+                    <span
+                      className="text-primary text-[18px] font-japanese mb-5 font-bold italic tracking-wide truncate max-w-full"
+                      title={item.reading || undefined}
+                    >
+                      {truncateChars(item.reading, 28, '—')}
                     </span>
-                    <span className="font-japanese text-[65px] font-black text-[#181114] tracking-tighter">
-                      {item.word}
+                    <span
+                      className="font-japanese text-[50px] font-black mb-8 text-[#181114] tracking-tighter truncate max-w-full leading-none"
+                      title={item.word || undefined}
+                    >
+                      {truncateChars(item.word, 8, '—')}
                     </span>
                   </div>
 
                   <div className="w-12 h-1.5 bg-primary/10 rounded-full mb-6" />
 
-                  <div className="flex-1 flex items-start justify-center px-2">
-                    <p className="text-[20px] font-bold text-[#5a434d] leading-relaxed line-clamp-3 italic">
-                      &quot;{item.meaning}&quot;
+                  <div className="flex-1 flex items-start justify-center px-2 w-full">
+                    <p
+                      className="text-[20px] font-bold text-[#5a434d] leading-relaxed italic truncate max-w-full"
+                      title={item.meaning || undefined}
+                    >
+                      &quot;{truncateChars(item.meaning, 52, '—')}&quot;
                     </p>
                   </div>
                   <div className="h-10" />
-                </Link>
+                </div>
               </div>
             ))}
           </div>

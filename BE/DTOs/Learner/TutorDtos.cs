@@ -36,6 +36,12 @@ public class TutorCharacterReplyDto
 {
     public string VietnameseText { get; set; } = string.Empty;
     public string JapaneseSpeech { get; set; } = string.Empty;
+
+    /// <summary>
+    /// false khi học viên hỏi kiến thức nhưng DB không có / mô hình không trả lời được dựa trên dữ liệu
+    /// → FE hiển thị biểu cảm "Wrong" cho nhân vật 2D.
+    /// </summary>
+    public bool Found { get; set; } = true;
 }
 
 public class TutorSpeechRequestDto

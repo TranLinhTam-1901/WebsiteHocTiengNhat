@@ -17,6 +17,8 @@ export interface TutorCharacterChatRequest {
 export interface TutorCharacterReply {
   vietnameseText: string;
   japaneseSpeech: string;
+  /** false khi DB không có kiến thức được hỏi → hiển thị biểu cảm "Error" cho nhân vật 2D. */
+  found?: boolean;
 }
 
 export interface TutorExplainMistakePayload {
