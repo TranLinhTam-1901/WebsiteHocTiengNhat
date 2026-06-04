@@ -110,10 +110,11 @@ export interface ExamReviewQuestionDTO {
   questionID: string;
   content: string;
   isCorrect: boolean;
+  
   responseTime: number;
   answers: AnswerOptionDTO[];
   explanation?: string | null;
-  audioUrl?: string | null;
+  audioUrl?: string | null; 
   imageUrl?: string | null;
   subQuestions?: ExamReviewQuestionDTO[];
 }
@@ -127,6 +128,8 @@ export interface ExamReviewTreeItemDTO {
 
   audioUrl?: string | null;
 
+  explanation?: string; 
+  
   script?: string | null;
 
   imageURL?: string | null;

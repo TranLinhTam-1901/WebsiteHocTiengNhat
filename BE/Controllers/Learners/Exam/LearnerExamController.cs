@@ -679,6 +679,7 @@ public class LearnerExamController : ControllerBase
             {
                 QuestionID = question.QuestionID,
                 Content = question.Content,
+                Explanation = question.Explanation, 
                 IsCorrect = CalcIsCorrect(question, userAnswer),
                 ResponseTime = GetResponseTime(question, userAnswer),
                 ImageUrl = question.ImageURL,
@@ -702,6 +703,7 @@ public class LearnerExamController : ControllerBase
                 SkillType = question.SkillType.ToString(),
                 QuestionID = question.QuestionID,
                 Content = question.Content,
+                Explanation = question.Explanation,
                 OrderIndex = x.OrderIndex,
                 Score = x.Score,
                 ImageURL = question.ImageURL,

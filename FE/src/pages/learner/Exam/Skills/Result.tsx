@@ -29,6 +29,14 @@ const QuizResult: React.FC = () => {
 
   const theme = useMemo(() => getSkillHubConfig(skillType), [skillType]);
 
+  const API_BASE_URL = 'http://localhost:5167';
+
+  const getMediaUrl = (path?: string | null) => {
+    if (!path) return '';
+    if (path.startsWith('http')) return path;
+    return `${API_BASE_URL}${path}`;
+  };
+  
   const handleBack = () => {
     if (skillType) {
       navigate(`/learner/skill-learning/${skillType}/practice-list`);
@@ -202,6 +210,7 @@ const QuizResult: React.FC = () => {
     key: string;
     question: ExamReviewQuestionDTO | ExamReviewTreeItemDTO;
     parentContent?: string | null;
+    parentAudioUrl?: string | null;
     groupLabel?: string;
   };
 
@@ -220,6 +229,7 @@ const QuizResult: React.FC = () => {
         key: subQ.questionID,
         question: subQ,
         parentContent: section.content,
+        parentAudioUrl: section.audioUrl,
         groupLabel: `${sectionIndex + 1}-${subIndex + 1}`,
       });
     });
@@ -423,7 +433,7 @@ const QuizResult: React.FC = () => {
           </div>
 
           <div className="space-y-4">
-            {reviewItems.map(({ key, question: q, parentContent, groupLabel }, index) => {
+            {reviewItems.map(({ key, question: q, parentContent, parentAudioUrl, groupLabel }, index) => {
               const isCorrect = getIsCorrect(q);
 
               return (
@@ -438,38 +448,71 @@ const QuizResult: React.FC = () => {
                       {parentContent}
                     </div>
                   )}
-
-                  <div className="mb-5 flex items-start gap-3">
-                    <div
-                      className={`flex size-9 shrink-0 items-center justify-center rounded-xl text-sm font-black text-white ${
-                        isCorrect ? 'bg-emerald-500' : 'bg-rose-500'
-                      }`}
-                    >
-                      {index + 1}
-                    </div>
-                    <div className="flex min-w-0 flex-1 items-start justify-between gap-3">
-                      <p className="text-[15px] font-semibold leading-relaxed text-[#1a1118]">
-                        {groupLabel && (
-                          <span className="mr-1.5 text-[#a08a94]">({groupLabel})</span>
-                        )}
-                        {q.content}
+                  {parentAudioUrl && (
+                    <div className="mb-4 rounded-xl border border-[#ede7eb] bg-[#faf9fa] px-4 py-3">
+                      <p className="mb-2 text-[10px] font-black uppercase tracking-wider text-[#886373]">
+                        File nghe
                       </p>
-                      <span
-                        className={`flex shrink-0 items-center gap-1 rounded-full px-3 py-1 text-xs font-black ${
-                          isCorrect
-                            ? 'bg-emerald-50 text-emerald-700'
-                            : 'bg-rose-50 text-rose-700'
-                        }`}
-                      >
-                        <span className="material-symbols-outlined text-sm">
-                          {isCorrect ? 'check_circle' : 'cancel'}
-                        </span>
-                        {isCorrect ? 'Đúng' : 'Sai'}
-                      </span>
+
+                      <audio
+                        controls
+                        className="w-full"
+                        src={getMediaUrl(parentAudioUrl)}
+                      />
                     </div>
+                  )}
+
+                 <div className="mb-5 flex items-start gap-3">
+                  <div
+                    className={`flex size-9 shrink-0 items-center justify-center rounded-xl text-sm font-black text-white ${
+                      isCorrect ? 'bg-emerald-500' : 'bg-rose-500'
+                    }`}
+                  >
+                    {index + 1}
                   </div>
 
-                  {q.answers.length > 0 && renderAnswerOptions(q.answers)}
+                  <div className="flex min-w-0 flex-1 items-start justify-between gap-3">
+                    <p className="text-[15px] font-semibold leading-relaxed text-[#1a1118]">
+                      {groupLabel && (
+                        <span className="mr-1.5 text-[#a08a94]">({groupLabel})</span>
+                      )}
+                      {q.content}
+                    </p>
+                  </div>
+                </div>
+
+                {/* THÊM Ở ĐÂY */}
+                {'imageUrl' in q && q.imageUrl && (
+                  <div className="mb-4 rounded-xl border border-[#ede7eb] bg-[#faf9fa] p-4">
+                    <p className="mb-3 text-[10px] font-black uppercase tracking-wider text-[#886373]">
+                      Hình minh họa
+                    </p>
+
+                    <img
+                      src={getMediaUrl(q.imageUrl)}
+                      alt="Question"
+                      className="max-h-80 w-full rounded-xl object-contain"
+                    />
+                  </div>
+                )}
+
+                {q.answers.length > 0 && renderAnswerOptions(q.answers)}
+                  {q.explanation && (
+                    <div className="mt-4 rounded-xl border border-blue-200 bg-blue-50 p-4">
+                      <div className="mb-1 flex items-center gap-2">
+                        <span className="material-symbols-outlined text-sm text-blue-600">
+                          lightbulb
+                        </span>
+                        <span className="text-xs font-black uppercase tracking-wide text-blue-700">
+                          Giải thích
+                        </span>
+                      </div>
+
+                      <p className="text-sm leading-relaxed text-blue-900">
+                        {q.explanation}
+                      </p>
+                    </div>
+                  )}
 
                   {(q.subQuestions?.length ?? 0) > 0 && (
                     <div className="mt-6 space-y-5 border-t border-[#ede7eb] pt-6">
@@ -499,6 +542,19 @@ const QuizResult: React.FC = () => {
                           </div>
 
                           {subQ.answers.length > 0 && renderAnswerOptions(subQ.answers, true)}
+
+                          {subQ.explanation && (
+                          <div className="mt-3 rounded-lg border border-blue-200 bg-blue-50 p-3">
+                            <div className="mb-1 text-xs font-black uppercase tracking-wide text-blue-700">
+                              Giải thích
+                            </div>
+
+                            <p className="text-sm leading-relaxed text-blue-900">
+                              {subQ.explanation}
+                            </p>
+                          </div>
+                        )}
+
                         </div>
                       ))}
                     </div>

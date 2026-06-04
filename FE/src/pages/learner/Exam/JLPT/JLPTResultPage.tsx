@@ -386,6 +386,25 @@ const JLPTResultPage: React.FC = () => {
                     </div>
                   ))}
                 </div>
+
+
+                {currentQuestion.explanation && (
+                    <div className="mt-6 rounded-2xl border border-blue-200 bg-blue-50 p-5">
+                      <div className="mb-2 flex items-center gap-2">
+                        <span className="material-symbols-outlined text-base text-blue-600">
+                          lightbulb
+                        </span>
+                        <span className="text-xs font-black uppercase tracking-wider text-blue-700">
+                          Giải thích
+                        </span>
+                      </div>
+
+                      <p className="whitespace-pre-wrap text-sm font-medium leading-relaxed text-blue-900">
+                        {currentQuestion.explanation}
+                      </p>
+                    </div>
+                  )}
+                  
               </div>
 
               <div className="flex gap-3">

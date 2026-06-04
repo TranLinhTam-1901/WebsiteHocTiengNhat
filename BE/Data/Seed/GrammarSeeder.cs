@@ -42,6 +42,29 @@ namespace QuizzTiengNhat.Data.Seed
                     ? item.Title
                     : item.Pattern;
 
+
+                var groupName = !string.IsNullOrWhiteSpace(item.GroupName)
+                    ? item.GroupName.Trim()
+                    : grammarTitle;
+
+                var grammarGroup = await context.GrammarGroups
+                    .FirstOrDefaultAsync(x => x.GroupName == groupName);
+
+                if (grammarGroup == null)
+                {
+                    grammarGroup = new GrammarGroups
+                    {
+                        GrammarGroupID = Guid.NewGuid(),
+                        GroupName = groupName,
+                        Description = !string.IsNullOrWhiteSpace(item.GroupDescription)
+                            ? item.GroupDescription
+                            : $"Nhóm ngữ pháp: {groupName}"
+                    };
+
+                    context.GrammarGroups.Add(grammarGroup);
+                    await context.SaveChangesAsync();
+                }
+
                 var exists = await context.Grammars
                     .AnyAsync(x =>
                         x.Title == grammarTitle &&
@@ -52,7 +75,7 @@ namespace QuizzTiengNhat.Data.Seed
                 var grammar = new Grammars
                 {
                     GrammarID = Guid.NewGuid(),
-
+                    GrammarGroupID = grammarGroup.GrammarGroupID,
                     Title = grammarTitle,
                     Structure = item.Structure,
                     Meaning = item.Meaning,
@@ -186,6 +209,9 @@ namespace QuizzTiengNhat.Data.Seed
 
             public int Difficulty { get; set; } = 1;
             public int Status { get; set; } = 1;
+
+            public string GroupName { get; set; } = "";
+            public string GroupDescription { get; set; } = "";
 
             public List<GrammarQuestionSeedDto> Questions { get; set; } = new();
         }
