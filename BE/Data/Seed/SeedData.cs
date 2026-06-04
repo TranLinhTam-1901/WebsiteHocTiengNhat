@@ -9,6 +9,7 @@ public static class SeedData
         await CoreSeeder.SeedAsync(context);
         await ExamTemplateSeeder.SeedAsync(context);
 
+        // await WordTypeSeeder.SeedAsync(context);
         // await VocabularySeeder.SeedAsync(context);
         // await KanjiSeeder.SeedAsync(context);
         // await ExampleSeeder.SeedAsync(context);
@@ -18,7 +19,7 @@ public static class SeedData
         // await KanjiQuestionSeeder.SeedAsync(context);
 
         // await ReadingSeeder.SeedAsync(context);
-        // await ListeningSeeder.SeedAsync(context);
+        await ListeningSeeder.SeedAsync(context);
     }
 }
 }

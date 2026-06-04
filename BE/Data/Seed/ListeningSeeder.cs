@@ -35,29 +35,47 @@ namespace QuizzTiengNhat.Data.Seed
                     continue;
                 }
 
-                var exists = await context.Listenings
-                    .AnyAsync(x =>
-                        x.Title == item.Title &&
-                        x.LessonID == lesson.LessonID);
+                var listening = await context.Listenings
+                .FirstOrDefaultAsync(x =>
+                    x.Title == item.Title &&
+                    x.LessonID == lesson.LessonID);
 
-                if (exists) continue;
+                var isNewListening = false;
 
-                var listening = new Listenings
+                if (listening == null)
                 {
-                    ListeningID = Guid.NewGuid(),
-                    Title = item.Title,
-                    AudioURL = item.AudioUrl,
-                    Script = item.Script ?? "",
-                    Transcript = item.Transcript ?? "",
-                    Duration = item.Duration > 0 ? item.Duration : 45,
-                    SpeedCategory = item.SpeedCategory,
-                    Status = item.Status,
-                    LevelID = level.LevelID,
-                    LessonID = lesson.LessonID
-                };
+                    isNewListening = true;
 
-                context.Listenings.Add(listening);
+                    listening = new Listenings
+                    {
+                        ListeningID = Guid.NewGuid(),
+                        Title = item.Title,
+                        AudioURL = item.AudioUrl,
+                        Script = item.Script ?? "",
+                        Transcript = item.Transcript ?? "",
+                        Duration = item.Duration > 0 ? item.Duration : 45,
+                        SpeedCategory = item.SpeedCategory,
+                        Status = item.Status,
+                        LevelID = level.LevelID,
+                        LessonID = lesson.LessonID
+                    };
 
+                    context.Listenings.Add(listening);
+                }
+                else
+                {
+                    listening.AudioURL = item.AudioUrl;
+                    listening.Script = item.Script ?? "";
+                    listening.Transcript = item.Transcript ?? "";
+                    listening.Duration = item.Duration > 0 ? item.Duration : 45;
+                    listening.SpeedCategory = item.SpeedCategory;
+                    listening.Status = item.Status;
+                    listening.LevelID = level.LevelID;
+                    listening.LessonID = lesson.LessonID;
+                }
+
+                if (isNewListening)
+                {
                 foreach (var topicName in item.Topics ?? new List<string>())
                 {
                     var topic = await context.Topics
@@ -77,6 +95,7 @@ namespace QuizzTiengNhat.Data.Seed
                         TopicID = topic.TopicID
                     });
                 }
+                }
 
                 if (item.Questions != null && item.Questions.Any())
                 {
@@ -85,24 +104,14 @@ namespace QuizzTiengNhat.Data.Seed
                         if (string.IsNullOrWhiteSpace(questionDto.Content))
                             continue;
 
-                        var question = new Questions
+                        var question = await context.Questions
+                            .FirstOrDefaultAsync(q =>
+                                q.ListeningID == listening.ListeningID &&
+                                q.DisplayOrder == questionDto.DisplayOrder);
+
+                        if (question == null)
                         {
-                            QuestionID = Guid.NewGuid(),
-                            ListeningID = listening.ListeningID,
-                            LessonID = lesson.LessonID,
-                            Content = questionDto.Content,
-                            Explanation = questionDto.Explanation,
-                            Difficulty = questionDto.Difficulty > 0
-                                ? questionDto.Difficulty
-                                : 1,
-                            QuestionType = QuestionType.MultipleChoice,
-                            QuestionFormat = QuestionFormat.AudioChoice,
-                            SkillType = SkillType.Listening,
-                            ImageURL = questionDto.ImageUrl,
-                            MediaTimestamp = questionDto.MediaTimestamp,
-                            Status = Status.Published,
-                            DisplayOrder = questionDto.DisplayOrder,
-                            Answers = questionDto.Answers
+                            var answers = questionDto.Answers
                                 .Where(a => !string.IsNullOrWhiteSpace(a.AnswerText))
                                 .Select(a => new Answers
                                 {
@@ -110,19 +119,51 @@ namespace QuizzTiengNhat.Data.Seed
                                     AnswerText = a.AnswerText,
                                     IsCorrect = a.IsCorrect
                                 })
-                                .ToList()
-                        };
+                                .ToList();
 
-                        if (question.Answers.Count < 2 ||
-                            question.Answers.Count(a => a.IsCorrect) != 1)
-                        {
-                            Console.WriteLine(
-                                $"Skip question '{questionDto.Content}' for listening '{item.Title}': invalid answers"
-                            );
-                            continue;
+                            if (answers.Count < 2 || answers.Count(a => a.IsCorrect) != 1)
+                            {
+                                Console.WriteLine(
+                                    $"Skip question '{questionDto.Content}' for listening '{item.Title}': invalid answers"
+                                );
+                                continue;
+                            }
+
+                            question = new Questions
+                            {
+                                QuestionID = Guid.NewGuid(),
+                                ListeningID = listening.ListeningID,
+                                LessonID = lesson.LessonID,
+                                Content = questionDto.Content,
+                                Explanation = questionDto.Explanation,
+                                Difficulty = questionDto.Difficulty > 0 ? questionDto.Difficulty : 1,
+                                QuestionType = QuestionType.MultipleChoice,
+                                QuestionFormat = QuestionFormat.AudioChoice,
+                                SkillType = SkillType.Listening,
+                                ImageURL = questionDto.ImageUrl,
+                                MediaTimestamp = questionDto.MediaTimestamp,
+                                Status = Status.Published,
+                                DisplayOrder = questionDto.DisplayOrder,
+                                Answers = answers
+                            };
+
+                            context.Questions.Add(question);
                         }
+                        else
+                        {
+                            question.LessonID = lesson.LessonID;
+                            question.Content = questionDto.Content;
+                            question.Explanation = questionDto.Explanation;
+                            question.Difficulty = questionDto.Difficulty > 0 ? questionDto.Difficulty : 1;
+                            question.QuestionType = QuestionType.MultipleChoice;
+                            question.QuestionFormat = QuestionFormat.AudioChoice;
+                            question.SkillType = SkillType.Listening;
+                            question.ImageURL = questionDto.ImageUrl;
+                            question.MediaTimestamp = questionDto.MediaTimestamp;
+                            question.Status = Status.Published;
 
-                        context.Questions.Add(question);
+                            // Không update Answers để tránh làm hỏng Exam_Result_Details.SelectedAnswerID cũ
+                        }
                     }
                 }
 

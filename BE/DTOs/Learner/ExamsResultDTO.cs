@@ -127,6 +127,7 @@ namespace QuizzTiengNhat.DTOs.Learner
         public int CorrectAnswers { get; set; }
         public int TotalQuestions { get; set; }
         public int TimeSpent { get; set; }
+        public string? Explanation { get; set; }
 
         public bool? IsPassed { get; set; }
         public float? PassingScore { get; set; }
@@ -174,6 +175,8 @@ namespace QuizzTiengNhat.DTOs.Learner
         public bool? IsCorrect { get; set; }
 
         public int? ResponseTime { get; set; }
+
+        public string? Explanation { get; set; }
 
         public List<AnswerOptionDTO> Answers { get; set; } = [];
 

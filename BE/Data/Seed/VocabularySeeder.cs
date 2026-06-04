@@ -13,10 +13,8 @@ namespace QuizzTiengNhat.Data.Seed
 
             foreach (var item in items)
             {
-                var exists = await context.Vocabularies
-                    .AnyAsync(x => x.Word == item.Word && x.Reading == item.Reading);
-
-                if (exists) continue;
+               var vocab = await context.Vocabularies
+                .FirstOrDefaultAsync(x => x.Word == item.Word && x.Reading == item.Reading);
 
                 var level = await context.JLPT_Levels
                     .FirstOrDefaultAsync(x => x.LevelName == item.Level);
@@ -37,23 +35,26 @@ namespace QuizzTiengNhat.Data.Seed
 
                 if (lesson == null) continue;
 
-                var vocab = new Vocabularies
+                if (vocab == null)
                 {
-                    VocabID = Guid.NewGuid(),
-                    Word = item.Word,
-                    Reading = item.Reading,
-                    Meaning = item.Meaning,
-                    IsCommon = item.IsCommon,
-                    Priority = item.Priority,
-                    Status = 1,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow,
-                    LevelID = level.LevelID,
-                    LessonID = lesson.LessonID
-                };
+                    vocab = new Vocabularies
+                    {
+                        VocabID = Guid.NewGuid(),
+                        Word = item.Word,
+                        Reading = item.Reading,
+                        Meaning = item.Meaning,
+                        IsCommon = item.IsCommon,
+                        Priority = item.Priority,
+                        Status = 1,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow,
+                        LevelID = level.LevelID,
+                        LessonID = lesson.LessonID
+                    };
 
-                context.Vocabularies.Add(vocab);
-                await context.SaveChangesAsync();
+                    context.Vocabularies.Add(vocab);
+                    await context.SaveChangesAsync();
+                }
 
                 foreach (var topicName in item.Topics ?? new List<string>())
                 {
@@ -74,12 +75,26 @@ namespace QuizzTiengNhat.Data.Seed
                     });
                 }
 
-                foreach (var wordTypeName in item.WordTypes ?? new List<string>())
+               foreach (var wordTypeName in item.WordTypes ?? new List<string>())
                 {
-                    var wordType = await context.WordTypes
-                        .FirstOrDefaultAsync(x => x.Name == wordTypeName);
+                    var name = wordTypeName.Trim();
 
-                    if (wordType == null) continue;
+                    if (string.IsNullOrWhiteSpace(name)) continue;
+
+                    var wordType = await context.WordTypes
+                        .FirstOrDefaultAsync(x => x.Name == name);
+
+                    if (wordType == null)
+                    {
+                        wordType = new WordTypes
+                        {
+                            WordTypeID = Guid.NewGuid(),
+                            Name = name
+                        };
+
+                        context.WordTypes.Add(wordType);
+                        await context.SaveChangesAsync();
+                    }
 
                     var linked = await context.VocabWordTypes
                         .AnyAsync(x => x.VocabID == vocab.VocabID && x.WordTypeID == wordType.WordTypeID);

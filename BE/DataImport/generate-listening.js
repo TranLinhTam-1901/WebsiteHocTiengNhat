@@ -127,6 +127,9 @@ function buildTopicQuestion(
     content:
       "会話の主なテーマは何ですか。",
 
+     explanation:
+    `Chủ đề chính của đoạn nghe là "${topic}". Hãy dựa vào các từ khóa và ngữ cảnh trong audio để chọn đáp án đúng.`,
+
     imageUrl:
       QUESTION_IMAGE,
 
@@ -183,6 +186,9 @@ function buildVocabularyQuestion(
   return {
     content:
       "会話の中で出てきた言葉はどれですか。",
+
+    explanation:
+      `Từ đúng xuất hiện trong đoạn nghe là "${correct}". Cần nghe kỹ từ vựng được nhắc đến trong audio.`,
 
     imageUrl:
       QUESTION_IMAGE,
@@ -244,6 +250,9 @@ function buildMeaningQuestion(
     content:
       `「${vocab.word}」の意味は何ですか。`,
 
+    explanation:
+  `「${vocab.word}」có nghĩa là "${correctMeaning}". Vì vậy đáp án đúng là "${correctMeaning}".`,
+  
     imageUrl:
       QUESTION_IMAGE,
 

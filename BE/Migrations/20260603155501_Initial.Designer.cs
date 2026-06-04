@@ -12,7 +12,7 @@ using QuizzTiengNhat.Models;
 namespace QuizzTiengNhat.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260525181209_Initial")]
+    [Migration("20260603155501_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
