@@ -18,12 +18,12 @@ const AuthLayout: React.FC = () => {
           </div>
           <div className="flex flex-1 justify-end gap-8">
             <nav className="hidden md:flex items-center gap-9">
-              <Link className="text-sm font-medium hover:text-primary transition-colors" to="/">Home</Link>
-              <Link className="text-sm font-medium hover:text-primary transition-colors" to="/courses">Courses</Link>
-              <Link className="text-sm font-medium hover:text-primary transition-colors" to="/community">Community</Link>
+              <Link className="text-sm font-medium hover:text-primary transition-colors" to="/">Trang chủ</Link>
+              <Link className="text-sm font-medium hover:text-primary transition-colors" to="/courses">Khóa học</Link>
+              <Link className="text-sm font-medium hover:text-primary transition-colors" to="/community">Cộng đồng</Link>
             </nav>
             <button className="min-w-25 rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold hover:bg-opacity-90 transition-all">
-              Get Started
+              Bắt đầu
             </button>
           </div>
         </header>
@@ -34,9 +34,9 @@ const AuthLayout: React.FC = () => {
 
         <footer className="p-6 border-t border-[#f4f0f2] bg-white text-center">
           <p className="text-xs text-[#886370]">
-            © 2024 JQuiz AI. Learn Japanese effectively. <br className="md:hidden"/> 
-            <Link className="hover:underline mx-2" to="/privacy">Privacy Policy</Link> • 
-            <Link className="hover:underline mx-2" to="/terms">Terms of Service</Link>
+            © 2024 JQuiz AI. Học tiếng Nhật hiệu quả. <br className="md:hidden"/> 
+            <Link className="hover:underline mx-2" to="/privacy">Quyền riêng tư</Link> • 
+            <Link className="hover:underline mx-2" to="/terms">Điều khoản dịch vụ</Link>
           </p>
         </footer>
       </div>

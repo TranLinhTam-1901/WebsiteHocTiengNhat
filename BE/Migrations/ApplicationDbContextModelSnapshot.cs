@@ -1055,14 +1055,8 @@ namespace QuizzTiengNhat.Migrations
                     b.Property<Guid>("CourseID")
                         .HasColumnType("uuid");
 
-                    b.Property<int>("Difficulty")
-                        .HasColumnType("integer");
-
                     b.Property<Guid?>("JLPT_LevelLevelID")
                         .HasColumnType("uuid");
-
-                    b.Property<int>("SkillType")
-                        .HasColumnType("integer");
 
                     b.Property<int>("SortOrder")
                         .HasColumnType("integer")

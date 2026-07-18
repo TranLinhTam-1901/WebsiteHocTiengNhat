@@ -6,6 +6,7 @@ import { fetchUsers, toggleUserLock, updateUserRole } from '../../../store/admin
 import { User } from '../../../interfaces/User';
 import  adminService  from '../../../services/Admin/adminService';
 import { DashboardProgressResponse } from '../../../interfaces/Admin/ProgressDetail';
+import { LearnersProgressSummary } from '../../../interfaces/Admin/LearnersProgressSummary';
 
 const ROLE_OPTIONS = [
   { value: 'Learner', label: 'Học viên' },
@@ -36,6 +37,8 @@ const LearnerList: React.FC = () => {
   const [updatingRoleFor, setUpdatingRoleFor] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showAdmins, setShowAdmins] = useState(false);
+  const [progressSummary, setProgressSummary] = useState<LearnersProgressSummary | null>(null);
+  const [progressSummaryLoading, setProgressSummaryLoading] = useState(false);
 
   // State quản lý Modal
   const [selectedProgress, setSelectedProgress] = React.useState<DashboardProgressResponse | null>(null);
@@ -59,10 +62,28 @@ const LearnerList: React.FC = () => {
   // Lấy onlineCount trực tiếp từ Redux Store
   const { users, loading, onlineCount } = useSelector((state: RootState) => state.admin);
 
+  const loadProgressSummary = async () => {
+    try {
+      setProgressSummaryLoading(true);
+      const summary = await adminService.getLearnersProgressSummary();
+      setProgressSummary(summary);
+    } catch (error) {
+      console.error('Lỗi khi tải tiến độ trung bình:', error);
+      setProgressSummary(null);
+    } finally {
+      setProgressSummaryLoading(false);
+    }
+  };
+
   useEffect(() => {
-    // Chỉ giữ lại việc load danh sách học viên
     dispatch(fetchUsers());
+    loadProgressSummary();
   }, [dispatch]);
+
+  const handleRefresh = () => {
+    dispatch(fetchUsers());
+    loadProgressSummary();
+  };
 
   const allUsers = users as User[];
 
@@ -84,13 +105,6 @@ const LearnerList: React.FC = () => {
     }
     return learnersFiltered;
   }, [adminUsers, learnerOnlyUsers, searchQuery, showAdmins]);
-
-  const totalProgress = learnerOnlyUsers.length > 0
-    ? Math.round(
-        learnerOnlyUsers.reduce((acc: number, user: User) => acc + (user.progressPercent || 0), 0) /
-          learnerOnlyUsers.length
-      )
-    : 0;
 
   const searchTrim = searchQuery.trim();
   const tableFooterText =
@@ -137,10 +151,10 @@ const LearnerList: React.FC = () => {
             </div>
 
             <button 
-              onClick={() => dispatch(fetchUsers())}
+              onClick={handleRefresh}
               className="bg-primary hover:bg-primary-dark text-white px-5 py-2 rounded-full text-sm font-bold flex items-center gap-2 transition-all no-underline shadow-lg shadow-primary/20 shrink-0"
             >
-              <span className={`material-symbols-outlined text-sm ${loading ? 'animate-spin' : ''}`}>refresh</span>
+              <span className={`material-symbols-outlined text-sm ${loading || progressSummaryLoading ? 'animate-spin' : ''}`}>refresh</span>
               Làm mới
             </button>
 
@@ -198,9 +212,23 @@ const LearnerList: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm text-slate-500 font-medium">Tiến độ trung bình</p>
-                {/* <h3 className="text-2xl font-bold">{totalProgress}%</h3> */}
+                <h3 className="text-2xl font-bold">
+                  {progressSummaryLoading
+                    ? '…'
+                    : progressSummary != null
+                      ? `${progressSummary.averageProgressPercent}%`
+                      : '—'}
+                </h3>
+                {progressSummary != null && progressSummary.learnersWithoutLevel > 0 && (
+                  <p className="text-[10px] text-slate-400 mt-0.5">
+                    {progressSummary.learnersWithoutLevel} HV chưa chọn level
+                  </p>
+                )}
               </div>
             </div>
+            {/* <div className="mr-4 text-blue-500/80 text-[10px] font-bold uppercase max-w-[88px] text-right leading-tight hidden sm:block">
+              TB TotalPercent
+            </div> */}
           </div>
         </div>
 
@@ -231,51 +259,94 @@ const LearnerList: React.FC = () => {
                       </td>
                     </tr>
                   ) : (
-                    displayUsers.map((user) => (
+                    displayUsers.map((user) => {
+                    const isAdmin = isAdminUser(user);
+
+                    return (
+                      
                       <tr
                         key={user.id}
                         className={`hover:bg-primary/5 transition-colors h-24.5 ${
-                          isAdminUser(user) ? 'bg-amber-50/40' : ''
-                        }`}
+                        isAdmin ? 'bg-amber-50/40' : ''
+                      }`}
                       >
                         {/* Cột Học viên */}
                         <td className="px-6 py-5">
                           <div className="flex items-center gap-3 overflow-hidden">
-                            <div className="h-10 w-10 shrink-0 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary text-sm">
-                              {user.fullName?.charAt(0).toUpperCase()}
+                            <div className={`h-10 w-10 shrink-0 rounded-full flex items-center justify-center font-bold text-sm ${
+                              isAdmin 
+                                ? 'bg-amber-100 text-amber-700' 
+                                : 'bg-primary/10 text-primary'
+                            }`}>
+                              {isAdmin ? (
+                                <span className="material-symbols-outlined text-xl">admin_panel_settings</span>
+                              ) : (
+                                user.fullName?.charAt(0).toUpperCase()
+                              )}
                             </div>
-                            <span className="truncate font-bold text-sm text-[#181114]">{user.fullName}</span>
+
+                            <div className="min-w-0">
+                              <span className="truncate font-bold text-sm text-[#181114] block">
+                                {user.fullName}
+                              </span>
+
+                              {isAdmin && (
+                                <span className="text-[10px] text-amber-600 font-bold uppercase">
+                                  Tài khoản quản trị
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </td>
 
                         {/* Cột Trạng thái */}
                         <td className="px-4 py-5 text-center">
-                          <span className={`text-sm font-bold ${user.isLocked ? "text-red-500" : "text-green-500"}`}>
-                            {user.isLocked ? "Đã khóa" : "Hoạt động"}
+                          <span className={`inline-flex items-center gap-1 text-xs font-bold px-3 py-1 rounded-full ${
+                            user.isLocked
+                              ? 'bg-red-50 text-red-500 border border-red-100'
+                              : isAdmin
+                                ? 'bg-amber-50 text-amber-700 border border-amber-100'
+                                : 'bg-green-50 text-green-600 border border-green-100'
+                          }`}>
+                            <span className="material-symbols-outlined text-[15px]">
+                              {user.isLocked ? 'lock' : isAdmin ? 'verified_user' : 'check_circle'}
+                            </span>
+                            {user.isLocked ? 'Đã khóa' : isAdmin ? 'Quản trị' : 'Hoạt động'}
                           </span>
                         </td>
 
                         {/* Cột Tiến độ */}
                        <td className="px-8 py-5 text-center">
-                        <button 
-                          onClick={() => handleViewDetail(user.id)}
-                          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary border border-primary/20 hover:bg-primary hover:text-white transition-all duration-300 group shadow-sm"
-                        >
-                          <span className="material-symbols-outlined text-[18px] group-hover:rotate-180 transition-transform duration-500">
-                            monitoring
-                          </span>
-                          <span className="text-xs font-bold uppercase tracking-wider">Xem tiến độ</span>
-                        </button>
-                        
-                        {/* Chú thích nhỏ bên dưới nếu muốn */}
-                        {/* <p className="text-[9px] text-slate-400 mt-1 font-medium italic">Click để tính toán 70/30</p> */}
-                      </td>
+                          {isAdmin ? (
+                            <span className="text-xs text-slate-400 italic">
+                              Không áp dụng với Admin
+                            </span>
+                          ) : (
+                            <button 
+                              onClick={() => handleViewDetail(user.id)}
+                              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary border border-primary/20 hover:bg-primary hover:text-white transition-all duration-300 group shadow-sm"
+                            >
+                              <span className="material-symbols-outlined text-[18px] group-hover:rotate-180 transition-transform duration-500">
+                                monitoring
+                              </span>
+                              <span className="text-xs font-bold uppercase tracking-wider">
+                                Xem tiến độ
+                              </span>
+                            </button>
+                          )}
+                        </td>
 
                         {/* Cột Mục tiêu (JLPT) */}
                         <td className="px-4 py-5 text-center">
-                          <span className="px-3 py-1 bg-[#f287b6]/10 text-primary rounded-lg text-xs font-bold uppercase border border-[#f287b6]/20">
-                            {user.levelName || 'N5'}
-                          </span>
+                          {isAdmin ? (
+                            <span className="text-xs text-slate-400 italic">
+                              Không áp dụng
+                            </span>
+                          ) : (
+                            <span className="px-3 py-1 bg-[#f287b6]/10 text-primary rounded-lg text-xs font-bold uppercase border border-[#f287b6]/20">
+                              {user.levelName || 'N5'}
+                            </span>
+                          )}
                         </td>
 
                         {/* Cột Email */}
@@ -285,6 +356,12 @@ const LearnerList: React.FC = () => {
 
                         {/* Cột Vai trò — dropdown đổi role */}
                         <td className="px-4 py-5 text-center">
+                          {isAdmin ? (
+                          <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-amber-50 text-amber-700 border border-amber-100 text-xs font-bold">
+                            <span className="material-symbols-outlined text-[16px]">shield_person</span>
+                            Quản trị viên
+                          </span>
+                        ) : (
                           <div className="relative inline-block w-full max-w-40 mx-auto">
                             <select
                               aria-label={`Đổi vai trò cho ${user.fullName}`}
@@ -315,26 +392,38 @@ const LearnerList: React.FC = () => {
                               expand_more
                             </span>
                           </div>
+                           )}
                         </td>
 
                         {/* Cột Thao tác */}
                         <td className="px-4 py-5 text-right">
                           <div className="flex items-center justify-center gap-2">
-                            <button 
-                              onClick={() => dispatch(toggleUserLock({ userId: user.id, isLocked: user.isLocked }))}
-                              className={`p-2 rounded-lg border border-[#f4f0f2] transition-all ${
-                                user.isLocked ? 'bg-green-50 text-green-600 border-green-100 hover:bg-green-100' : 'bg-white text-[#886373] hover:text-red-500 hover:bg-red-50'
-                              }`}
-                              title={user.isLocked ? "Mở khóa tài khoản" : "Khóa tài khoản"}
-                            >
-                              <span className="material-symbols-outlined text-lg">
-                                {user.isLocked ? 'lock_open' : 'lock'}
+                            {isAdmin ? (
+                              <span className="inline-flex items-center gap-1 text-xs text-slate-400 italic">
+                                <span className="material-symbols-outlined text-[16px]">block</span>
+                                Không thao tác
                               </span>
-                            </button>
+                            ) : (
+                              <button 
+                                onClick={() => dispatch(toggleUserLock({ userId: user.id, isLocked: user.isLocked }))}
+                                className={`p-2 rounded-lg border border-[#f4f0f2] transition-all ${
+                                  user.isLocked 
+                                    ? 'bg-green-50 text-green-600 border-green-100 hover:bg-green-100' 
+                                    : 'bg-white text-[#886373] hover:text-red-500 hover:bg-red-50'
+                                }`}
+                                title={user.isLocked ? "Mở khóa tài khoản" : "Khóa tài khoản"}
+                              >
+                                <span className="material-symbols-outlined text-lg">
+                                  {user.isLocked ? 'lock_open' : 'lock'}
+                                </span>
+                              </button>
+                            )}
                           </div>
                         </td>
+                        
                       </tr>
-                    ))
+                      );
+                    })
                   )}
                 </tbody>
               </table>
@@ -351,9 +440,17 @@ const LearnerList: React.FC = () => {
                 ✕
               </button>
 
-              <h2 className="text-xl font-bold mb-6">
+              <h2 className="text-xl font-bold mb-2">
                 Chi tiết tiến độ học viên
               </h2>
+              {selectedProgress && !isFetchingDetail && (
+                <p className="text-sm text-primary font-bold mb-6">
+                  Tiến độ tổng: {selectedProgress.totalPercent}% · {selectedProgress.currentLevelName}
+                </p>
+              )}
+              {isFetchingDetail && (
+                <p className="text-sm text-slate-400 mb-6 animate-pulse">Đang tính toán...</p>
+              )}
              <div className="space-y-4"> 
                 {/* Lesson */}
                 <div className="p-4 bg-zinc-50 rounded-xl border border-zinc-100">

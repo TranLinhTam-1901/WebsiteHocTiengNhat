@@ -94,38 +94,6 @@ const DeckCreatePage: React.FC = () => {
         loadProfile();
     }, []);
 
-    // useEffect(() => {
-    //     if (!editDeckId) return;
-    //     let cancelled = false;
-    //     (async () => {
-    //         setEditLoading(true);
-    //         try {
-    //             const [decks, items] = await Promise.all([
-    //                 FlashcardService.getDecks(),
-    //                 FlashcardService.getDeckItems(editDeckId),
-    //             ]);
-    //             if (cancelled) return;
-    //             const d = decks.find((x) => x.deckID === editDeckId);
-    //             if (d) {
-    //                 setName(d.skillName);
-    //                 setDescription(d.description ?? '');
-    //             }
-    //             setSelectedEntries(
-    //                 items.map((i) => ({ entityId: i.entityID, itemType: Number(i.itemType) as SkillType }))
-    //             );
-    //         } catch (e) {
-    //             console.error(e);
-    //             window.alert('Không tải được bộ thẻ để sửa.');
-    //             navigate(deckListReturnPath(new URLSearchParams(window.location.search)));
-    //         } finally {
-    //             if (!cancelled) setEditLoading(false);
-    //         }
-    //     })();
-    //     return () => {
-    //         cancelled = true;
-    //     };
-    // }, [editDeckId, navigate]);
-
     useEffect(() => {
         if (!editDeckId) return;
         let cancelled = false;
@@ -236,7 +204,6 @@ const DeckCreatePage: React.FC = () => {
         }
     };
 
-    
     const buildPayload = (): { name: string; description?: string; items: DeckItemRefDto[] } => ({
         name: name.trim(),
         description: description.trim() || undefined,

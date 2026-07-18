@@ -10,14 +10,13 @@ namespace QuizzTiengNhat.Models
         
         public Guid CourseID { get; set; }
         public string Title { get; set; }
-        public SkillType SkillType { get; set; } // Vocabulary, Grammar...
-        public int Difficulty { get; set; }
         
         [Column("Priority")]
         public int SortOrder { get; set; }
 
         // Navigation properties
-       public virtual Courses Course { get; set; }  = new Courses();
+       [ForeignKey("CourseID")]
+        public virtual Courses? Course { get; set; }
         public virtual ICollection<Progress> Progresses { get; set; }
         public virtual ICollection<Questions> Questions { get; set; }
         public virtual ICollection<Lessons_Topic> LessonTopics { get; set; } = new List<Lessons_Topic>(); // Kiểu "n"

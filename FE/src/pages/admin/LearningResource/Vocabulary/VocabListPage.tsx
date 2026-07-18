@@ -3,6 +3,7 @@ import AdminHeader from '../../../../components/layout/admin/AdminHeader';
 import { Link } from 'react-router-dom';
 import { vocabService } from '../../../../services/Admin/vocabService';
 import { VocabularyItem } from '../../../../interfaces/Admin/Vocabulary';
+import { truncateChars } from '../../../../utils/truncateDisplay';
 
 const VocabularyListPage: React.FC = () => {
   const [vocabList, setVocabList] = useState<VocabularyItem[]>([]);
@@ -509,7 +510,7 @@ const VocabularyListPage: React.FC = () => {
                     <div className="flex justify-end max-w-[70%] items-center">
                       <div className="flex items-center gap-2">
                         <span className="px-2.5 py-1 bg-primary/5 border border-primary/20 text-primary text-[15px] font-bold rounded-lg truncate max-w-32 whitespace-nowrap italic">
-                          {typeof item.topics[0] === 'string' ? item.topics[0] : (item.topics[0].topicName || item.topics[0].topicID)}
+                          {typeof item.topics[0] === 'string' ? item.topics[0] : (item.topics[0]?.topicName || item.topics[0]?.topicID)}
                         </span>
 
                         {item.topics.length > 1 && (
@@ -522,22 +523,30 @@ const VocabularyListPage: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Word Content: Chữ siêu to cố định (Bỏ hover scale) */}
-                  <div className="flex flex-col items-center mb-5">
-                    <span className="text-primary text-[18px] font-japanese mb-1 font-bold italic tracking-wide">
-                      {item.reading}
+                  {/* Word Content */}
+                  <div className="flex flex-col items-center mb-5 w-full max-w-full px-2">
+                    <span
+                      className="text-primary text-[18px] font-japanese mb-5 font-bold italic tracking-wide truncate max-w-full"
+                      title={item.reading || undefined}
+                    >
+                      {truncateChars(item.reading, 28, '—')}
                     </span>
-                    <span className="font-japanese text-[65px] font-black text-[#181114] tracking-tighter transition-colors duration-300">
-                      {item.word}
+                    <span
+                      className="font-japanese text-[50px] font-black mb-8 text-[#181114] tracking-tighter transition-colors duration-300 truncate max-w-full leading-none"
+                      title={item.word || undefined}
+                    >
+                      {truncateChars(item.word, 8, '—')}
                     </span>
                   </div>
 
                   <div className="w-12 h-1.5 bg-primary/10 rounded-full mb-6"></div>
 
-                  {/* Meaning: Chữ lớn (16px) cố định */}
-                  <div className="flex-1 flex items-start justify-center px-2">
-                    <p className="text-[20px] font-bold text-[#5a434d] leading-relaxed line-clamp-3 italic">
-                      "{item.meaning}"
+                  <div className="flex-1 flex items-start justify-center px-2 w-full">
+                    <p
+                      className="text-[20px] font-bold text-[#5a434d] leading-relaxed italic truncate max-w-full"
+                      title={item.meaning || undefined}
+                    >
+                      &quot;{truncateChars(item.meaning, 52, '—')}&quot;
                     </p>
                   </div>
                   

@@ -136,7 +136,7 @@ namespace QuizzTiengNhat.Controllers.Learners
                 var lessons = await _context.Lessons.AsNoTracking()
                     .Where(l => l.CourseID == courseId && l.Course.LevelID == user.LevelID.Value)
                     .OrderBy(l => l.SortOrder)
-                    .Select(l => new { l.LessonID, l.Title, l.Difficulty, l.SortOrder })
+                    .Select(l => new { l.LessonID, l.Title,l.SortOrder })
                     .ToListAsync();
 
                 if (!lessons.Any())
@@ -234,7 +234,7 @@ namespace QuizzTiengNhat.Controllers.Learners
                     {
                         LessonID = l.LessonID,
                         Title = l.Title,
-                        Difficulty = l.Difficulty,
+                       
                         SortOrder = l.SortOrder,
                         TopicID = topicId,
                         TopicName = topicId.HasValue && topicNameLookup.TryGetValue(topicId.Value, out var tn) ? tn : null,

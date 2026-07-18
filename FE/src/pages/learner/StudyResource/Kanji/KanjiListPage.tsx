@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { learnerKanjiService, LearnerRadicalMetadata } from '../../../../services/Learner/learnerKanjiService';
+import { truncateChars, truncateListDisplay } from '../../../../utils/truncateDisplay';
 import LearnerHeader from '../../../../components/layout/learner/LearnerHeader';
 import { LearnerKanjiListItem } from '../../../../interfaces/Learner/StudyResource';
 
@@ -144,7 +145,7 @@ const StudyKanjiListPage: React.FC = () => {
   return (
     <div className="flex flex-col h-full bg-background-light font-display text-[#181114]">
       <LearnerHeader>
-        <div className="flex items-center gap-4 w-full flex-wrap">
+        <div className="flex items-center gap-240 w-full flex-wrap">
           <div className="flex flex-col flex-1 min-w-[200px]">
             <h2 className="text-xl font-bold text-[#181114]">HÁN TỰ</h2>
           </div>
@@ -185,8 +186,10 @@ const StudyKanjiListPage: React.FC = () => {
               {showFilter && (
                 <>
                   <div className="fixed inset-0 z-10" onClick={() => setShowFilter(false)} />
-                  <div className="absolute top-full left-0 mt-3 w-[min(100vw-2rem,28rem)] max-h-[70vh] overflow-y-auto bg-white rounded-[2.5rem] shadow-[0_25px_70px_rgba(0,0,0,0.15)] border border-[#f4f0f2] p-8 z-20 animate-in fade-in zoom-in-95 duration-200">
-                    <div className="flex gap-2 mb-6 border-b border-[#f4f0f2] pb-2 flex-wrap">
+                  <div className="absolute top-full left-0 mt-3 w-396.25 h-auto bg-white rounded-[2.5rem] shadow-[0_25px_70px_rgba(0,0,0,0.15)] border border-[#f4f0f2] p-8 z-20 animate-in fade-in zoom-in-95 duration-200">
+                    
+                    {/* Thanh điều hướng trang Menu */}
+                    <div className="flex gap-4 mb-6 border-b border-[#f4f0f2] pb-2">
                       {[
                         { id: 1, label: 'Cơ bản & Chủ đề' },
                         { id: 2, label: 'Bộ 1–4' },
@@ -409,14 +412,12 @@ const StudyKanjiListPage: React.FC = () => {
               <Link
                 to={`/learner/studyresource/kanji/${kanji.id}`}
                 className="absolute right-3 top-1/2 -translate-y-1/2 flex translate-x-14 group-hover:translate-x-0 opacity-0 group-hover:opacity-100 transition-all duration-300 z-30 size-12 rounded-full bg-white shadow-xl border border-[#f4f0f2] items-center justify-center text-primary hover:border-primary no-underline"
+                title="Xem chi tiết"
               >
                 <span className="material-symbols-outlined text-xl">visibility</span>
               </Link>
 
-              <Link
-                to={`/learner/studyresource/kanji/${kanji.id}`}
-                className="p-6 flex-1 flex flex-col no-underline text-inherit"
-              >
+              <div className="p-6 flex-1 flex flex-col">
                 <div className="flex items-start justify-between mb-2">
                   <span className={`px-2 py-0.5 text-[15px] font-bold rounded border ${getLevelStyle(kanji.levelName)}`}>
                     {kanji.levelName || '—'}
@@ -430,19 +431,34 @@ const StudyKanjiListPage: React.FC = () => {
                 </div>
 
                 <div className="flex-1 flex flex-col items-center justify-center py-4">
-                  <span className="text-7xl font-japanese font-bold text-[#181114] group-hover:scale-105 transition-transform duration-500">
+                  <span className="text-7xl font-japanese font-bold text-[#181114]">
                     {kanji.character}
                   </span>
-                  <div className="flex flex-col gap-2 w-full text-center mt-4">
-                    <p className="text-[15px] font-japanese text-[#181114]">Âm On: {kanji.onyomi || '—'}</p>
-                    <p className="text-[15px] font-japanese text-[#181114]">Âm Kun: {kanji.kunyomi || '—'}</p>
+                  <div className="flex flex-col gap-2 w-full text-center mt-4 px-1">
+                    <p
+                      className="text-[15px] font-japanese text-[#181114] truncate"
+                      title={kanji.onyomi || undefined}
+                    >
+                      Âm On: {truncateListDisplay(kanji.onyomi, 2)}
+                    </p>
+                    <p
+                      className="text-[15px] font-japanese text-[#181114] truncate"
+                      title={kanji.kunyomi || undefined}
+                    >
+                      Âm Kun: {truncateListDisplay(kanji.kunyomi, 2)}
+                    </p>
                   </div>
                 </div>
 
-                <div className="mt-auto pt-4 border-t border-[#f4f0f2] text-center">
-                  <p className="text-[18px] font-bold text-[#181114]">{kanji.meaning || 'Chưa có nghĩa'}</p>
+                <div className="mt-auto pt-4 border-t border-[#f4f0f2] text-center px-2">
+                  <p
+                    className="text-[18px] font-bold text-[#181114] truncate"
+                    title={kanji.meaning || undefined}
+                  >
+                    {truncateChars(kanji.meaning, 48, 'Chưa có nghĩa')}
+                  </p>
                 </div>
-              </Link>
+              </div>
             </div>
           ))}
         </div>

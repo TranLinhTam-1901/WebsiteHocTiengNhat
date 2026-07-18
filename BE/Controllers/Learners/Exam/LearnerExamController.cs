@@ -679,6 +679,7 @@ public class LearnerExamController : ControllerBase
             {
                 QuestionID = question.QuestionID,
                 Content = question.Content,
+                Explanation = question.Explanation, 
                 IsCorrect = CalcIsCorrect(question, userAnswer),
                 ResponseTime = GetResponseTime(question, userAnswer),
                 ImageUrl = question.ImageURL,
@@ -702,6 +703,7 @@ public class LearnerExamController : ControllerBase
                 SkillType = question.SkillType.ToString(),
                 QuestionID = question.QuestionID,
                 Content = question.Content,
+                Explanation = question.Explanation,
                 OrderIndex = x.OrderIndex,
                 Score = x.Score,
                 ImageURL = question.ImageURL,
@@ -783,6 +785,8 @@ public class LearnerExamController : ControllerBase
     {
         var exams = await _context.Exams
             .Include(e => e.Level)
+            .Include(e => e.Template!)
+                .ThenInclude(t => t.JLPTLevel)
             .Include(e => e.ExamQuestions)
                 .ThenInclude(eq => eq.Question)
             .Where(e => e.Type == ExamType.MockTest && e.TemplateID != null) // Chỉ lấy đề thi thử JLPT có TemplateID
@@ -791,7 +795,9 @@ public class LearnerExamController : ControllerBase
             {
                 ExamID = e.ExamID,
                 Title = e.Title,
-                LevelName = e.Level!.LevelName,
+                LevelName = e.Level != null
+                    ? e.Level.LevelName
+                    : (e.Template != null ? e.Template.JLPTLevel.LevelName : string.Empty),
                 Duration = e.Duration,
                 TotalScore = e.TotalMaxScore,
                 PassingScore = e.PassingScore,
@@ -818,7 +824,9 @@ public class LearnerExamController : ControllerBase
     {
         var exam = await _context.Exams
             .Include(e => e.Level)
-            .Include(e => e.Template)
+            .Include(e => e.Template!)
+                .ThenInclude(t => t.JLPTLevel)
+            .Include(e => e.Template!)
                 .ThenInclude(t => t.Details)
             .Include(e => e.ExamQuestions)
                 .ThenInclude(eq => eq.Question)
@@ -839,11 +847,15 @@ public class LearnerExamController : ControllerBase
                 ? eq.Question.SubQuestions.Count
                 : 1);
 
+        var levelName = exam.Level?.LevelName
+            ?? exam.Template?.JLPTLevel?.LevelName
+            ?? string.Empty;
+
         var response = new ExamSummaryDTO
         {
             ExamID = exam.ExamID,
             Title = exam.Title,
-            LevelName = exam.Level!.LevelName,
+            LevelName = levelName,
             Duration = exam.Duration,
             TotalScore = exam.TotalMaxScore,
             PassingScore = exam.PassingScore,
@@ -851,9 +863,9 @@ public class LearnerExamController : ControllerBase
 
             MinScores = new MinScoreDTO
             {
-                Language = (int)(exam.Template?.MinLanguageKnowledgeScore ?? 0),
-                Reading = (int)(exam.Template?.MinReadingScore ?? 0),
-                Listening = (int)(exam.Template?.MinListeningScore ?? 0)
+                Language = (int)(exam.Template?.MinLanguageKnowledgeScore ?? exam.MinLanguageKnowledgeScore),
+                Reading = (int)(exam.Template?.MinReadingScore ?? exam.MinReadingScore),
+                Listening = (int)(exam.Template?.MinListeningScore ?? exam.MinListeningScore)
             },
 
             Sections = examQuestions

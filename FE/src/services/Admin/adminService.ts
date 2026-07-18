@@ -1,6 +1,7 @@
 import axiosInstance from "../../utils/axiosInstance";
 import { User, UpdateRoleRequest } from "../../interfaces/User";
 import { DashboardProgressResponse, ProgressDetailResponse } from '../../interfaces/Admin/ProgressDetail';
+import { LearnersProgressSummary } from '../../interfaces/Admin/LearnersProgressSummary';
 
 const adminService = {
   // Lấy danh sách toàn bộ người dùng
@@ -20,7 +21,14 @@ const adminService = {
       `/admin/management/learner-progress/${learnerId}`
     );
     return response.data;
-  }
+  },
+
+  getLearnersProgressSummary: async (): Promise<LearnersProgressSummary> => {
+    const response = await axiosInstance.get<LearnersProgressSummary>(
+      '/admin/management/learners-progress-summary'
+    );
+    return response.data;
+  },
 
 };
 

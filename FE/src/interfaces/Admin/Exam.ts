@@ -31,6 +31,7 @@ export interface LessonFilterResponse {
 
 // Request gửi lên API generate
 export interface GenerateExamRequest {
+    templateID?: string | null;
     title: string;
     duration: number;
     levelID: string;

@@ -6,12 +6,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using QuizzTiengNhat.Configurations;
+using QuizzTiengNhat.Data.Seed;
 using QuizzTiengNhat.Data;
 using QuizzTiengNhat.Hubs;
 using QuizzTiengNhat.Middlewares;
 using QuizzTiengNhat.Models;
 using QuizzTiengNhat.Providers;
 using QuizzTiengNhat.Services;
+using QuizzTiengNhat.Services.Admins;
 using QuizzTiengNhat.Services.Learners;
 using System.Security.Claims;
 using System.Text;
@@ -119,6 +121,7 @@ builder.Services.AddScoped<IFlashcardService, FlashcardService>();
 builder.Services.AddScoped<IQuestionService, QuestionService>();
 builder.Services.AddScoped<IUserProgressService, UserProgressService>();
 builder.Services.AddScoped<IProgressService, ProgressService>();
+builder.Services.AddScoped<IAdminDashboardService, AdminDashboardService>();
 
 builder.Services.Configure<OllamaOptions>(builder.Configuration.GetSection(OllamaOptions.SectionName));
 builder.Services.AddHttpClient<IOllamaTutorService, OllamaTutorService>((sp, client) =>
@@ -158,6 +161,7 @@ builder.Services.AddHttpClient<IVoicevoxTtsService, VoicevoxTtsService>((sp, cli
 });
 
 builder.Services.AddScoped<ITutorArchiveService, TutorArchiveService>();
+builder.Services.AddScoped<ITutorKnowledgeRetriever, TutorKnowledgeRetriever>();
 builder.Services.AddSingleton<IBrowserSessionHubCoordinator, BrowserSessionHubCoordinator>();
 
 // Đảm bảo tạo folder wwwroot nếu nó chưa tồn tại để WebRootPath không bị null
@@ -182,9 +186,15 @@ using (var scope = app.Services.CreateScope())
     var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
     var context = services.GetRequiredService<ApplicationDbContext>();
 
+     // Apply migration
+    await context.Database.MigrateAsync();
+
+    // Seed Identity
     await DbInitializer.SeedRoles(roleManager);
     await DbInitializer.SeedAdminUser(userManager);
-    await Data.Initialize(context);
+
+    // Seed hệ thống học tiếng Nhật
+    await SeedData.InitializeAsync(context);
 }
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -208,6 +218,13 @@ app.UseStaticFiles(new StaticFileOptions
     OnPrepareResponse = ctx => {
         ctx.Context.Response.Headers.Append("Access-Control-Allow-Origin", "*");
         ctx.Context.Response.Headers.Append("Accept-Ranges", "bytes");
+
+        var physicalPath = ctx.File.PhysicalPath ?? string.Empty;
+        if (physicalPath.Contains("listening-audios", StringComparison.OrdinalIgnoreCase)
+            || physicalPath.Contains("vocab-audios", StringComparison.OrdinalIgnoreCase))
+        {
+            ctx.Context.Response.ContentType = "audio/mpeg";
+        }
     }
 });
 

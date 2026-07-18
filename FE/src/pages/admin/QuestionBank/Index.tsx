@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import QuestionService from '../../../services/Admin/questionService';
-import { QuestionListItem, QuestionType} from '../../../interfaces/Admin/QuestionBank';
+import { QuestionListItem, QuestionType, SkillType} from '../../../interfaces/Admin/QuestionBank';
 import AdminHeader from '../../../components/layout/admin/AdminHeader';
 import { Link } from 'react-router-dom';
 import { DIFFICULTY_OPTIONS } from '../../../constants/admin/questionOptions';
 import { useNavigate } from 'react-router-dom';
+import { getVisiblePages } from '../../../utils/pagination';
 
 const QuestionListView = () => {
     const [questions, setQuestions] = useState<QuestionListItem[]>([]);
@@ -28,8 +29,14 @@ const QuestionListView = () => {
     });
     const [openFilter, setOpenFilter] = useState<string | null>(null);
 
+    const EXCLUDED_SKILL_TYPES = [SkillType.Reading, SkillType.Listening];
+
     // --- LOGIC LỌC TỔNG HỢP ---
     const filteredQuestions = questions.filter((item) => {
+        if (EXCLUDED_SKILL_TYPES.includes(Number(item.skillType))) {
+            return false;
+        }
+
         const search = searchTerm.toLowerCase();
         
         const matchSearch = !searchTerm || 
@@ -569,19 +576,47 @@ const QuestionListView = () => {
                             </span> của {filteredQuestions.length} kết quả
                         </p>
                         <div className="flex items-center gap-2">
-                            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                                <button
-                                    key={page}
-                                    onClick={() => setCurrentPage(page)}
-                                    className={`size-10 rounded-lg flex items-center justify-center font-bold text-sm transition-all ${
-                                        currentPage === page 
-                                        ? 'bg-primary text-white shadow-md shadow-primary/20' 
-                                        : 'bg-white text-[#886373] hover:bg-gray-100 border border-[#f4f0f2]'
-                                    }`}
-                                >
-                                    {page}
-                                </button>
-                            ))}
+                            <button
+                                type="button"
+                                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                                disabled={currentPage <= 1 || totalPages === 0}
+                                className="size-10 rounded-lg flex items-center justify-center border border-[#f4f0f2] text-[#886373] hover:bg-gray-100 transition-all disabled:opacity-40 disabled:pointer-events-none"
+                                aria-label="Trang trước"
+                            >
+                                <span className="material-symbols-outlined text-sm font-bold">chevron_left</span>
+                            </button>
+                            {getVisiblePages(currentPage, totalPages).map((item, index) =>
+                                item === 'ellipsis' ? (
+                                    <span
+                                        key={`ellipsis-${index}`}
+                                        className="size-10 flex items-center justify-center text-[#886373] font-bold text-sm select-none"
+                                    >
+                                        …
+                                    </span>
+                                ) : (
+                                    <button
+                                        key={item}
+                                        type="button"
+                                        onClick={() => setCurrentPage(item)}
+                                        className={`size-10 rounded-lg flex items-center justify-center font-bold text-sm transition-all ${
+                                            currentPage === item
+                                                ? 'bg-primary text-white shadow-md shadow-primary/20'
+                                                : 'bg-white text-[#886373] hover:bg-gray-100 border border-[#f4f0f2]'
+                                        }`}
+                                    >
+                                        {item}
+                                    </button>
+                                )
+                            )}
+                            <button
+                                type="button"
+                                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                                disabled={currentPage >= totalPages || totalPages === 0}
+                                className="size-10 rounded-lg flex items-center justify-center border border-[#f4f0f2] text-[#886373] hover:bg-gray-100 transition-all disabled:opacity-40 disabled:pointer-events-none"
+                                aria-label="Trang sau"
+                            >
+                                <span className="material-symbols-outlined text-sm font-bold">chevron_right</span>
+                            </button>
                         </div>
                     </div>
                 </div>

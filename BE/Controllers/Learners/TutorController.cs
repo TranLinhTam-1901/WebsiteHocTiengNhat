@@ -17,6 +17,7 @@ public class TutorController : ControllerBase
     private readonly IVoicevoxTtsService _voicevoxTtsService;
     private readonly ITutorArchiveService _tutorArchiveService;
     private readonly IWhisperSpeechToTextService _whisperSpeechToText;
+    private readonly ITutorKnowledgeRetriever _knowledgeRetriever;
     private readonly VoicevoxOptions _voicevoxOptions;
     private readonly WhisperOptions _whisperOptions;
 
@@ -25,6 +26,7 @@ public class TutorController : ControllerBase
         IVoicevoxTtsService voicevoxTtsService,
         ITutorArchiveService tutorArchiveService,
         IWhisperSpeechToTextService whisperSpeechToText,
+        ITutorKnowledgeRetriever knowledgeRetriever,
         IOptions<VoicevoxOptions> voicevoxOptions,
         IOptions<WhisperOptions> whisperOptions)
     {
@@ -32,6 +34,7 @@ public class TutorController : ControllerBase
         _voicevoxTtsService = voicevoxTtsService;
         _tutorArchiveService = tutorArchiveService;
         _whisperSpeechToText = whisperSpeechToText;
+        _knowledgeRetriever = knowledgeRetriever;
         _voicevoxOptions = voicevoxOptions.Value;
         _whisperOptions = whisperOptions.Value;
     }
@@ -89,7 +92,9 @@ public class TutorController : ControllerBase
 
         try
         {
-            var reply = await _ollamaTutorService.CharacterChatAsync(model.Messages, model.LearnerJlptLevel, cancellationToken);
+            var lastUserMessage = model.Messages.LastOrDefault(m => m.Role == "user")?.Content;
+            var knowledge = await _knowledgeRetriever.RetrieveAsync(lastUserMessage, model.LearnerJlptLevel, cancellationToken);
+            var reply = await _ollamaTutorService.CharacterChatAsync(model.Messages, model.LearnerJlptLevel, knowledge, cancellationToken);
             return Ok(reply);
         }
         catch (ArgumentException ex)

@@ -43,7 +43,7 @@ export const LearnerExamService = {
     return response.data;
   },
   
-// Các API bổ sung cho phần Summary và cấu trúc đề thi JLPT
+  // Các API bổ sung cho phần Summary và cấu trúc đề thi JLPT
   async getJLPTExams(): Promise<ExamListItemDTO[]> {
   const response = await axiosInstance.get(`${API_URL}/jlpt`);
   return response.data;
@@ -76,6 +76,4 @@ export const LearnerExamService = {
      const response = await axiosInstance.get(`${API_URL}/results`,{ params });
      return response.data;
   }
-
-
 };

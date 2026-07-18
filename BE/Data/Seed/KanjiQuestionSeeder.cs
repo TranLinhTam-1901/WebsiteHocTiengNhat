@@ -1,0 +1,128 @@
+using Microsoft.EntityFrameworkCore;
+using QuizzTiengNhat.Models;
+using QuizzTiengNhat.Models.Enums;
+
+namespace QuizzTiengNhat.Data.Seed
+{
+    public static class KanjiQuestionSeeder
+    {
+        private const string FilePath =
+            "Data/SeedFiles/generated/kanji_questions_generated.json";
+
+        public static async Task SeedAsync(ApplicationDbContext context)
+        {
+            var items = await JsonSeedReader.ReadListAsync<KanjiQuestionSeedDto>(FilePath);
+
+            foreach (var item in items)
+            {
+                if (string.IsNullOrWhiteSpace(item.Level) ||
+                    string.IsNullOrWhiteSpace(item.LessonTitle) ||
+                    item.Questions == null ||
+                    !item.Questions.Any())
+                {
+                    continue;
+                }
+
+                var lesson = await context.Lessons
+                    .FirstOrDefaultAsync(x => x.Title == item.LessonTitle);
+
+                if (lesson == null)
+                {
+                    Console.WriteLine(
+                        $"Skip Kanji Question '{item.Kanji}': Lesson={item.LessonTitle} not found"
+                    );
+                    continue;
+                }
+
+                foreach (var questionDto in item.Questions)
+                {
+                    if (string.IsNullOrWhiteSpace(questionDto.Content))
+                        continue;
+
+                    var exists = await context.Questions
+                        .AnyAsync(x =>
+                            x.Content == questionDto.Content &&
+                            x.LessonID == lesson.LessonID &&
+                            x.SkillType == SkillType.Kanji &&
+                            x.QuestionFormat == QuestionFormat.StandardChoice);
+
+                    if (exists) continue;
+
+                    var question = new Questions
+                    {
+                        QuestionID = Guid.NewGuid(),
+                        LessonID = lesson.LessonID,
+                        Content = questionDto.Content,
+                        Explanation = questionDto.Explanation,
+                        Difficulty = questionDto.Difficulty > 0
+                            ? questionDto.Difficulty
+                            : 1,
+                        QuestionType = QuestionType.MultipleChoice,
+                        QuestionFormat = QuestionFormat.StandardChoice,
+                        SkillType = SkillType.Kanji,
+                        Status = Status.Published,
+                        DisplayOrder = questionDto.DisplayOrder,
+                        Answers = questionDto.Answers
+                            .Where(a => !string.IsNullOrWhiteSpace(a.AnswerText))
+                            .Select(a => new Answers
+                            {
+                                AnswerID = Guid.NewGuid(),
+                                AnswerText = a.AnswerText,
+                                IsCorrect = a.IsCorrect
+                            })
+                            .ToList()
+                    };
+
+                    if (question.Answers.Count < 2 ||
+                        question.Answers.Count(a => a.IsCorrect) != 1)
+                    {
+                        Console.WriteLine(
+                            $"Skip Kanji question '{questionDto.Content}': invalid answers"
+                        );
+                        continue;
+                    }
+
+                    context.Questions.Add(question);
+                }
+
+                await context.SaveChangesAsync();
+
+                Console.WriteLine(
+                    $"Seeded Kanji Question: {item.Kanji} - {item.Level} - {item.LessonTitle}"
+                );
+            }
+        }
+
+        private class KanjiQuestionSeedDto
+        {
+            public string Level { get; set; } = "";
+            public string? CourseTitle { get; set; }
+            public string LessonTitle { get; set; } = "";
+
+            public string Kanji { get; set; } = "";
+            public string Meaning { get; set; } = "";
+            public string Reading { get; set; } = "";
+
+            public int Difficulty { get; set; } = 1;
+            public int Status { get; set; } = 1;
+
+            public List<KanjiQuestionItemSeedDto> Questions { get; set; } = new();
+        }
+
+        private class KanjiQuestionItemSeedDto
+        {
+            public string Content { get; set; } = "";
+            public string? Explanation { get; set; }
+            public int DisplayOrder { get; set; }
+            public int Difficulty { get; set; } = 1;
+
+            public List<KanjiAnswerSeedDto> Answers { get; set; } = new();
+        }
+
+        private class KanjiAnswerSeedDto
+        {
+            public string AnswerText { get; set; } = "";
+            public bool IsCorrect { get; set; }
+        }
+    }
+}
